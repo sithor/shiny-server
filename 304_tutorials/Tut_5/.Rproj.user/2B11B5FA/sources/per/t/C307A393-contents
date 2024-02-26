@@ -1,0 +1,459 @@
+---
+title: "POPLHLTH 304 tutorial 5 linear regression"
+author: "Simon Thornley"
+date: "`r format(Sys.time(), '%e %B, %Y')`"
+output: 
+ prettydoc::html_pretty:
+  theme: tactile
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+<center>
+
+![Scatterplot with regression line (blue). Vertical black lines
+represent residuals.](./images/download.png "Regression illustrated")
+
+</center>
+
+## Getting started
+
+This session, we will focus on statistical testing with R.
+
+We will learn how to:
+
+-   Plot and summarise the relationships between continuous variables.
+-   Interpret regression models
+-   Think about which variables we should adjust for in regression
+    models
+-   Interpret the model fit and summary statistics of models.
+
+We will be leaning on the
+[`finalfit`](https://finalfit.org/){target="_blank"} and
+[`car`](https://socialsciences.mcmaster.ca/jfox/Books/Companion/index.html){target="_blank"}
+libraries to do these analyses.
+
+## Rstudio cloud link
+
+The link to this project can be found
+[here](https://rstudio.cloud/project/3776223){target="_blank"}.
+
+## Before we start
+
+Cot death was an important problem in the 1980s and New Zealand
+experienced an epidemic of the disease. There was a competition between
+the lab scientists and epidemiologists over who would be able to come up
+with an answer to respond to the epidemic.
+
+The critical elements of a case-control study are the definition of
+cases and controls (the disease), and the potential exposures.
+
+Here, we will be focusing on the relationships between continuous
+variables, such as:
+
+-   Gestation at which the baby was born (weeks)
+
+-   Birth weight of the baby in grams
+
+-   The mother's age in years
+
+Although these were not the primary aim of the study, we can
+nevertheless look at these relationships using regression.
+
+When it comes to analysing *continuous* outcomes, for binary categorical
+exposures, we can use *t*-tests, however, if we have continuous
+exposures, we really need regression, and if we have more than two
+groups, we use a special type of regression called 'ANOVA' or analysis
+of variance. When we need to adjust for confounders, for binary
+outcomes, we can use stratification, however, for continuous outcomes,
+we are stuck with regression. Today, we will be using *linear*
+regression, which is most often used for continuous outcomes that are
+not counts. For count data, we usually use Poisson regression or a
+variant on this theme.
+
+## Set-up
+
+<center>
+
+![Yak shaving: Photo by Jason An at
+Unsplash.com](images/jason-an-gnZ7krk_G_o-unsplash.jpg){width="500"}
+
+</center>
+
+To set-up our session for analysis and call the necessary libraries.
+Note, that I'm using `pacman::p_load()` in place of `install.packages()`
+and `library()`. The `pacman` library shortens this procedure, and
+`p_load()` will look for a package and install it if it can't be found.
+It will also put it on the search path, like the `library()` command
+does.
+
+```{r eval = FALSE}
+if(!require(pacman)) install.packages("pacman")
+
+pacman::p_load(rio, ## package for importing data easily
+               magrittr, ## allows "piping" ("%>%") of commands to avoid brackets 
+               visdat, skimr, # data exploration 
+               car, #fancy plots
+               httr,
+               ggplot2, #fancy plots
+               dplyr, 
+               rmdHelpers,
+               kableExtra,
+               epiDisplay,
+               finalfit) # This is for making regression tables.
+```
+
+### Import our data
+
+We will use the following code:
+
+```{r eval = FALSE}
+
+missing_strings <- c("", NA, " ", "  ")
+
+url <- "https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx"
+
+df <- rio::import(url, na = missing_strings)
+
+```
+
+This effectively takes our Excel sheet from the web and pulls it into
+our computer. The `<-` is an assignment operator which names our new
+spreadsheet `df`. I've chosen the name `df` because the technical word
+for a spreadsheet in `R` is a `data.frame`.
+
+### Remove duplicates
+
+```{r eval = FALSE}
+df <- df[!duplicated(df), ]
+```
+
+### Correcting errors in the `data.frame`
+
+We'll also just inspect our key variables and correct some errors. The
+heroic `ifelse()` command is used here. The first argument is a logical
+test (so we need to use `==` if testing for equality), the value if the
+first argument returns `TRUE`, and the second argument is the value to
+return if the first argument is `FALSE`.
+
+```{r eval = FALSE}
+df$Mother_smoke %>% tab1
+
+df$Case_status %>% tab1
+
+df$Bedshare %>% tab1
+
+## correct some data entry errors!----
+
+df$Mother_smoke <- ifelse(df$Mother_smoke == 0, "No", df$Mother_smoke)
+df$Mother_smoke <- ifelse(df$Mother_smoke == "_Yes", "Yes", df$Mother_smoke)
+df$Mother_smoke %>% str
+```
+
+## Does gestation influence birth weight?
+
+We want to know whether the length of time a woman is pregnant
+influences the birth weight of their child.
+
+First of all, let's examine the crude relationship with some plots. When
+you have both a continuous exposure and outcome, then a scatterplot is
+the most appropriate. A scatterplot alone is difficult to interpret, so
+it is worthwhile adding a regression line and a smoother. It is
+convention that the outcome is on the vertical or *y*-axis, and the
+exposure is on the horizontal or *x*-axis.
+
+The `car::scatterplot()` function does all this by default. The slope of
+the line gives an indication of the strength of association.
+
+![Regression line meanings](images/regression_lines.jpg)
+
+```{r eval = FALSE}
+car::scatterplot(Birth_wt ~ Gestation, data = df)
+```
+
+We can also account for other variables. If `Mother_smoke` is thought to
+be an important variable, since babies of smokers are known to be low
+birth weight, we can see whether or not it influences the slope of the
+original plot.
+
+```{r eval = FALSE}
+car::scatterplot(Birth_wt ~ Gestation | Mother_smoke, data = df)
+```
+
+We can also tart-up the plot a bit by adding decent *x* and *y* axis
+labels, with **units**!
+
+```{r eval = FALSE}
+car::scatterplot(Birth_wt ~ Gestation | Mother_smoke, data = df,
+
+xlab = "Gestation (weeks)", ylab = "Birth weight (grams)")
+```
+
+How do you interpret the plot? Does the age of a mother influence the
+birth weight?
+
+How could you describe the plot and the relationship between the
+variables to an audience?
+
+Try writing some code to check birth weight by ethnicity `Ethnic`.
+Interpret the plot.
+
+```{r eval = FALSE}
+car::scatterplot(Birth_wt ~ Gestation | Ethnic, data = df)
+```
+
+## Crude Linear Regression model
+
+To estimate the strength of association between birth weight and
+gestational age, we will run the following code:
+
+```{r eval = FALSE}
+
+model <- lm(Birth_wt ~ Gestation, data = df)
+summary(model)
+
+```
+
+The first line creates the `model` object and the second prints a
+summary of the `model`.
+
+The line of the model is defined by two major parameters, the slope and
+the *y*-intercept.
+
+The `Estimate` part gives you the two parameters. The one for
+`Mother_age` is the slope and the one for `(Intercept)` is... well...
+yes... you guessed it.
+
+There are also a tonne of other parameters. The `R-squared` parameters
+give you an idea of how much variation is explained by the model - here
+less than 2%.
+
+The `Pr(>|t|)` gives you the *P*-value, testing whether each parameter
+is significantly different from a value of zero. Remember, a slope of
+zero is a horizontal line, and indicates *no association* or the [*null
+hypothesis*](https://www.statology.org/null-hypothesis-for-linear-regression/)
+or
+[*independence*](https://openstax.org/books/statistics/pages/3-2-independent-and-mutually-exclusive-events)
+between the two variables. The `standard error` can be used to estimate
+the 95% confidence interval (95% confidence interval = slope +/-
+1.96\*standard error). Remember, 1.96 is the 97.5th percentile of the
+standard normal distribution curve. It is calculated in `R` using the
+following code:
+
+```{r eval = TRUE}
+qnorm(0.975, mean = 0, sd = 1)
+```
+
+[![Why 1.96 is the magic number used to estimate the 95% confidence
+interval](images/NormalDist1.96.png)](https://en.wikipedia.org/wiki/1.96)
+
+The
+[`Residual standard error`](https://www.statology.org/how-to-interpret-residual-standard-error/){target="_blank"},
+despite it's name, is actually the *standard deviation* of the residuals
+and tells you about the average variation which occurs around the
+regression line. Unlike the standard error, it is not influenced by
+sample size.
+
+## Adjusting for confounding: multiple linear regression
+
+Let's imagine now that we wish to account for maternal smoking
+(`Mother_smoke`), since we believe it is a *shared common cause* of both
+the outcome (`Birth_wt`) and the exposure (`Gestation`). This is the
+definition of a *confounder*. We simply add cigarette smoking as another
+term in the model.
+
+```{r eval = FALSE}
+model <- lm(Birth_wt ~ Gestation + Mother_smoke, data = df)
+summary(model)
+```
+
+Interpret the output. What is the meaning of the $\beta$ coefficient
+associated with the `Mother_smoke` variable?
+
+Is the `Mother_smoke` variable significantly associated with `Birth_wt`?
+How can we tell?
+
+Has the $\beta$ coefficient for `Gestation` changed with the addition of
+`Mother_smoke`? How much change in the $\beta$ coefficient is likely to
+represent substantial confounding of the gestation --\> birth weight
+relationship?
+
+How would we change the code to look at the crude or unadjusted
+relationship between `Mother_smoke` and `Birth_wt`? How could we plot
+the relationship between these two variables? (Hint: a scatter plot is
+not going to be the best choice here! You may have to think back to past
+lectures!).
+
+## Using `finalfit()` for publication quality regression tables
+
+In epidemiology, it is usual to present a second table after your
+table 1. This is usually a table of regression coefficients and 95%
+confidence intervals, and *P*-values. It usually has crude and adjusted
+$\beta$ coefficients. The following code will help us here.
+
+```{r eval = FALSE}
+## explanatory variables are exposures of interest and confounders.
+## Also known as 'predictors'
+explanatory <- c("Mother_age", "Mother_smoke", "Gestation", "Ethnic")
+
+## this is the outcome
+dependent <- "Birth_wt"
+
+## This little bit of code saves a world of pain and runs
+## all the crude and adjusted models and summarises into
+## a table. Wonderful...!!
+## Note: finalfit() will select the appropriate model
+## depending on the nature of the outcome variable
+## Here: continuous or numeric variable = linear regression.
+## You have to be cautious about this, as the selected model may not be
+## the one you are intending to use. Be careful and study the 
+## finalfit() documentation when you are using this in the wild!
+
+df %>%
+  finalfit::finalfit(dependent, 
+                     explanatory, metrics = FALSE) -> regression_table
+
+## Fancy format for cutting and pasting into Excel
+regress_tab <- knitr::kable(regression_table, row.names = FALSE, 
+                            align = c("l", "l", "r", "r", "r"))
+
+## Puts output into viewer so that it can be cut and pasted into Excel, 
+## then Word.
+regress_tab %>% kableExtra::kable_styling()
+
+
+```
+
+Interpret the output. How could this be interpreted biologically?
+
+What is the average or mean difference in birth weight of smoker's
+babies, compared to non-smokers?
+
+How can you describe the relationship between `Mother_age` and
+`Birth_wt`?
+
+How would you explain the difference between the crude and adjusted
+$\beta$ coefficients?
+
+On average, how much weight does a baby put on for each additional week
+of gestation?
+
+What is the difference between the crude and adjusted $\beta$
+coefficients?
+
+Describe the association between ethnicity and birth weight.
+
+Rerun the code with
+
+```{r eval = FALSE}
+
+df %>%
+  finalfit::finalfit(dependent,
+  explanatory, metrics = TRUE) -> regression_table
+
+```
+
+What are the metrics telling you?
+
+What proportion of the overall variation in the model is explained by
+the data?
+
+## Model fit
+
+There are many components of a model which can be evaluated. This is a
+complex topic. I won't delve into the detail, but rather recommend using
+a marginal model plot for checking the relationship between model
+predicted and observed data. The following code will do this:
+
+```{r eval = FALSE}
+
+df$Mother_smoke <- as.factor(df$Mother_smoke)
+
+df$Ethnic <- as.factor(df$Ethnic)
+
+model <- lm(Birth_wt ~ Gestation + Mother_smoke + 
+            Mother_age + Ethnic, data = df)
+
+summary(model)
+
+car::marginalModelPlot(model)
+
+```
+
+What is the nature of the overall fit in the data here?
+
+A good fit is indicated by alignment between `Data` (blue line) and the
+`Model` (red line).
+
+Poor fit is indicated by lack of alignment between these lines. That is,
+with perfect model fit, you should see both lines very close or
+superimposed on each other.
+
+Often, you see that for more extreme or outlying values of an exposure,
+there is deviation of the `Data` from the `Model`. This may not
+invalidate your model, but would be important to be aware of, and may be
+worthwhile highlighting to the readers that you are communicating with
+in your manuscript.
+
+## Homework
+
+<center>
+
+[![Photo by Luwadlin Bosman on
+Unsplash.com](images/luwadlin-bosman-K4exz1NVloo-unsplash.jpg){width="500"}](https://unsplash.com/s/photos/salt)
+
+</center>
+
+Use the following code to access the `BP` data.frame which has collected
+information on a number of people with regard to their added salt intake
+(`saltadd`), birthdate and age.
+
+The following code will access the data.frame and put it into your
+*Global environment*.
+
+`data("BP"); head(BP)`
+
+Note: you will need to make sure that `epiDisplay` is loaded in your
+session.
+
+You wish to evaluate the relationship between a person's age and
+systolic blood pressure in mmHg (`sbp`).
+
+You can calculate age from the participant's birth date with the
+following code.
+
+```{r eval = FALSE}
+
+BP$age_years <- difftime(as.POSIXct(Sys.Date()), BP$birthdate,
+                   units = "days") %>% as.numeric %>% divide_by(365.25)
+
+```
+
+Check the distribution of your age variable. The first part of the code
+calculates the time difference in days from today's date to their
+birthdate. Why do you think we need to divide the number of days by
+365.25?
+
+Adapt the previous code to plot the relationship between age
+(`age_year`: exposure) and systolic blood pressure (`sbp`: outcome).
+Include `saltadd` in the plot.
+
+Is the association between salt intake and systolic blood pressure
+greater for younger or older people?
+
+Create a model to explore the relationship between the two variables,
+adjusted for added salt (`saltadd`).
+
+Interpret the model.
+
+What is the mean difference in systolic blood pressure for every
+increasing year of age?
+
+What is the mean difference in systolic blood pressure between those who
+add salt and those who don't?
+
+How much of the variation in systolic blood pressure is explained by the
+model?
+
+How well does the model fit the data?

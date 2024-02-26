@@ -1,0 +1,2129 @@
+rm(list = ls())
+options(width = 300)
+
+# dev.off(); plot.new()
+######## comment out top section to allow Rmd to run
+ if(!require(pacman)) install.packages("pacman")
+#webshot::install_phantomjs()
+# pacman::p_unlock() ## removes any locks from failed installs.
+# 
+# .libPaths()
+
+# update.packages(ask = FALSE, type = "win.binary")
+# 
+ # if (!(require(iNZightPlots) & require(iNZightRegression))) install.packages( c('iNZightPlots',
+ #       'iNZightRegression'), 
+ #         repos = c('https://r.docker.stat.auckland.ac.nz',
+ #         'https://cran.rstudio.com'))
+
+ ## Problem with ggplot2 dependencies.
+#  # install.packages("ggplot2")
+#   remove.packages("vctrs")
+# install.packages("vctrs")
+# library(ggplot2)
+   
+## if update.packages fails, try remove.packages() for offending package
+
+ 
+pacman::p_load(magrittr, tidyverse, epiDisplay, rio, visdat, 
+               skimr, dataMaid, stringi, stringr, 
+               data.table, GGally,
+                xfun, flextable, Publish, epiDisplay, lattice, survey,
+               ETLUtils, DiagrammeR)
+## import data
+df <- rio::import("./data/S01_ScabiesProject_finalv2.xlsx", sheet = 1)
+df %>% names
+source("function.R")
+
+# df %>% head
+
+
+## PCR results
+## Final results
+dfPCR <-  rio::import("./data/qPCR Results_all.xlsx", 
+                      sheet = 1)
+
+## n = 64 PCR samples.
+
+nrow(dfPCR)
+tests <- dfPCR$`qPCR result` %>% tab1(graph = FALSE)
+tests %>% str
+tests$output.table["Positive", "Frequency"]
+
+
+## Symptom questionnaire (History)
+
+## https://docs.google.com/spreadsheets/d/1UrCTXTMncuMuGyJ9VtAcgBfOrsfpjmpoTELKpS6ui18/edit#gid=2084339685
+
+                                                         
+dfH <- rio::import("./data/3. Scabies Survey Questionnaire - Caregiver (Responses).xlsx", 
+                   sheet = 1)
+
+dfH %>% names
+dfH
+dfH1 <- rio::import("./data/Caregiver_form_final.xlsx", 
+                   sheet = 1)
+## n = 150 in dfH
+
+## Childcare centre data
+
+dfC <- rio::import("./data/S01_ParticipantRegistrationForm (Responses)_update.xlsx", 
+                   sheet = 1)
+
+# n = 212 in dfC
+
+dfC %>% head
+
+dfC <- dfC %>% subset(select = c(ID, `Name of the School/ECE`,
+                                 `Date of Birth`, `Name of the School/ECE`))
+# dfC %>% head
+# 
+# 
+# dfPCR %>% head
+# 
+# df %>% head
+# 
+# dfH %>% names
+
+
+
+# duplicates----
+# None found----
+stopifnot(df[duplicated(df),] %>% nrow == 0)
+stopifnot(dfPCR[duplicated(dfPCR),] %>% nrow == 0)
+stopifnot(dfH[duplicated(dfH$`3. Child's name?`),] %>% nrow == 0)
+
+names(df)[13:22]
+
+names(df)[13:22] <- c("Scabies_where_body",
+                      "Scabies_how_many_lesions",
+                      "Scabies_infected",
+                      "Impetigo",
+                      "Other_derm_diagnosis",
+                      "Infection_how_many_lesions",
+                      "Other_severe_infection",
+                      "Photo_take",
+                      "Swabs_take",
+                      "Scab_treat")
+
+names(df)[2:12] <- substr(names(df)[2:12], 4, nchar(names(df)[2:12]))
+
+names(df)
+
+
+dfH %>% names
+names(dfH)[2:24] <- c("Interview_date", "Parent_name", "Child_name",
+                      "Telephone", "Ethnicity", "Family_doc",
+                      "Practice_name", "Child_itchy_scratching",
+                      "Household_scabies_rash", "Close_contacts_itch",
+                      "Close_contact_scabies_rash", "diagnosed_scabies_6_months",
+                      "Who_diagnosed_scabies", "Date_treated_scabies", "Symptoms_improve",
+                      "household_itch_scratch", "Who_itch_scratch",
+                      "HH_insect_bites_skin_sores", "Who_insect_bites_skin_sores",
+                      "skin_lotions_family", "number_in_house", "RF_people_in_house",
+                      "RF_people_sleep_in_child_room")
+
+
+## ranges-----
+# df %>% skim
+# 
+# dfH %>% skim
+
+## Missing values-----
+# df %>% vis_miss +
+#   ggplot2::theme(plot.margin = unit(c(1,3,1,1), "cm"))
+# 
+# dfH %>% vis_miss +
+#   ggplot2::theme(plot.margin = unit(c(1,3,1,1), "cm"))
+# 
+# dfPCR %>% vis_miss +
+#   ggplot2::theme(plot.margin = unit(c(1,3,1,1), "cm"))
+
+## Review dataset in detail
+#dataMaid::makeDataReport(df, replace = TRUE)
+
+
+# df$`Name of participant` 
+# df$`Name of participant` %>% head
+
+# Obtain Participant number
+# https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html
+
+
+
+
+id <- regex("
+  P{1}   # Match exactly one P
+  \\d{5} #
+  ", comments = TRUE)
+df %>% names
+
+a <- df$`Name of participant`
+a
+res <- str_match(a, id)
+res
+df$Participant_id <- res[,1]
+#df$Participant_id
+
+
+dob <- regex("
+  \\d{2}   # two digits
+  \\/ # 
+  \\d{2} #
+  \\/ # 
+  \\d{4}
+  ", comments = TRUE)
+
+a <- df$`Name of participant`
+a
+res <- str_match(a, dob)
+df$Participant_dob <- res[,1]
+
+df$Participant_dob
+
+
+#################################
+#df %>% head
+#df[df$`Name of participant` %>% grepl("Hezekiah", .), ]
+
+#df$`Normal skin` %>% tab1
+
+## Test that all have no recent scabies treatment
+stopifnot(all(is.na(df$`Date for scabies treatment`)))
+# passes
+## 
+#df %>% head
+#df$` Skin examination findings` %>% tab1    
+#df[, c("Normal skin", " Skin examination findings")]
+df[is.na(df$` Skin examination findings`), " Skin examination findings"] <- "Normal skin"
+
+dfH %>% names
+
+
+tab1(df$Participant_id %in% dfH$`Participant ID`)
+## merge clinical data 'df' and Caregiver survey 'dfH' into one data.frame
+dfT <- merge(df, dfH, by.x = "Participant_id", by.y = "Participant ID", all.x = TRUE)
+
+## merge in lab results.
+
+dfTT <- merge(dfT, dfPCR, by.x = "Participant_id", by.y = "Sample Code", all.x = TRUE)
+dfTT <- merge(dfTT, dfC, by.x = "Participant_id", by.y = "ID", all.x = TRUE)
+dfTT %<>% as.data.frame
+dfC %>% names
+## Extract name before first pipe.
+dfTT$extracted_name <- sub("\\ \\|.*", "", dfTT$`Name of participant`)
+dfTT$extracted_name
+dfTT[duplicated(dfTT$extracted_name),]
+
+
+## duplicated names
+dfTT[dfTT$extracted_name == "Skyla Pritika",]
+dfTT[dfTT$extracted_name == "Ahija Kalavi",]
+dfTT[dfTT$extracted_name == "California-Dream Mohi",]
+
+
+## remove duplicated names.(Total of 181 children)
+dfTT <- dfTT[!duplicated(dfTT$extracted_name),]
+# dfTT$` Skin examination findings` %>% tab1
+# dfTT$Child_itchy_scratching %>% tab1
+## IACS criteria
+## Clinical scabies = Typical lesions in typical distribution & itch or close contact with itchy 
+## or person with typical lesions
+## Suspected (1) = typical lesions in typical distribution & 1 history feature
+## Suspected (2) = atypical lesion & two history features
+
+dfTT$suspected_scabies <- ifelse(dfTT$` Skin examination findings` == "Typical scabies rash" &
+                                 (!is.na(dfTT$Child_itchy_scratching) & dfTT$Child_itchy_scratching == "Yes")|
+                                 (!is.na(dfTT$Child_itchy_scratching) & dfTT$household_itch_scratch == "Yes"),
+                               "Yes", "No")
+#dfTT$Close_contacts_itch %>% tab1
+#dfTT$Child_itchy_scratching %>% tab1
+#dfTT %>% head
+#dfTT %>% vis_miss +
+#  ggplot2::theme(plot.margin = unit(c(1,3,1,1), "cm"))
+
+dfTT %>% names
+## Close contact scabies rash
+dfTT$Household_scabies_rash %>% tab1
+
+dfTT$Close_contact_scabies_rash %>% tab1
+## Make symptoms into integers to allow addition
+dfTT$Child_itchy_scratching_int <- ifelse(is.na(dfTT$Parent_name), NA,
+                                          ifelse(is.na(dfTT$Child_itchy_scratching) & !is.na(dfTT$Parent_name), 0,
+                                         ifelse( dfTT$Child_itchy_scratching  == "Yes", 1, 0)))
+
+dfTT$household_itch_scratch_int <- ifelse(is.na(dfTT$Parent_name), NA,
+                                          ifelse(is.na(dfTT$household_itch_scratch) & !is.na(dfTT$Parent_name), 0,
+                                          ifelse(dfTT$household_itch_scratch == "Yes", 1, 0)))
+
+dfTT$Close_constacts_itch_int <- ifelse(is.na(dfTT$Parent_name), NA,
+                                              ifelse(is.na(dfTT$Close_contacts_itch) & !is.na(dfTT$Parent_name), 0,
+                                          ifelse(dfTT$Close_contacts_itch == "Yes", 1, 0)))
+
+dfTT %>% names                                        
+dfTT$HH_contact_scabies_rash_int <- ifelse(is.na(dfTT$Parent_name), NA,
+  ifelse((is.na(dfTT$Close_contact_scabies_rash)| is.na(dfTT$Household_scabies_rash)) & !is.na(dfTT$Parent_name), 0,
+                                        ifelse(dfTT$Close_contact_scabies_rash == "Yes"|
+                                                 dfTT$Household_scabies_rash == "Yes" , 1, 0)))
+dfTT$HH_contact_scabies_rash_int %>% tab1
+dfTT$history_features_n <- dfTT$Child_itchy_scratching_int + dfTT$household_itch_scratch_int +
+                               dfTT$Close_constacts_itch_int + dfTT$HH_contact_scabies_rash_int
+dfTT$history_features_n <- ifelse(is.na(dfTT$Child_itchy_scratching) & is.na(dfTT$household_itch_scratch) &
+                                    is.na(dfTT$Close_contacts_itch) & is.na(dfTT$Household_scabies_rash) &
+                                    is.na(dfTT$Close_contact_scabies_rash), NA, dfTT$history_features_n)
+
+#dfTT$history_features_n %>% tab1
+dfTT$clinical_scabies <- ifelse(is.na(dfTT$history_features_n), NA, 
+                               ifelse( (dfTT$` Skin examination findings` == "Typical scabies rash" &
+                                dfTT$history_features_n > 1), 
+                                "Yes", "No"))
+#dfTT$clinical_scabies %>% tab1
+
+#dfTT$` Skin examination findings` %>% tab1
+dfTT$suspected_scabies <- ifelse(is.na(dfTT$history_features_n), NA, 
+                                  ifelse((dfTT$` Skin examination findings` == "Typical scabies rash" &
+                                           dfTT$history_features_n > 0) |
+                                           (dfTT$` Skin examination findings` == "A bit like scabies rash (unsure)" &
+                                              dfTT$history_features_n > 1) , 
+                                          "Yes", "No"))
+dfTT$scabies_status <- ifelse(dfTT$clinical_scabies == 'Yes', "Clinical",
+                              ifelse(dfTT$suspected_scabies == "Yes", "Suspected", "No scabies"))
+#dfTT$scabies_status %>% tab1
+
+
+#tabpct(dfTT$scabies_status, dfTT$`qPCR result`)
+
+scab_exam <- tab1(dfTT$` Skin examination findings`)
+
+#scab_exam$output.table["Typical scabies rash", "Frequency"] 
+
+#dfTT$`qPCR result` %>% tab1
+#dfTT$Child_itchy_scratching %>% tab1
+sum(!is.na(dfTT$Child_itchy_scratching))
+
+test_rash <- with(dfTT[dfTT$`qPCR result` == "Positive", ], table(` Skin examination findings`, `scabies_status`,
+                                                      useNA = "always"))
+#test_rash["Typical scabies rash", 3]
+
+## cohort with history info
+dfTH <- dfTT[!is.na(dfTT$Child_itchy_scratching),]
+iacs <- dfTT$scabies_status %>% tab1
+iacs <- iacs$output.table
+iacs %>% str
+iacs %>% str
+iacs["Clinical", "  %(NA+)"]
+sum(!is.na(dfTT$scabies_status))
+
+#iacs$output.table["Clinical", "Frequency"]
+
+scab_test_clin <- table(dfTH$`qPCR result` , dfTH$scabies_status)
+
+
+ scab_test_clin
+# scab_test_clin %>% str
+# scab_test_clin["Positive", "Clinical"]
+# scab_test_clin["Positive", "No"]
+dfTH %>% names
+scab_test_exam <- table(dfTH[dfTH$scabies_status == "No scabies", ]$`qPCR result` , 
+                        dfTH[dfTH$scabies_status == "No scabies", ]$` Skin examination findings`)
+ scab_test_exam 
+# scab_test_exam["Positive", "A bit like scabies rash (unsure)"]
+# scab_test_exam["Positive", "Typical scabies rash"]
+
+#dfTT %>% head
+ 
+ 
+ 
+ 
+
+dfTT$`Normal skin` %>% tab1
+dfTT$Ethnicity %>% tab1(graph = FALSE)
+
+dfTT$Ethnicity_prioritised <- NA
+dfTT$Ethnicity_prioritised  %>% str
+
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity), NA,
+  ifelse(dfTT$Ethnicity == "Cook Islands M\u0101ori", "Pacific", dfTT$Ethnicity_prioritised ) )
+dfTT$Ethnicity_prioritised %>% tab1
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity), NA,
+                                     ifelse(dfTT$Ethnicity == "S\u0101moan, Cook Islands M\u0101ori","Pacific",
+                                            dfTT$Ethnicity_prioritised ) )
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity), NA,
+                                     ifelse(dfTT$Ethnicity == "Cook Islands M\u0101ori","Pacific",
+                                            dfTT$Ethnicity_prioritised ) )
+dfTT$Ethnicity_prioritised %>% tab1
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity_prioritised), 
+                                     ifelse(grepl("M\u0101ori", dfTT$Ethnicity), 
+                                            "M\u0101ori", dfTT$Ethnicity_prioritised), 
+                                     dfTT$Ethnicity_prioritised)
+dfTT$Ethnicity_prioritised %>% tab1
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity_prioritised), 
+                                     ifelse(grepl("S\u0101moan", dfTT$Ethnicity)|
+                                              grepl("Tongan", dfTT$Ethnicity)|
+                                              dfTT$Ethnicity == "Fijian" , 
+                                            "Pacific", dfTT$Ethnicity_prioritised), 
+                                     dfTT$Ethnicity_prioritised)
+dfTT$Ethnicity_prioritised %>% tab1
+table(dfTT$Ethnicity_prioritised, dfTT$Ethnicity)
+
+
+
+dfTT$Ethnicity_prioritised %>% tab1
+table(dfTT$Ethnicity_prioritised, dfTT$Ethnicity)
+
+
+dfTT$Ethnicity_prioritised %>% tab1
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity_prioritised), 
+                                     ifelse(grepl("Ind", dfTT$Ethnicity)|
+                                              grepl("Bang", dfTT$Ethnicity)|
+                                              grepl("Pak", dfTT$Ethnicity)|
+                                              grepl("Sri", dfTT$Ethnicity), 
+                                            "South Asian", dfTT$Ethnicity_prioritised), 
+                                     dfTT$Ethnicity_prioritised)
+dfTT$Ethnicity_prioritised %>% tab1
+table(dfTT$Ethnicity_prioritised, dfTT$Ethnicity)
+
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity_prioritised), 
+                                     ifelse(grepl("Fili", dfTT$Ethnicity)|
+                                              grepl("Burm", dfTT$Ethnicity)|
+                                              grepl("Camb", dfTT$Ethnicity)|
+                                              grepl("Myan", dfTT$Ethnicity)|
+                                              grepl("Viet", dfTT$Ethnicity), 
+                                            "South East Asian", dfTT$Ethnicity_prioritised), 
+                                     dfTT$Ethnicity_prioritised)
+
+dfTT$Ethnicity_prioritised <- ifelse(is.na(dfTT$Ethnicity_prioritised) & !is.na(dfTT$Ethnicity), 
+                                     "NZ European or Other", 
+                                     dfTT$Ethnicity_prioritised)
+
+dfTT$Ethnicity_prioritised %>% tab1
+table(dfTT$Ethnicity_prioritised, dfTT$Ethnicity)
+
+
+
+
+tabpct(dfTT$Ethnicity_prioritised, dfTT$Ethnicity)
+# dfTT$`Evaluation Date` %>% summary
+# format(min(dfTT$`Evaluation Date`), '%e %B, %Y')
+dfTT %>% names
+
+
+dfTT$`Date of Birth` %>% str
+dfTT$Participant_dob_R <- dfTT$`Date of Birth`
+dfTT$Participant_dob_R %>% boxplot
+dfTT$`Evaluation Date` %>% summary
+
+dfTT$age <- difftime(dfTT$`Evaluation Date`, dfTT$Participant_dob_R, unit = "days") %>% as.numeric %>% 
+  divide_by(365.25)
+dfTT$age %>% summary
+dfTT$age %>% boxplot
+# dfTT %>% names
+# dfTT$` Skin examination findings` %>% tab1
+tabpct(dfTT$` Skin examination findings`, dfTT$`Normal skin`)
+dfTT$Skin_Exam <- ifelse(dfTT$` Skin examination findings` == "No rash or skin lesions - Go to Question 18",
+                         "Normal skin",
+                         ifelse(dfTT$` Skin examination findings` == "A bit like scabies rash (unsure)", 
+                                "Atypical scabies",
+                                ifelse(dfTT$` Skin examination findings` == "Not scabies rash - Go to Question 18",
+                                       "Other rash",
+                                       ifelse(dfTT$` Skin examination findings` == "Typical scabies rash",
+                                              "Typical scabies", "Normal skin"))))
+dfTT$Skin_Exam <- dfTT$Skin_Exam %>% factor(levels = c("Typical scabies", 
+                                                       "Atypical scabies", "Other rash", "Normal skin"))
+
+dfTT$scabies_arms <- ifelse(grepl("Arms", dfTT$Scabies_where_body), "Yes", "No")
+dfTT$scabies_legs <- ifelse(grepl("Legs", dfTT$Scabies_where_body), "Yes", "No")
+dfTT$scabies_torso <- ifelse(grepl("chest", dfTT$Scabies_where_body), "Yes", "No")
+
+#dfTT <- merge(dfTT, dfC, by.x = "Participant_id", by.y = "ID", all.x = TRUE)
+#dfTT %>% names
+#dfTT$`Name of the School/ECE` %>% tab1
+
+dfTT$`Name of the School/ECE` %>% tab1(graph = FALSE)
+dfTT$ECE_code <- ifelse(dfTT$`Name of the School/ECE` == "Early Learning Counties Manukau Takanini", "A",
+                        ifelse(dfTT$`Name of the School/ECE` == "Kauri Kids Clendon" , "B",
+                               ifelse(dfTT$`Name of the School/ECE` == "KiNZ Otara Early Learning Centre", "C",
+                                      ifelse(dfTT$`Name of the School/ECE` == "Mataaga Aoga Amata", "D",
+                                             ifelse(dfTT$`Name of the School/ECE` == "Wymondley Early Learning Centre", "E",
+                                                    ifelse(dfTT$`Name of the School/ECE` == "Al-Madinah", "F",
+                                                           ifelse(dfTT$`Name of the School/ECE` == "Pakuranga Intermediate school", "G", NA)))))))
+
+dfTT$ECE_code %>% tab1(graph = FALSE)
+#tab1(dfTT$ECE_code)
+dfTT$ECE_code_fac <- dfTT$ECE_code %>% factor(levels = c("A", "B", "C", "D", "E", "F", "G"))
+
+dfTT$Ethnicity_prioritised %>% str
+dfTT$Ethnicity_prioritised_factor <- factor(dfTT$Ethnicity_prioritised, levels = c("Pacific",
+                                                                                     "Maori", "Indian", "NZ European",
+                                                                                    "South East Asian") )
+
+dfTT$Scabies_how_many_lesions_fac <- factor(dfTT$Scabies_how_many_lesions, levels = 
+                                            c("1 to 2", "3 to 10", "11 to 49", "More than 50"))
+
+#dfTT$Impetigo %>% tab1
+dfTT$Impetigo <- ifelse(dfTT$Impetigo == "Yes", "Yes", "No")
+dfTT$Impetigo <- factor(dfTT$Impetigo, levels = c("Yes", "No "))
+
+dfTT$scabies_status_fac <- dfTT$scabies_status %>% factor(levels = c("Clinical", "Suspected", "No scabies"))
+
+# P_scab_imp <- fisher.test(dfTT$scabies_status_fac, dfTT$Impetigo)$p.value
+# P_scab_Eth <- fisher.test(dfTT$scabies_status_fac, dfTT$Ethnicity_prioritised_factor)$p.value
+# P_scab_Eth
+# P_scab_imp
+# P_scab_Eth
+# tab$`p-value`[6] <- P_scab_imp
+# tab$`p-value`[13] <- P_scab_Eth
+# tab$`p-value` <- ifelse(tab$`p-value` == "", "", tab$`p-value` %>%  as.numeric %>% three_dp)
+
+skin_status_n  <- table(dfTT$Skin_Exam, dfTT$scabies_status_fac)
+skin_status_n[c("Typical scabies", "Atypical scabies"), "No scabies"] %>% sum
+skin_status_pc <- tabpct(dfTT$Skin_Exam, dfTT$scabies_status_fac)
+skin_status_pc$table.column.percent["Typical scabies", "No scabies"] %>% one_dp
+# dfpix <-  rio::import("./data/first_check_casesdatatable_1623271077.xlsx", 
+#                       sheet = 1)
+# 
+# dfpix %>% head
+# dfpix$full_name <- paste(dfpix$`First Name`, " ", dfpix$`Last Name`, sep = "")
+# dfpix$full_name
+
+
+dfTT %>% head
+
+dfTT$Participant_id
+
+
+
+dfTT$Child_name
+
+dfTT$`Name of participant` 
+
+dfTT$`Name of Participant`
+
+pacman::p_load(stringr)
+
+
+#pacman::p_load(fuzzyjoin)
+
+ 
+library(dplyr)
+library(ggplot2)
+
+
+dfTT$Participant_id
+# 
+# dfTT_match <- dfTT %>% 
+#   fuzzyjoin::stringdist_full_join(dfpix, by = c(extracted_name = "full_name"), method = 'qgram',
+#                        ignore_case = TRUE)
+# 
+# dfTT %>% head
+# 
+# dfTT %>% names
+# 
+# dfTT_match %<>% as.data.frame
+# dfTT_match %>% head
+# dfTT_match$Participant_id
+# dfTT_match$`qPCR result` %>% tab1
+# dfTT_match[dfTT_match$Participant_id == "P00066","qPCR result"] <- "Positive"
+# 
+# dfTT_match[dfTT_match$Participant_id == "P00067","qPCR result"] <- "Positive"
+# 
+# dfTT_match[dfTT_match$Participant_id == "P00075","qPCR result"] <- "Positive"
+# 
+# dfTT_match[dfTT_match$Participant_id == "P00080","qPCR result"] <- "Negative"
+# 
+# dfTT_match[dfTT_match$Participant_id == "P00062","qPCR result"] <- "Negative"
+# 
+# dfTT_match[dfTT_match$Participant_id == "P00071","qPCR result"] <- "Negative"
+# 
+# dfTT_match[dfTT_match$Participant_id == "P00060","qPCR result"] <- "Negative"
+
+dfTT_match <- dfTT
+
+
+## Euler plots
+
+pacman::p_load(eulerr)
+names(dfTT_match)
+#dfTT_match[,c("Participant_id", "PCR_positive")]
+dfTT_match %>% head
+
+dfTT_match$All <- 1
+dfTT_match$PCR_positive <- ifelse(is.na(dfTT_match$`qPCR result`), 0, 
+                                  ifelse(dfTT_match$`qPCR result` == "Positive", 1, 0))
+
+dfTT_match$IACS_clinical_scabies <- ifelse(dfTT_match$clinical_scabies == "Yes", 1, 0)
+dfTT_match$IACS_suspected_scabies <- ifelse(dfTT_match$suspected_scabies == "Yes", 1, 0)
+dfTT_match$PCR_tested <- ifelse(!is.na(dfTT_match$`qPCR result`), 1, 0)
+
+dfTT_match$Skin_Exam %<>% as.character
+
+dfTT_match$typical_scabies <- ifelse(dfTT_match$Skin_Exam == "Typical scabies", 1, 0)
+dfTT_match$typical_scabies %>% tab1
+dfTT_match$atypical_scabies <- ifelse(dfTT_match$Skin_Exam == "Atypical scabies", 1, 0)
+dfTT_match$Normal_skin <- ifelse(dfTT_match$Skin_Exam == "Normal skin", 1, 0)
+dfTT_match$Skin_Exam %>% tab1
+
+dev.off(); plot.new()
+dfTT_match$IACS_clinical_scabies %>% tab1
+dfTT_match$IACS_suspected_or_clinical <- ifelse(is.na(dfTT_match$IACS_suspected_scabies), 0,
+                                                ifelse(dfTT_match$IACS_suspected_scabies == 1|   dfTT_match$IACS_clinical_scabies == 1, 1,
+                                                       0))
+
+dfTT_match$history <- ifelse(!is.na(dfTT_match$IACS_clinical_scabies), 1, 0)
+
+tabpct(dfTT_match$history, dfTT_match$ECE_code)
+
+
+dfTT_match$IACS_suspected_or_clinical %>% tab1
+
+
+## Euler plot--
+plot_colours <- c("red", "grey", "violet" ,"green", "white")
+
+plot_labels <- c("PCR positive", 
+                 "Typical scabies",
+                 "Atypical scabies","Normal skin", "All")
+
+dfTT_match %>% names 
+dfTT_match_euler <- dfTT_match[,c("PCR_positive",
+                                   "typical_scabies", "atypical_scabies", "Normal_skin",
+                                   "All")]
+#srd::srd(dfTT_match, rectangles = c("PCR_positive==1",
+#                                     "typical_scabies==1|atypical_scabies==1"))
+# 
+# srd::srd(dfTT_match[dfTT_match$Ethnicity_prioritised == "Pacific",], rectangles = c("PCR_positive==1",
+#                         "typical_scabies==1|atypical_scabies==1",
+#                          "IACS_suspected_or_clinical==1",
+#                         "history==1"
+#                         ))
+# 
+# srd::srd(dfTT_match[!(dfTT_match$Ethnicity_prioritised == "Pacific" | dfTT_match$Ethnicity_prioritised == "M\u0101ori"),], rectangles = c("PCR_positive==1",
+#                                                                                     "typical_scabies==1|atypical_scabies==1",
+#                                                                                     "IACS_suspected_or_clinical==1",
+#                                                                                     "history==1"
+# ))
+# 
+# srd::srd(dfTT_match[(dfTT_match$Ethnicity_prioritised == "Pacific" | dfTT_match$Ethnicity_prioritised == "M\u0101ori"),], rectangles = c("PCR_positive==1",
+#                                                                                                                                           "typical_scabies==1|atypical_scabies==1",
+#                                                                                                                                           "IACS_suspected_or_clinical==1",
+#                                                                                                                                           "history==1"
+# ))
+# 
+# 
+# dfTT_match %>% head
+# 
+# srd::srd(dfTT_match[dfTT_match$Ethnicity_prioritised == "Pacific",], rectangles = c("PCR_positive==1",
+#                                    "typical_scabies==1|atypical_scabies==1",
+#                                    "Ethnicity_prioritised_factor=='Pacific'",
+#                                    "Ethnicity_prioritised_factor=='Maori'"
+#                                    ) )
+# dfTT_match %>% head
+# 
+# dfTT_match_euler %>% vis_miss
+# 
+ fit1 <- eulerr::euler(dfTT_match_euler, 
+                       shape = "ellipse")
+ fit1 %>% plot
+# eplot <- fit1 %>% plot(fills = list(fill = plot_colours),
+#               quantities = list(type = c( "counts")),
+#               ## sans font ensures a macron in "Maori" is available!
+#               legend = list(labels = plot_labels), family = "sans")
+# 
+# 
+# #dfTT_match[, c("NAME", "full_name", "extracted_name", "Name of participant"),]
+# 
+# eplot
+dfTT_match %>% names
+# dfTT_match[dfTT_match$Normal_skin == 1 & dfTT_match$Derm_scabies == 1, ]
+# dfTT$age %>% sd %>% one_dp
+c
+# ethtab["Pacific", "  %(NA-)"] %>% one_dp()
+# ethtab["Maori", "  %(NA-)"] %>% one_dp()
+
+
+
+
+
+dfTT_match %>% names
+# dfTT_match[, c("full_name", "extracted_name", "Participant_dob_R")] %>% print()
+# dfTT_match <- dfTT_match[!is.na(dfTT_match$extracted_name),]
+
+
+
+
+(dfTT_match %>% names) %in% c("qPCR result",
+  "IACS_clinical_scabies",
+  "IACS_suspected_scabies", 
+  " Skin examination findings") %>% which
+
+
+dfTT_match[ !is.na(dfTT_match$`qPCR result`) & dfTT_match$`qPCR result` == "Positive", c("qPCR result",
+                                                   "IACS_clinical_scabies",
+                                                   "IACS_suspected_scabies", 
+                                                   " Skin examination findings")]
+
+dfTT_match$`qPCR result` %>% tab1
+
+
+
+dfTT_match[!is.na(dfTT_match$`qPCR result`) & dfTT_match$`qPCR result` == "Negative", c("qPCR result",
+                                                                                      "IACS_clinical_scabies",
+                                                                                      "IACS_suspected_scabies", 
+                                                                                      " Skin examination findings")]
+
+## Add in latest PCR result
+
+dfTT_match$`qPCR result` %>% tab1
+## Euler plot.
+
+
+ ## tabled
+ dfTT_match$HH_contact_scabies_rash_int
+ dfTT$HH_contact_scabies_rash_int %>% tab1
+ dfTT_match$HH_contact_scabies_rash_int %>% tab1
+ dfTT_match$HH_contact_rash <- ifelse(dfTT_match$HH_contact_scabies_rash_int == 1, "Yes", "No")
+ dfTT_match$HH_contact_rash %>% tab1
+ dfTT_match$Close_contact_itch <- ifelse(dfTT_match$Close_constacts_itch_int == 1, "Yes", "No")
+dfTT_match$Child_itchy <-ifelse(dfTT_match$Child_itchy_scratching_int == 1, "Yes", "No")
+
+
+dfTT_match$Impetigo %>% str
+dfTT_match$`Normal skin` %>% tab1
+dfTT_match$Impetigo_c <- dfTT_match$Impetigo %>% as.character
+dfTT_match$Impetigo_c %>% tab1
+
+ dfTT_match$Impetigo_c <- ifelse( is.na(dfTT_match$Impetigo_c) & 
+      dfTT_match$`Normal skin` == "Yes", "No", dfTT_match$Impetigo_c)
+ dfTT_match %>% names
+ ## table 1----
+######################################################################
+
+# tab <- Publish::univariateTable(scabies_status_fac ~ Skin_Exam + Impetigo + age + Ethnicity_prioritised_factor + 
+#                                    + `qPCR result` + scabies_arms +
+#                                    scabies_legs + scabies_torso +  Scabies_how_many_lesions_fac +
+#                                    HH_contact_rash +
+#                                    Close_contact_itch +
+#                                    Child_itchy +
+#                                    ECE_code_fac, data = dfTT_match)
+#  tab
+#  
+# tab <- summary(tab, drop.reference = FALSE) 
+#  summary(tab) %>% 
+#    rmdHelpers::myKable() %>% kableExtra::kable_styling()
+ 
+ #tab %>% str
+
+ #tab <- tab[-c(18, 20, 22),]
+ 
+ # dfTT_match$`qPCR result` %>% tabpct(dfTT_match$ECE_code_fac)
+dfTT_match %>% names
+ dfTT_match %>% names
+ tabpct(dfTT_match$`Name of the School/ECE`, dfTT_match$ECE_code)
+ dfTT_match$` Skin examination findings` %>% tab1
+ dfTT_match[dfTT_match$history == 0, "Name of the School/ECE"]
+ dfTT_match$history %>% tab1
+ dfTT_match$Ski
+ dfTT_match[ dfTT_match$ECE_code == "A",]$Skin_Exam %>% tab1 ## Takanini
+ dfTT_match[ dfTT_match$ECE_code == "B",]$Skin_Exam %>% tab1 ## Clendon
+ dfTT_match[dfTT_match$ECE_code == "C",]$Skin_Exam %>% tab1 ## K Otara
+ dfTT_match[dfTT_match$ECE_code == "D",]$Skin_Exam %>% tab1 ## Grey Lynn
+ dfTT_match[dfTT_match$ECE_code == "E",]$Skin_Exam %>% tab1 ## W Otara
+ dfTT_match[ dfTT_match$ECE_code == "F",]$Skin_Exam %>% tab1
+ dfTT_match[ dfTT_match$ECE_code == "G",]$Skin_Exam %>% tab1
+
+ dfTT_match$Skin_Exam %>% tab1
+  
+ tabpct(dfTT_match$Ethnicity_prioritised, dfTT_match$Skin_Exam)
+ tabpct(dfTT_match$Ethnicity_prioritised, dfTT_match$PCR_positive)
+ dfTT_match %>% names
+dfTT$Scab_treat %>% tab1 
+
+dfTT_match %>% names
+dfTT_match$Participant_id 
+dfTT_match[grepl("Rita", dfTT_match$`Name of participant`),] 
+
+dfTT_match$household_itch_scratch %>% tab1
+dfTT_match$RF_people_in_house %>% tab1(graph = FALSE)
+
+dfTT_match$PCR_positive %>% tab1
+
+boxplot(RF_people_sleep_in_child_room ~ PCR_positive, data = dfTT_match)
+boxplot(age ~ PCR_positive, data = dfTT_match)
+
+dfTT_match$IACS_suspected_or_clinical %>% tab1
+
+###############################################################
+## Summarise survey results----
+
+## qPCR positives by educational centre
+dfTT_match$PCR_positive %>% tab1
+PCR_status <- do.call(data.frame, aggregate(PCR_positive ~ ECE_code, data = dfTT_match,
+                        FUN = c('sum')))
+
+
+PCR_status <- do.call(data.frame, aggregate(PCR_positive ~ ECE_code, data = dfTT_match,
+          FUN = function(x) c(pos = sum(x), total = length(x), 
+                              percent = sum(x)/length(x) ) ))
+
+PCR_status %<>% data.frame
+PCR_status %>% str
+PCR_status$strata <- c("wealthy", rep("poor", 2), "wealthy", "poor", rep("wealthy", 2)) 
+
+PCR_status
+
+## Analysis with survey results.
+
+## Estimate weights----
+## Random sample of decile 1/2
+## Random sample of decile 3-10
+
+## Selection weight for school or ECEC = probability of being chosen
+## Imagine we are sampling from both schools and childcare centres
+Total_population_poor_schools <- 44322
+Total_population_poor_ECECs <- 73516
+
+Total_population_wealthy_schools <- 59826
+Total_population_wealthy_ECECs <- 63032
+
+## Total in childcare centre
+
+
+
+# Early Learning Counties Manukau Takanini, from list
+PCR_status$Total_children <- c(96, # Early learning CM Takanini
+                               50, # Kauri kids Clendon 
+                               50, # KiNZ Otara
+                               22, # Mata'aga
+                               50, # Wymondley
+                               515, #Al-Madina
+                               264) # Pakuranga
+                               
+PCR_status$Dep <- c(2, 1, 1, 5, 1, 1, 2)
+PCR_status$strata <- ifelse(PCR_status$Dep == 1, "poor", "wealthy")
+PCR_status$strata 
+PCR_status$institution <- c(rep("ECEC", 5), rep("School", 2))
+PCR_status
+PCR_status$Population <- c(Total_population_wealthy_ECECs,
+                           rep(Total_population_poor_ECECs, 
+                               2), Total_population_wealthy_ECECs,
+                           Total_population_poor_ECECs, 
+                           Total_population_poor_schools,
+                           Total_population_wealthy_schools)
+PCR_status$samples <- c(2, 3, 3, 2, 3, 1, 1)
+PCR_status
+
+
+PCR_status$school_probability_selection <- with(PCR_status, (Total_children/Population)*samples)
+PCR_status$cluster_weights <- with(PCR_status, 1/school_probability_selection) 
+PCR_status$cluster_weights ## should equate to how many educational institutions (clusters) in each strata.
+
+PCR_status %<>% data.frame
+PCR_status %>% str
+
+## Survey estimates----
+## without poststratification
+PCR_status$PCR_positive.total
+
+PCR_status$strata_f <- as.factor(PCR_status$strata)
+PCR_status$institution_f <- as.factor(PCR_status$institution)
+
+dsn <- svydesign(id = ~1, strata = ~strata, weights = ~cluster_weights, 
+                 data = PCR_status)
+
+
+
+ratios <- svyby( ~PCR_positive.pos,
+                          denominator = ~PCR_positive.total,
+                          by = ~institution_f,
+                          design = dsn, svyratio)
+ratios
+dsn_poor <- subset(dsn, strata == "poor")
+
+
+scabratio <-  svyratio(~PCR_positive.pos, 
+                      ~PCR_positive.total, design = dsn)
+scabratio 
+scabratio_poor <- PCR_status %$% svyratio(~PCR_positive.pos,
+                                     ~PCR_positive.total, design = dsn_poor)
+scabratio_poor
+
+dsn_rich <- subset(dsn, strata == "wealthy")
+scabratio_wealthy <- PCR_status %$% svyratio(~PCR_positive.pos,
+                                          ~PCR_positive.total, design = dsn_rich)
+scabratio_wealthy 
+scabratio_wealthy %>% confint
+
+dsn_ECECs <- subset(dsn, institution == "ECEC")
+scabratio_ECECs <- PCR_status %$% svyratio(~PCR_positive.pos,
+                                             ~PCR_positive.total, 
+                                           design = dsn_ECECs)
+
+scabratio_ECECs %>% confint
+dsn_Schools <- subset(dsn, institution == "School")
+scabratio_Schools <- PCR_status %$% svyratio(~PCR_positive.pos,
+                                           ~PCR_positive.total, 
+                                           design = dsn_Schools)
+
+scabratio_Schools 
+confint(scabratio_Schools)
+
+
+## Survey estimates with post-stratification----
+## Estimate individual weights-----
+## Probability of selection for an individual in ECEC
+## Probability of selection of cluster (number in sample/Total in strata)* proportion of school sampled.
+## Probability of selection in School
+## Probability of selection on cluster * probability of individual in school sampled
+## Schools were sampled with probability equal to size.
+
+
+## 
+dfTT_match$`Name of the School/ECE` %>% tab1
+dfTT_match$total_children_in_edu_cluster <- dfTT_match %$%  ifelse(
+  `Name of the School/ECE` == "Kauri Kids Clendon",
+  50, 
+  ifelse(`Name of the School/ECE` == "Al-Madinah", 515,
+  ifelse(`Name of the School/ECE` == "Early Learning Counties Manukau Takanini", 96,
+  ifelse(`Name of the School/ECE` == "KiNZ Otara Early Learning Centre", 50,
+  ifelse(`Name of the School/ECE` == "Pakuranga Intermediate school", 264, 
+  ifelse(`Name of the School/ECE` == "Mataaga Aoga Amata", 22, 
+  ifelse(`Name of the School/ECE` == "Wymondley Early Learning Centre", 50, NA)))))))
+
+Total_sample_per_inst <- do.call(data.frame, 
+                                 aggregate(Participant_id ~ 
+                                             `Name of the School/ECE`, 
+                                           data = dfTT_match,
+                                       FUN = c('length')))
+names(Total_sample_per_inst)[2] <- c("Total_sampled_per_edu_inst")
+dfTT_match$`Name of the School/ECE` %>% str
+dfTT_match 
+pacman::p_load(dplyr)
+dfTT_match_2 <- dplyr::left_join(dfTT_match, Total_sample_per_inst, 
+               by = c("Name of the School/ECE" = "Name.of.the.School.ECE"))
+
+dfTT_match_2$Prop_sampled_per_edu <- dfTT_match_2 %$% (Total_sampled_per_edu_inst/total_children_in_edu_cluster) 
+
+dfTT_match_2$Prop_sampled_per_edu %>% summary
+
+dfTT_match_2[dfTT_match_2$Prop_sampled_per_edu == 0.78,]
+PCR_status
+
+
+## Merge in probability of institution sampling weights.
+dfTT_match_2$ECE_code %>% tab1
+
+dfTT_match_3 <- dplyr::left_join(dfTT_match_2, PCR_status, 
+                                 by = c("ECE_code"))
+
+dfTT_match_3$probability_selection_final_individual <- dfTT_match_3 %$%  (school_probability_selection * Prop_sampled_per_edu)
+
+dfTT_match_3$weight_final_individual <- 1/dfTT_match_3$probability_selection_final_individual
+
+dfTT_match_3$weight_final_individual %>% summary
+
+dfTT_match_3[dfTT_match_3$weight_final_individual > 7478.1,]
+
+sum(dfTT_match_3$weight_final_individual) ## should roughly equal total Auckland School children.
+
+
+dfTT_match_3$age %>% summary ## contains some missing data (n = 19)
+dfTT_match_3$`Date of Birth` %>% str ## No missing data
+dfTT_match_3$`Evaluation Date` %>% summary ## 19 missing evaluation dates
+dfTT_match_3$Timestamp.x %>% str ## No missing data
+
+## Estimate complete age from Timestamp
+dfTT_match_3$age_time_stamp <- dfTT_match_3 %$% difftime(Timestamp.x, `Date of Birth`,
+                                                         units = "days") %>% as.numeric %>% 
+  divide_by(365.25)
+dfTT_match_3$age_time_stamp %>% summary
+dfTT_match_3$age_time_stamp
+
+
+## Individualised survey results
+dfTT_match_3 %>% head
+dfTT_match_3$Examined_for_scabies <- 1
+dfTT_match_3$typical_or_atypical_scabies <- dfTT_match_3 %$% ifelse(typical_scabies == 1|atypical_scabies == 1,
+                                                                    1, 0)
+
+dfTT_match_3$typical_or_atypical_scabies %>% tabpct(dfTT_match_3$Ethnicity_prioritised)
+
+dfTT_match_3$PCR_positive_f <- as.factor(dfTT_match_3$PCR_positive)
+dfTT_match_3$typical_or_atypical_scabies_f <- as.factor(dfTT_match_3$typical_or_atypical_scabies)
+dsn <- svydesign(id = ~`Name of the School/ECE`, strata = ~strata, weights = ~weight_final_individual, 
+                 data = dfTT_match_3)
+dfTT_match_3$institution_f %>% str
+dfTT_match_3$Ethnicity_prioritised %>% tab1
+dfTT_match_3$Ethnicity_prioritised_factor <- as.factor(dfTT_match_3$Ethnicity_prioritised)
+dfTT_match_3$Ethnicity_prioritised_factor %>% tab1
+
+
+ratios <- dfTT_match_3 %$%  svyby( ~typical_or_atypical_scabies,
+                                 denominator = ~Examined_for_scabies,
+                                 by = ~institution_f,
+                                 design = dsn, FUN = svyratio, ci=TRUE)
+
+confint(ratios)
+
+
+
+ratios <- svyby( ~typical_or_atypical_scabies,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~Ethnicity_prioritised_factor,
+                                   design = dsn, FUN = svyratio)
+
+
+ratios <- svyby( ~PCR_positive,
+                 denominator = ~Examined_for_scabies,
+                 by = ~Ethnicity_prioritised_factor,
+                 design = dsn, FUN = svyratio)
+
+
+ratios <- svyby( ~typical_or_atypical_scabies,
+                 denominator = ~Examined_for_scabies,
+                 by = ~Ethnicity_prioritised_factor,
+                 design = dsn, FUN = svyratio)
+
+ratios
+confint(ratios)
+
+dsn_poor <- subset(dsn, strata == "poor")
+scabratio <-  svyratio(~typical_or_atypical_scabies, 
+                       ~Examined_for_scabies, design = dsn_poor)
+scabratio
+dsn_rich <- subset(dsn, strata == "rich")
+scabratio <-  svyratio(~typical_or_atypical_scabies, 
+                       ~Examined_for_scabies, design = dsn_rich)
+scabratio
+dfTT_match_3$institution %>% tab1
+dsn_Schools <- subset(dsn, institution == "School")
+scabratio_Schools <- dfTT_match_3 %$%  svyratio(~typical_or_atypical_scabies, 
+                                              ~Examined_for_scabies, design = dsn_Schools)
+
+scabratio_Schools
+
+dsn_ECEC <- subset(dsn, institution == "ECEC")
+scabratio_ECECs <- dfTT_match_3 %$%  svyratio(~typical_or_atypical_scabies, 
+                                              ~Examined_for_scabies, design = dsn_ECEC)
+
+scabratio_ECECs
+dfTT_match_3$Ethnicity_prioritised_factor
+
+dsn_Pacific <- subset(dsn, Ethnicity_prioritised == "Pacific")
+scabratio_Pacific <- dfTT_match_3 %$%  svyratio(~typical_or_atypical_scabies, 
+                                                ~Examined_for_scabies, design = dsn_Pacific)
+scabratio_Pacific
+
+dfTT_match_3$Ethnicity_prioritised %>% tab1
+
+dsn_Euro <- subset(dsn, Ethnicity_prioritised == "NZ European or Other")
+scabratio_Euro <- dfTT_match_3 %$%  svyratio(~PCR_positive, 
+                                                ~Examined_for_scabies, design = dsn_Euro)
+scabratio_Euro
+dfTT_match_3$Ethnicity_prioritised %>% tab1
+dsn_Maori <- subset(dsn, Ethnicity_prioritised == "M\u0101ori")
+scabratio_Maori <- dfTT_match_3 %$%  svyratio(~PCR_positive, 
+                                             ~Examined_for_scabies, design = dsn_Maori)
+scabratio_Maori
+
+
+dsn_Indian <- subset(dsn, Ethnicity_prioritised == "South Asian")
+scabratio_Indian <- dfTT_match_3 %$%  svyratio(~PCR_positive, 
+                                              ~Examined_for_scabies, design = dsn_Indian)
+scabratio_Indian
+
+
+dsn_SEA <- subset(dsn, Ethnicity_prioritised == "South East Asian")
+scabratio_SEA <- dfTT_match_3 %$%  svyratio(~PCR_positive, 
+                                               ~Examined_for_scabies, design = dsn_SEA)
+scabratio_SEA
+
+## Exploratory data analysis
+
+## Unweighted distribution of age
+
+dfTT_match_3 %$% hist(age_time_stamp, col = "gray90", xlab = "Age in years",
+                      main = "unweighted sample", breaks = 10, freq = FALSE) 
+dfTT_match_3 %$% lines(density(age_time_stamp), lty = 1, lwd = 2)
+
+## Weighted distribution of age
+
+dfTT_match_3 %$% svyhist(~age_time_stamp,dsn, col = "gray90", xlab = "Age in years",
+                      main = "weighted sample", breaks = 10, freq = FALSE) 
+dens <- dfTT_match_3 %$% svysmooth(~age_time_stamp, dsn, bandwidth = 2)
+lines(dens, lwd = 2)
+
+dfTT_match_3 %$% boxplot(age_time_stamp ~ as.factor(PCR_positive), 
+                            col = "gray90", ylab = "Age in years",
+                            main = "unweighted sample, by PCR status") 
+
+dfTT_match_3 %$% boxplot(age_time_stamp ~ typical_or_atypical_scabies_f, 
+                         col = "gray90", ylab = "Age in years",
+                         main = "unweighted sample, by scabies status") 
+
+dfTT_match_3$PCR_positive %>% tab1
+dfTT_match_3 %$% svyboxplot(age_time_stamp ~ PCR_positive_f, 
+                          dsn, col = "gray90", ylab = "Age in years",
+                         main = "weighted sample, by PCR status") 
+
+dfTT_match_3 %$% svyboxplot(age_time_stamp ~ typical_or_atypical_scabies_f, 
+                            dsn, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, by scabies status") 
+
+dsn_PCR_neg <- subset(dsn, PCR_positive == 0)
+dsn_PCR_pos <- subset(dsn, PCR_positive == 1)
+par(mfrow = c(1,2), las = 1, mar = c(2.1, 4.1, 2.1, 0.3))
+dfTT_match_3 %$% svyboxplot(age_time_stamp~1, 
+                            dsn_PCR_neg, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, PCR negative", ylim = c(1,15)) 
+dfTT_match_3 %$% svyboxplot(age_time_stamp~1, 
+                            dsn_PCR_pos, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, PCR positive", ylim = c(1,15)) 
+
+dsn_scab_neg <- subset(dsn, typical_or_atypical_scabies == 0)
+dsn_scab_pos <- subset(dsn, typical_or_atypical_scabies == 1)
+par(mfrow = c(1,2), las = 1, mar = c(2.1, 4.1, 2.1, 0.3))
+dfTT_match_3 %$% svyboxplot(age_time_stamp~1, 
+                            dsn_scab_neg, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, clinical scabies negative", ylim = c(1,15)) 
+dfTT_match_3 %$% svyboxplot(age_time_stamp~1, 
+                            dsn_scab_pos, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, clinical scabies positive", ylim = c(1,15)) 
+
+## Weighted regression
+dfTT_match_3$typical_or_atypical_scabies %>% tab1
+
+reg_dsn <- subset(dsn, !is.na(Child_itchy_scratching))
+lr_model <- svyglm(typical_or_atypical_scabies ~ Child_itchy_scratching + Ethnicity_prioritised_factor, design = reg_dsn,
+                   family = quasibinomial(link = "logit"))
+
+lr_model %>% summary
+exp(lr_model$coefficients)
+
+dfTT_match_3$typical_or_atypical_scabies %>% tab1
+
+reg_dsn <- subset(dsn, !is.na(Child_itchy_scratching))
+lr_model <- svyglm(PCR_positive ~ Child_itchy_scratching + age_time_stamp, 
+                   design = reg_dsn,
+                   family = quasibinomial(link = "logit"))
+
+lr_model %>% summary
+exp(lr_model$coefficients)
+
+
+
+
+## Update weights by raking
+## Estimate totals by Ethnicity, age and gender
+
+ECEC_list <- rio::import("./data/Sampling_frame/ECE_directory.xlsx", sheet = "for_import")
+ECEC_list %>% head ## Ethnicity seems prioritised as total matches "Total" column.
+## Summarise high and low dep ECECs by Ethnicity, and Age
+ECEC_list$`Equity Index` %>% tab1
+High_dep_ECEC <- ECEC_list[ECEC_list$`Equity Index` == "EQI 1",]
+
+## Estimate propensity for response
+dfTT_match_3$`Name of the School/ECE` %>% tab1(graph = FALSE)
+
+P_Resp_School <- data.frame(School_name = c("Massey High School", "Pakuranga Intermediate school", "Farm Cove Intermediate",
+                                            "Botany Downs Secondary College", "Te Marauranga", "South Auckland SDA","Al-Madinah",
+                                            "Flat Bush"), ## not deprived
+                            Deprivation_decile = c(5, 4, 8, 10, 1, 2, 2, 1),
+                            Deprived = c("No", "No", "No", "No", "Yes", "Yes", "Yes", "Yes"),
+                            School_type = c("High", "Int", "Int", "High", "Primary", "Primary", "Comb", "Primary"),
+                            Response = c(FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE))
+
+P_Resp_ECEC <- data.frame(School_name = c("Oratia", "Orewa", "Meadowood", "Bear Park Mt Eden",
+                                          "KiNZ Myers Park", "Fiti lagakali", "Oma Rapeti",
+                                          "BestStart Mt Eden", "Fairy Godmothers", "Olive Shoots",
+                                          "BestStart Parnell", "Waimauku", # low dep
+                                          "Manukau Central", "Poetiare", "Kauri Kids Clendon",
+                                          "Wymondley Early Learning Centre", "White Heron", "Blossoms", "Glenbrae",
+                                          "Mokopuna", "Starship", "Early Learning Counties Manukau Takanini",
+                                          "KiNZ Otara Early Learning Centre", "Te Kohanga Reo", "St Peter", "Barnardos Otara",
+                                          "Kids Count", "Mataaga Aoga Amata"),
+                          Deprivation_decile = c(9, 9, 9, 10, 10, 4, 10, 10, 10, 10, 10, 10, rep(1, 15), 10),
+                          School_type = rep("ECEC", 28),
+                          Response = c(rep(FALSE, 12), FALSE, FALSE, TRUE, TRUE, FALSE, FALSE,
+                                       FALSE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE))
+
+
+
+P_Resp_School
+P_Resp_ECEC$Deprived <- ifelse(P_Resp_ECEC$Deprivation_decile <= 2, "Yes", "No")
+P_Resp_ECEC %>% names
+P_Resp_ECEC <- P_Resp_ECEC[, names(P_Resp_School)]
+P_Resp <- rbind(P_Resp_School, P_Resp_ECEC)
+P_Resp$School_type %>% tab1
+
+P_Resp$School <- ifelse(P_Resp$School_type != "ECEC", "School", "ECEC")
+
+r_model <- glm(Response ~ School + Deprivation_decile, data = P_Resp)
+summary(r_model)
+(exp(r_model$coefficients))^5
+pred <- predict.glm(r_model, type = "response")
+pred
+
+
+## divide predictions into 5 quantiles
+
+P_Resp <- cbind(P_Resp, pred)
+P_Resp$quintiles <- quantile(P_Resp$pred, probs = seq(0, 1, 0.5) )
+P_Resp$quintiles %>% tab1
+
+
+
+## https://www.surveypractice.org/article/2809-post-stratification-or-non-response-adjustment
+## Estimate NRA (non-response adjustment factor) which is multiplied by sampling weights.
+## NRA = # originally sampled units in cell g/#respondents in cell g
+
+
+
+P_Resp %>% str
+Number_edu_inst_per_propensity_quintile <- aggregate(School_name ~ quintiles,
+                                                     data = P_Resp, FUN = length)
+Number_edu_inst_per_propensity_quintile  
+Number_edu_inst_per_propensity_quintile %>% str
+P_Resp <- left_join(P_Resp, Number_edu_inst_per_propensity_quintile, by = ("quintiles"))
+P_Resp   
+names(P_Resp)[ncol(P_Resp)] <- "Total_sampled_units_per_quintile"
+
+Number_response_edu_inst_per_propensity_quintile <- aggregate(Response ~ quintiles,
+                                                     data = P_Resp, FUN = sum)
+
+Number_response_edu_inst_per_propensity_quintile
+P_Resp <- left_join(P_Resp, Number_response_edu_inst_per_propensity_quintile, by = ("quintiles"))
+P_Resp 
+names(P_Resp)[c(5, 10)] <- c("Response", "Response_per_quintile")
+
+P_Resp$NRA <- P_Resp %$% (Total_sampled_units_per_quintile/Response_per_quintile) 
+P_Resp$NRA %>% summary
+dfTT_match_4 <- dplyr::left_join(dfTT_match_3, P_Resp,
+          by = c("Name of the School/ECE" = "School_name.x") )
+
+
+
+
+
+
+dfTT_match_4$prob_sampled_non_resp <- dfTT_match_4$probability_selection_final_individual <- dfTT_match_4 %$%
+  (school_probability_selection * 1/dfTT_match_4$NRA)
+
+
+dfTT_match_4$non_resp_weight_indiv <- 1/dfTT_match_4$prob_sampled_non_resp
+dfTT_match_4$non_resp_weight_indiv %>% summary ## some weights are very large!!
+
+sum(dfTT_match_4$non_resp_weight_indiv)
+
+## Totals from sampling frames
+## total ECEC
+ECEC_total <- 67751
+School_total <- 104148
+Total_children <- ECEC_total + School_total
+Total_children
+
+## Recalibrate weights to overall total
+dfTT_match_4$recal_non_resp_weight_ind <- dfTT_match_4$non_resp_weight_indiv*
+  (Total_children/sum(dfTT_match_4$non_resp_weight_indiv))
+dfTT_match_4$recal_non_resp_weight_ind %>% summary
+dfTT_match_4$Ethnicity_prioritised %>% tab1
+
+
+
+
+## Rake weights to population totals by ethnicity and age
+dfTT_match_4$Raked_ethnicity <- ifelse(dfTT_match_4$Ethnicity_prioritised == "M\u0101ori"|
+                                         dfTT_match_4$Ethnicity_prioritised == "Pacific", 
+                                       dfTT_match_4$Ethnicity_prioritised, "Other" )
+dfTT_match_4$Raked_ethnicity %>% tab1
+
+dfTT_match_4 %>% names
+dfTT_match_4$Raked_age <- ifelse(dfTT_match_4$age_time_stamp >=5, "5 to 18", "0 to 4")
+dfTT_match_4$Raked_age %>% tab1
+dfTT_match_4$Raked_ethnicity %>% tab1
+pop.age <- data.frame(Raked_age = c("0 to 4", "5 to 18"), Freq = c(66290, 1196 + # from ECEC list
+                                                                104148))
+
+
+pop.age
+pop.ethnicity <- data.frame(Raked_ethnicity = c("M\u0101ori", "Pacific", "Other"),
+                       Freq = c(9883 + 20578, 10777 + 33337, 46589 + 48878))
+pop.ethnicity
+dfTT_match_4$Impetigo_c %>% tab1
+
+dfTT_match_4$Impetigo <- ifelse(is.na(dfTT_match_4$Impetigo_c), "No", dfTT_match_4$Impetigo_c)
+dfTT_match_4$Impetigo %>% tab1
+dsn <- svydesign(id = ~`Name of the School/ECE`, strata = ~strata, weights = ~recal_non_resp_weight_ind, 
+                 data = dfTT_match_4)
+drake2 <- rake(dsn, list(~Raked_age), list(pop.age), 
+               control = list(verbose=TRUE)) 
+
+weights(drake2) %>% sum
+
+
+ratios <- dfTT_match_4 %$%  svyby( ~typical_or_atypical_scabies,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f,
+                                   design = drake2, FUN = svyratio, ci=TRUE)
+ratios %>% confint
+
+dfTT_match_4 %$% hist(age_time_stamp, col = "gray90", xlab = "Age in years",
+                      main = "unweighted sample", breaks = 10, freq = FALSE) 
+dfTT_match_4 %$% lines(density(age_time_stamp), lty = 1, lwd = 2)
+
+## Weighted distribution of age
+
+dfTT_match_4 %$% svyhist(~age_time_stamp, drake2, col = "gray90", xlab = "Age in years",
+                         main = "weighted sample", breaks = 10, freq = FALSE) 
+dens <- dfTT_match_4 %$% svysmooth(~age_time_stamp, drake2, bandwidth = 1)
+lines(dens, lwd = 2)
+
+#par(mfrow = c(1,2), las = 1, mar = c(2.1, 4.1, 2.1, 0.3))
+
+
+dsn_scab_neg <- subset(drake2, typical_or_atypical_scabies == 0)
+dsn_scab_pos <- subset(drake2, typical_or_atypical_scabies == 1)
+
+dfTT_match_4 %$% svyboxplot(age_time_stamp~1, 
+                            dsn_scab_neg, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, clinical scabies negative", ylim = c(1,15)) 
+dfTT_match_4 %$% svyboxplot(age_time_stamp~1, 
+                            dsn_scab_pos, col = "gray90", ylab = "Age in years",
+                            main = "weighted sample, clinical scabies positive", ylim = c(1,15))
+dev.off(); plot.new()
+
+
+ratios <- svyby( ~typical_or_atypical_scabies,
+                 denominator = ~Examined_for_scabies,
+                 by = ~Ethnicity_prioritised_factor,
+                 design = drake2, FUN = svyratio)
+
+
+ratios <- svyby( ~typical_or_atypical_scabies,
+                 denominator = ~Examined_for_scabies,
+                 by = ~Raked_age,
+                 design = drake2, FUN = svyratio)
+
+ratios; confint(ratios)
+
+ratios <- svyby( ~PCR_positive,
+                 denominator = ~Examined_for_scabies,
+                 by = ~Ethnicity_prioritised_factor ,
+                 design = drake2, FUN = svyratio)
+
+ratios; confint(ratios)
+
+dfTT_match_4 %>% names
+
+ratios <- svyby( ~typical_or_atypical_scabies,
+                 denominator = ~Examined_for_scabies,
+                 by = ~School+ Raked_ethnicity,
+                 design = drake2, FUN = svyratio)
+
+
+
+
+
+
+
+ratios <- svyby( ~typical_or_atypical_scabies,
+                 denominator = ~Examined_for_scabies,
+                 by = ~Dep,
+                 design = drake2, FUN = svyratio)
+
+
+
+ratios; confint(ratios)
+dfTT_match_4 %>% names
+dfTT_match_4$RF_people_in_house %>% tab1(graph = FALSE)
+dev.off(); plot.new()
+
+
+svyboxplot(RF_people_in_house ~ as.factor(PCR_positive_f), 
+                            drake2, col = "gray90", ylab = "People in house",
+                            main = "weighted sample, clinical scabies positive", ylim = c(1,15))
+par(mfrow = c(1,2), las = 1, mar = c(2.1, 4.1, 2.1, 0.3))
+dfTT_match_4 %$% svyboxplot(RF_people_in_house~1, 
+                            dsn_scab_neg, col = "gray90", ylab = "People in house",
+                            main = "weighted sample, clinical scabies negative", ylim = c(1,15)) 
+dfTT_match_4 %$% svyboxplot(RF_people_in_house~1, 
+                            dsn_scab_pos, col = "gray90", ylab = "People in house",
+                            main = "weighted sample, clinical scabies positive", ylim = c(1,15))
+svyttest(RF_people_in_house ~ typical_or_atypical_scabies, drake2)
+svyttest(RF_people_sleep_in_child_room ~ typical_or_atypical_scabies, drake2)
+
+
+lr_model <- svyglm(PCR_positive ~ Child_itchy_scratching, 
+                   design = drake2,
+                   family = quasibinomial(link = "logit"))
+
+lr_model <- svyglm(typical_or_atypical_scabies ~ Child_itchy_scratching, 
+                   design = drake2,
+                   family = quasibinomial(link = "logit"))
+
+
+lr_model %>% summary
+exp(lr_model$coefficients)
+dev.off(); plot.new()
+ svyboxplot(RF_people_in_house ~ Ethnicity_prioritised_factor, 
+                            drake2, col = "gray90", ylab = "People in house",
+                            main = "weighted sample, clinical scabies positive", ylim = c(1,15))
+
+ dfTT_match_4$RF_people_in_house %>% str
+ svyby(~RF_people_in_house, by = list(Ethnicity=dfTT_match_4$Raked_ethnicity), 
+            drake2, FUN = svymean)
+?bxp 
+## svyboxplot causes error, but can be fixed by using weighted ggplot
+ dev.off(); plot.new()
+ dfTT_match_4$Ethnicity_prioritised_factor %>% tab1
+ dfTT_match_4$Ethnicity_prioritised_factor <- factor(dfTT_match_4$Ethnicity_prioritised,
+                  levels = c("South Asian", "South East Asian","NZ European or Other", "M\u0101ori", 
+                             "Pacific"))
+ 
+ ggplot(data=dfTT_match_4, aes(y = RF_people_in_house, x= Ethnicity_prioritised_factor, 
+                               weight = recal_non_resp_weight_ind )) + 
+   geom_boxplot() + 
+   labs(x = "Ethnicity",  y = "People living in house", 
+        title ="Living in house, by ethnicity",
+        subtitle = "Weighted plot", 
+        caption = "NA = missing ethnicity information")
+ 
+ ggplot(data = dfTT_match_4, aes(y = RF_people_in_house, x= PCR_positive_f, 
+                               weight = recal_non_resp_weight_ind )) + 
+   geom_boxplot() + 
+   labs(x = "Scabies qPCR result",  y = "People living in house", 
+        title ="Living in house, by PCR result",
+        subtitle = "Weighted plot")
+ 
+ dfTT_match_4 |> names()
+
+ summary(dfTT_match_4$RF_people_in_house)
+ 
+ ## Plot crude and weighted mean in box plot by categorical variable
+ 
+ library(Hmisc)
+ library(plyr)
+ library(ggplot2)
+ df.wm <- ddply(dfTT_match_4, .(Ethnicity_prioritised_factor), summarize, 
+              wmean = round(wtd.mean(RF_people_in_house, recal_non_resp_weight_ind, na.rm=TRUE), 2))
+ 
+ df.mean <- ddply(dfTT_match_4, .(Ethnicity_prioritised_factor), summarize, 
+                mean = round(mean(RF_people_in_house, na.rm=TRUE), 2))
+ 
+ ggplot(dfTT_match_4, aes(x = Ethnicity_prioritised_factor, y = RF_people_in_house,
+                          weight = recal_non_resp_weight_ind)) + 
+   geom_boxplot(width = 0.6,  colour = I("#3366FF")) + 
+   geom_point(data=df.wm, aes(x = Ethnicity_prioritised_factor,
+                              y = wmean),shape = 23, 
+              size = 3, fill = "red", inherit.aes=FALSE) + 
+   geom_point(data = df.mean, aes(x = Ethnicity_prioritised_factor,
+                              y = mean), shape = 20, 
+              size = 5, fill = "yellow", inherit.aes = FALSE) + 
+   labs(x = "Ethnicity",  y = "People living in house", 
+        title ="Living in house, by ethnicity",
+        subtitle = "Weighted means (red) and crude means (black)", 
+        caption = "NA = missing ethnicity information")
+ 
+ ## instead, use function in function.R programme
+ 
+ ## Children sleeping in room, by ethnicity.
+ dfTT_match_4 %>% names
+  
+ boxplot_weighted_mean(df = dfTT_match_4 %>% filter(PCR_positive == 1), 
+                       x_var = Ethnicity_prioritised_factor,
+                       y_var = RF_people_sleep_in_child_room, 
+                                   wt =  recal_non_resp_weight_ind,
+                                  x_axis_label = "Ethnicity",
+                                  y_axis_label = "Number of occupants in child's room",
+                                  title_plot = "Number in room, by ethnicity; PCR positive")
+ 
+ boxplot_weighted_mean(df = dfTT_match_4 %>% filter(PCR_positive == 0), 
+                       x_var = Ethnicity_prioritised_factor,
+                       y_var = RF_people_sleep_in_child_room, 
+                       wt =  recal_non_resp_weight_ind,
+                       x_axis_label = "Ethnicity",
+                       y_axis_label = "Number of occupants in child's room",
+                       title_plot = "Number in room, by ethnicity; PCR negative")
+ 
+ 
+ 
+ 
+ dfTT_match_4$PCR_positive %>% tab1
+ boxplot_weighted_mean(df = dfTT_match_4 %>% filter(PCR_positive == 1), 
+                       x_var = Ethnicity_prioritised_factor,
+                       y_var = RF_people_in_house, 
+                       wt =  recal_non_resp_weight_ind,
+                       x_axis_label = "Ethnicity",
+                       y_axis_label = "Number of people living in house",
+                       title_plot = "Number in house, by ethnicity")
+ 
+ boxplot_weighted_mean(df = dfTT_match_4 %>% filter(PCR_positive == 0), 
+                       x_var = Ethnicity_prioritised_factor,
+                       y_var = RF_people_in_house, 
+                       wt =  recal_non_resp_weight_ind,
+                       x_axis_label = "Ethnicity",
+                       y_axis_label = "Number of people living in house",
+                       title_plot = "Number in house, by ethnicity")
+ 
+ 
+ 
+  boxplot_weighted_mean(df = dfTT_match_4, x_var = Ethnicity_prioritised_factor,
+                        y_var = RF_people_sleep_in_child_room, 
+                        wt =  recal_non_resp_weight_ind)
+ 
+dfTT_match_4$typical_or_atypical_scabies %>% tab1
+  boxplot_weighted_mean(df = dfTT_match_4 %>% filter(typical_or_atypical_scabies == 0), 
+                        x_var = Ethnicity_prioritised_factor,
+                        y_var = RF_people_in_house, 
+                        wt =  recal_non_resp_weight_ind,
+                        x_axis_label = "Ethnicity",
+                        y_axis_label = "Number of people living in house",
+                        title_plot = "Number in house, by ethnicity; no clinical scabies")
+  
+  boxplot_weighted_mean(df = dfTT_match_4 %>% filter(typical_or_atypical_scabies == 1), 
+                        x_var = Ethnicity_prioritised_factor,
+                        y_var = RF_people_in_house, 
+                        wt =  recal_non_resp_weight_ind,
+                        x_axis_label = "Ethnicity",
+                        y_axis_label = "Number of people living in house",
+                        title_plot = "Number in house, by ethnicity; clinical scabies")
+ dfTT_match_4 %>% names
+ 
+  boxplot_weighted_mean(df = dfTT_match_4 %>% filter(typical_or_atypical_scabies == 1), 
+                        x_var = Ethnicity_prioritised_factor,
+                        y_var = age, 
+                        wt =  recal_non_resp_weight_ind,
+                        x_axis_label = "Ethnicity",
+                        y_axis_label = "Number of people living in house",
+                        title_plot = "Number in house, by ethnicity; clinical scabies")
+  dfTT_match_4$log_age <- log(dfTT_match_4$age)
+  boxplot_weighted_mean(df = dfTT_match_4, 
+                        x_var = typical_or_atypical_scabies_f,
+                        y_var = log_age, 
+                        wt =  recal_non_resp_weight_ind,
+                        x_axis_label = "Clinical scabies",
+                        y_axis_label = "log(e)(Age in years)",
+                        title_plot = "Number in house, by ethnicity; clinical scabies")
+
+  
+dfTT_match_4$skin_lotions_family %>% tab1(graph = FALSE)
+dfTT_match_4 %>% filter(PCR_positive == 1) %>% dplyr::select(number_in_house)
+
+## Correct treatment data 
+dfTT_match_4$Skin_treatment <- ifelse(grepl("don't know", dfTT_match_4$skin_lotions_family, 
+                                            ignore.case = T),
+                                       NA,
+                                       ifelse(dfTT_match_4$skin_lotions_family == "No",
+                                                "None",
+                                              dfTT_match_4$number_in_house))
+dfTT_match_4$Skin_treatment %>% tab1(graph = FALSE)
+
+dfTT_match_4$Skin_treatment <- ifelse(grepl("Don't", dfTT_match_4$Skin_treatment)|
+                                        grepl("Rohim", dfTT_match_4$Skin_treatment)| 
+                                        grepl("Yellow", dfTT_match_4$Skin_treatment), NA,
+                                ifelse(grepl("sone", dfTT_match_4$Skin_treatment)|
+                              grepl("Loc", dfTT_match_4$Skin_treatment)|
+                                grepl("con", dfTT_match_4$Skin_treatment)|
+                              grepl("eczema", dfTT_match_4$Skin_treatment, ignore.case = TRUE)|
+                              grepl("Micreme", dfTT_match_4$Skin_treatment), "Steroid",
+                              ifelse(grepl("Clomazol", dfTT_match_4$Skin_treatment) |
+                              grepl("lene", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                       grepl("lene", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                        grepl("emulsifying", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                grepl("Claratyne", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                       grepl("Fatty", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                       grepl("glycerol", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                       grepl("barrier", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                        grepl("calamine", dfTT_match_4$Skin_treatment, ignore.case = T)|
+                                              grepl("Ant", dfTT_match_4$Skin_treatment, ignore.case = T), 
+                                             "anti-histamine_or_fungal_calamine_emollient",
+                              ifelse(grepl("N\\/A", dfTT_match_4$Skin_treatment)|
+                                       dfTT_match_4$Skin_treatment == "When she was younger she had eczema" ,
+                                     "None", dfTT_match_4$Skin_treatment))))
+dfTT_match_4$Skin_treatment %>% tab1(graph = FALSE)
+dfTT_match_4$Skin_treatment_f <- as.factor(dfTT_match_4$Skin_treatment) 
+dfTT_match_4$Skin_treatment_f <- relevel(dfTT_match_4$Skin_treatment_f, ref = "None") 
+
+dfTT_match_4 %>% filter(typical_or_atypical_scabies == 1) %>% dplyr::select(number_in_house)
+
+dsn <- svydesign(id = ~`Name of the School/ECE`, strata = ~strata, weights = ~recal_non_resp_weight_ind, 
+                 data = dfTT_match_4)
+drake2 <- rake(dsn, list(~Raked_age), list(pop.age), 
+               control = list(verbose=TRUE)) 
+
+lr_model <- svyglm(PCR_positive ~ Skin_treatment_f, 
+                   design = drake2,
+                   family = quasibinomial(link = "logit"))
+summary(lr_model)
+exp(lr_model$coefficients)
+
+lr_model <- svyglm(typical_or_atypical_scabies ~ Skin_treatment_f, 
+                   design = drake2,
+                   family = quasibinomial(link = "logit"))
+summary(lr_model)
+exp(lr_model$coefficients)
+
+pacman::p_load(epiDisplay)
+
+cc(dfTT_match_4$PCR_positive, dfTT_match_4$Skin_treatment_f )    
+cc(dfTT_match_4$typical_or_atypical_scabies, dfTT_match_4$Skin_treatment_f )
+dfTT_match_4$Skin_treatment |> tab1()
+dfTT_match_4$IACS_suspected_or_clinical |> tab1()
+
+dfTT_match_4$topical_steroid <- ifelse(is.na(dfTT_match_4$Skin_treatment), 0,
+                                       ifelse(dfTT_match_4$Skin_treatment == "Steroid", 1, 0))
+dfTT_match_4$topical_steroid |> tab1()
+dfTT_match_4$other_topical <- ifelse(is.na(dfTT_match_4$Skin_treatment), 0,
+                                       ifelse(
+                                         dfTT_match_4$Skin_treatment == "anti-histamine_or_fungal_calamine_emollient",
+                                         1, 0))
+## srd----
+dfTT_match_4$typical_or_atypical_scabies |> tab1()
+png(file="srd.png", width=600, height=600)
+srd::srd(data=dfTT_match_4,
+             rectangles = c(
+               "typical_or_atypical_scabies",
+               "IACS_suspected_or_clinical",
+               "PCR_positive",
+               "topical_steroid ",
+               "other_topical"),
+             weight = "recal_non_resp_weight_ind", clickable = TRUE, thin = 1, title = "", Labels = 1)
+dev.off()        
+
+srd::srd
+
+#srd::srd(dfTT_match[dfTT_match$Ethnicity_prioritised == "Pacific",], rectangles = c("PCR_positive==1",
+                                    #                         "typical_scabies==1|atypical_scabies==1",
+                                    #                          "IACS_suspected_or_clinical==1",
+                                    #                         "history==1"
+                                    #                         ))
+                                    #
+                                    # srd::srd(dfTT_match[!(dfTT_match$Ethnicity_prioritised == "Pacific" | dfTT_match$Ethnicity_prioritised == "M\u0101ori"),], rectangles = c("PCR_positive==1",
+                                    #                                                                                     "typical_scabies==1|atypical_scabies==1",
+                                    #                                                                                     "IACS_suspected_or_clinical==1",
+                                    #                                                                                     "history==1"
+                                    # ))
+                                    #
+                                    # srd::srd(dfTT_match[(dfTT_match$Ethnicity_prioritised == "Pacific" | dfTT_match$Ethnicity_prioritised == "M\u0101ori"),], rectangles = c("PCR_positive==1",
+                                    #                                                                                                                                           "typical_scabies==1|atypical_scabies==1",
+                                    #                                                                                                                                           "IACS_suspected_or_clinical==1",
+                                    #                                                                                                                                           "history==1"
+                                    # ))
+                                    #
+                                    #
+                                    # dfTT_match %>% head
+                                    #
+                                    # srd::srd(dfTT_match[dfTT_match$Ethnicity_prioritised == "Pacific",], rectangles = c("PCR_positive==1",
+                                    #                                    "typical_scabies==1|atypical_scabies==1",
+                                    #                                    "Ethnicity_prioritised_factor=='Pacific'",
+                                    #                                    "Ethnicity_prioritised_factor=='Maori'"
+                                    #                                    ) )
+                                    
+                                    
+## Calculations for paper-----
+
+ethtab <- dfTT_match_4$Ethnicity_prioritised %>% tab1
+ethtab <- ethtab$output.table
+
+scab_exam <- tab1(dfTT_match_4$` Skin examination findings`)
+
+scab_exam %>% str
+
+scab_exam
+
+
+iacs <- dfTT_match_4$scabies_status %>% tab1
+iacs <- iacs$output.table
+iacs
+
+
+
+dfTT_match_4 %>% names
+dfTT_match_4$strata |> tab1()
+
+dfTT_match_4$Impetigo |> tab1()
+
+### Separate tables for each strata----
+
+tabPoor <- Publish::univariateTable(scabies_status_fac ~ Skin_Exam + Impetigo + age + Ethnicity_prioritised_factor + 
+                                  + PCR_positive + scabies_arms +
+                                  scabies_legs + scabies_torso +  Scabies_how_many_lesions_fac +
+                                  HH_contact_rash +
+                                  Close_contact_itch +
+                                  Child_itchy +
+                                 institution + Skin_treatment, data = dfTT_match_4[dfTT_match_4$strata == "poor", ])
+
+
+tabPoor <- summary(tabPoor, drop.reference = FALSE) %>% data.frame
+tabPoor 
+tabPoor$Variable[1] <- c("Rash")
+
+tabPoor$Variable[7] <- c("Age (years)")
+tabPoor$Variable[9] <- c("Ethnic group")
+tabPoor$Variable[c(18)] <- "Affected region"
+tabPoor$Variable[23] <- "Number skin lesions"
+tabPoor$Variable[29] <- "Rash in household"
+tabPoor$Variable[32] <- "Contact with itch"
+tabPoor$Variable[35] <- "Child itchy"
+tabPoor$Variable[37] <- "Centre"
+tabPoor$Variable[39] <- "Skin lotions"
+tabPoor$Level[40] <- "Anti-pruritic*"
+tabPoor$Level[41] <- "Topical steroid"
+tabPoor$Level[42] <- "Permethrin"
+tabPoor$Level[18] <- "Arms"
+tabPoor$Level[20] <- "Legs"
+tabPoor$Level[22] <- "Torso"
+
+tabPoor$Variable[16] <- "PCR positive?"
+tabPoor$Level[16] <- "Yes"
+tabPoor$Level[20] <- "Legs"
+
+tabPoor$Variable[6] <- "Impetigo"
+tabPoor
+tabPoor <- tabPoor[-c(5, 15, 17, 19, 21, 28, 34, 31 ),]
+tabPoor
+names(tabPoor)[3:8] <- c("Clinical (n = 8)", "Suspected (n = 4)", "No scabies (n = 113)",
+                         "Missing (n = 150)", "Total (n = 150)", "P-value") 
+tabPoor
+tabPoor$`P-value`  
+
+tabPoor$`P-value` <- ifelse(tabPoor$`P-value` == ""|tabPoor$`P-value` == "NA", "",
+  ifelse(as.numeric(tabPoor$`P-value`) < 0.001 | tabPoor$`P-value` == "< 1e-04" , "< 0.001", 
+                               three_dp(as.numeric(tabPoor$`P-value`))))
+
+tabPoor
+
+dfTT_match_4[dfTT_match_4$strata == "wealthy", ]$Ethnicity_prioritised_factor |> tab1()
+
+tabWealthy <- Publish::univariateTable(scabies_status_fac ~ Skin_Exam + Impetigo + age + Ethnicity_prioritised_factor + 
+                                      + PCR_positive + 
+                                      scabies_arms +
+                                      scabies_legs + 
+                                      scabies_torso +  
+                                      Scabies_how_many_lesions_fac +
+                                      HH_contact_rash +
+                                      Close_contact_itch +
+                                      Child_itchy +
+                                      institution + Skin_treatment, data = dfTT_match_4[dfTT_match_4$strata == "wealthy", ])
+
+## Needs fixing
+tabWealthy <- summary(tabWealthy, drop.reference = FALSE) %>% data.frame
+tabWealthy
+
+
+# summary(tab) %>% 
+#   rmdHelpers::myKable() %>% kableExtra::kable_styling()
+
+
+
+tabWealthy$Variable[1] <- c("Rash")
+
+tabWealthy$Variable[6] <- c("Age (years)")
+tabWealthy$Variable[7] <- c("Ethnic group")
+tabWealthy$Variable[15] <- "Affected region"
+tabWealthy$Variable[21] <- "Number skin lesions"
+tabWealthy$Variable[27] <- "Rash in household"
+tabWealthy$Variable[30] <- "Contact with itch"
+tabWealthy$Variable[33] <- "Child itchy"
+tabWealthy$Variable[35] <- "Centre"
+tabWealthy$Level[15] <- "Arms"
+tabWealthy$Level[18] <- "Legs"
+tabWealthy$Level[20] <- "Torso"
+tabWealthy$Level[14] <- "Yes"
+tabWealthy$Level[13] <- "Negative or not-tested"
+tabWealthy$Variable[14] <- "PCR positive?"
+tabWealthy$Variable[37] <- "Skin lotions"
+tabWealthy$Level[38] <- "Anti-pruritic*"
+tabWealthy$Level[39] <- "Topical steroid"
+tabWealthy
+tabWealthy <- tabWealthy[-c(13, 16, 17, 19, 26, 29, 32),]
+
+names(tabWealthy)[3:8] <- c("Clinical (n = 2)", "Suspected (n = 2)", "No scabies (n = 9)",
+                         "Missing (n = 18)", "Total (n = 31)", "P-value") 
+
+tabWealthy
+tabWealthy$`P-value` <- ifelse(tabWealthy$`P-value` == ""|tabWealthy$`P-value` == "NA", "",
+                            ifelse(as.numeric(tabWealthy$`P-value`) < 0.001 | 
+                                     tabWealthy$`P-value` == "< 1e-04" , "< 0.001", 
+                                   three_dp(as.numeric(tabWealthy$`P-value`))))
+tabWealthy
+
+dfTT_match_4[, "Evaluation Date"]
+
+
+dsn_scab_neg <- subset(drake2, typical_or_atypical_scabies == 0)
+dsn_scab_pos <- subset(drake2, typical_or_atypical_scabies == 1)
+
+dsn <- svydesign(id = ~`Name of the School/ECE`, strata = ~strata, weights = ~recal_non_resp_weight_ind, 
+                 data = dfTT_match_4)
+drake2 <- rake(dsn, list(~Raked_age), list(pop.age), 
+               control = list(verbose=TRUE)) 
+
+weights(drake2) %>% sum
+dfTT_match_4 |> names()
+
+ratios <- dfTT_match_4 %$%  svyby( ~typical_or_atypical_scabies,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f,
+                                   design = drake2, FUN = svyratio, ci=TRUE)
+
+ratios$Point_CI <- paste0((ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse(ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100 - 
+                                                  1.96*100*ratios$`se.typical_or_atypical_scabies/Examined_for_scabies` <= 0,"0.00",
+                                                (ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.typical_or_atypical_scabies/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.typical_or_atypical_scabies/Examined_for_scabies`) |> one_dp(),
+                          ")")
+ratios$Point_CI 
+ratios$Institution <- c("Child care centre", "School")
+names(ratios)[ncol(ratios)-1] <- "Prevalence (95 CI)" 
+ratios
+options(width = 100)
+tab_survey <- ratios[, c("Institution", "Prevalence (95 CI)") ]
+tab_survey
+
+
+
+
+dfTT_match_4[, "Evaluation Date"]
+
+
+dsn_scab_neg <- subset(drake2, typical_or_atypical_scabies == 0)
+dsn_scab_pos <- subset(drake2, typical_or_atypical_scabies == 1)
+
+dsn <- svydesign(id = ~`Name of the School/ECE`, strata = ~strata, weights = ~recal_non_resp_weight_ind, 
+                 data = dfTT_match_4)
+drake2 <- rake(dsn, list(~Raked_age), list(pop.age), 
+               control = list(verbose=TRUE)) 
+
+weights(drake2) %>% sum
+
+
+ratios <- dfTT_match_4 %$%  svyby( ~typical_or_atypical_scabies,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f,
+                                   design = drake2, FUN = svyratio, ci=TRUE)
+
+ratios$Point_CI <- paste0((ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse(ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100 - 
+                                    1.96*100*ratios$`se.typical_or_atypical_scabies/Examined_for_scabies` <= 0,"0.00",
+                           (ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100 - 
+                              1.96*100*ratios$`se.typical_or_atypical_scabies/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`typical_or_atypical_scabies/Examined_for_scabies`*100 + 
+                            1.96*100*ratios$`se.typical_or_atypical_scabies/Examined_for_scabies`) |> one_dp(),
+                          ")")
+ratios$Point_CI 
+ratios$Institution <- c("Child care centre", "School")
+names(ratios)[ncol(ratios)-1] <- "Prevalence (95 CI)" 
+ratios
+options(width = 100)
+tab_survey <- ratios[, c("Institution", "Prevalence (95 CI)") ]
+tab_survey
+
+
+
+ratios <- dfTT_match_4 %$%  svyby( ~PCR_positive,
+                                      denominator = ~Examined_for_scabies, by = ~institution_f,
+                                      design = drake2, ci=TRUE, FUN = svyratio)
+ratios
+ratios$Point_CI <- paste0(round(ratios$`PCR_positive/Examined_for_scabies`*100, 1),
+                          "% (95% CI: ", (ratios$`PCR_positive/Examined_for_scabies`*100 - 
+                                   1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) |> round(1),
+                          " to ", (ratios$`PCR_positive/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) |> round(1),
+                          ")")
+ratios$Institution <- c("Child care centre", "School")
+names(ratios)[ncol(ratios)-1] <- "Prevalence (95 CI)" 
+ratios
+options(width = 100)
+tab_survey_PCR <- ratios[, c("Institution", "Prevalence (95 CI)") ]
+tab_survey_PCR
+
+## Proportion of positive PCR cases that were treated for conditions other than scabies
+dfTT_match_4$PCR_positive |> tab1()
+dfTT_match_4$steroid <- ifelse(dfTT_match_4$Skin_treatment == "Steroid", 1, 0)
+dfTT_match_4$Skin_treatment |> tab1()
+dfTT_match_4$anti_pruritic_or_steroid <- ifelse(dfTT_match_4$Skin_treatment == "Steroid"| 
+                                                  dfTT_match_4$Skin_treatment == "anti-histamine_or_fungal_calamine_emollient",
+                                                1, 0)
+dsn_PCR_pos <- subset(drake2, PCR_positive == 1)
+ratios <- dfTT_match_4 %$%  svyby( ~anti_pruritic_or_steroid,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f ,
+                                   design = dsn_PCR_pos, FUN = svyratio, ci=TRUE)
+dfTT_match_4[dfTT_match_4$PCR_positive == 1,]$Skin_treatment |> tab1()
+skin_treat_pop <- dfTT_match_4$Skin_treatment |> tab1()
+
+skin_treat_scab <- dfTT_match_4[dfTT_match_4$PCR_positive == 1,]$anti_pruritic_or_steroid |> tab1()
+
+
+ratios
+## IACS positive
+
+
+dfTT_match_4$history |> tab1()
+dfTT_match_4$IACS_suspected_or_clinical |> tab1()
+dfTT_match_4$IACS_suspected_or_clinical_miss <- ifelse(dfTT_match_4$history == 0, NA, dfTT_match_4$IACS_suspected_or_clinical)
+dfTT_match_4$IACS_suspected_or_clinical_miss |> tab1()
+dfTT_match_4$Examined_for_scabies |> tab1()
+dsn_complete_case <- subset(drake2, history == 1)
+ratios <- dfTT_match_4 %$%  svyby( ~IACS_suspected_or_clinical,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f+ strata,
+                                   design = drake2, ci=TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+ratios$Point_CI <- paste0((ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse((ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100 - 
+                                   1.96*100*ratios$`se.IACS_suspected_or_clinical/Examined_for_scabies`) < 0, "0.0",
+                          (ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100 - 
+                             1.96*100*ratios$`se.IACS_suspected_or_clinical/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.IACS_suspected_or_clinical/Examined_for_scabies`) |> one_dp(),
+                          ")")
+ratios$Institution <- c("Child care centre", "School")
+names(ratios)[ncol(ratios)-1] <- "Prevalence (95 CI)" 
+ratios
+options(width = 100)
+tab_survey_strata_IACS_clinical_scabies <- ratios[, c("Institution", "Prevalence (95 CI)") ]
+tab_survey_strata_IACS_clinical_scabies
+
+ratios <- dfTT_match_4 %$%  svyby( ~IACS_suspected_or_clinical,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f,
+                                   design = drake2, ci=TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+ratios$Point_CI <- paste0((ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse((ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100 - 
+                                          1.96*100*ratios$`se.IACS_suspected_or_clinical/Examined_for_scabies`) < 0, "0.0",
+                                       (ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100 - 
+                                          1.96*100*ratios$`se.IACS_suspected_or_clinical/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`IACS_suspected_or_clinical/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.IACS_suspected_or_clinical/Examined_for_scabies`) |> one_dp(),
+                          ")")
+ratios$Institution <- c("Child care centre", "School")
+names(ratios)[ncol(ratios)-1] <- "Prevalence (95 CI)" 
+ratios
+options(width = 100)
+tab_survey_IACS_clinical_scabies <- ratios[, c("Institution", "Prevalence (95 CI)") ]
+tab_survey_IACS_clinical_scabies
+
+## Weighted proportion on skin treatment
+dfTT_match_4$Examined_for_scabies |> tab1()
+dfTT_match_4$topical_skin_treatment <- ifelse(dfTT_match_4$Skin_treatment != "None", 1, 0)
+dfTT_match_4$topical_skin_treatment |> tab1()
+dsn_complete_case <- subset(drake2, history == 1)
+
+
+ratios <- dfTT_match_4 %$%  svyby( ~topical_skin_treatment,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f,
+                                   design = dsn_complete_case, ci=TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+
+
+
+
+ratios <- dfTT_match_4 %$%  svyby( ~topical_skin_treatment,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~institution_f,
+                                   design = dsn_complete_case, ci=TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+ratios$Point_CI <- paste0((ratios$`topical_skin_treatment/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse((ratios$`topical_skin_treatment/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.topical_skin_treatment/Examined_for_scabies`) < 0, "0.0",
+                                                (ratios$`topical_skin_treatment/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.topical_skin_treatment/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`topical_skin_treatment/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.topical_skin_treatment/Examined_for_scabies`) |> one_dp(),
+                          ")")
+
+top_treat_weight <- ratios
+top_treat_weight[1, "Point_CI"]
+
+dfTT_match_4 |> names()
+
+ratios <- dfTT_match_4 %$%  svyby( ~PCR_positive,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~Ethnicity_prioritised_factor,
+                                   design = dsn_complete_case, ci=TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+ratios$Point_CI <- paste0((ratios$`PCR_positive/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse((ratios$`PCR_positive/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) < 0, "0.0",
+                                                (ratios$`PCR_positive/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`PCR_positive/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) |> one_dp(),
+                          ")")
+
+## Recent diagnosis of scabies in last 6 months----
+dfTT_match_4$history_treatment_scabies <- ifelse(dfTT_match_4$diagnosed_scabies_6_months == "Yes", 1, 0)
+
+ratios <- dfTT_match_4 %$%  svyby( ~history_treatment_scabies,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~strata,
+                                   design = dsn_complete_case, ci = TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+ratios$Point_CI <- paste0((ratios$`history_treatment_scabies/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse((ratios$`history_treatment_scabies/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.history_treatment_scabies/Examined_for_scabies`) < 0, "0.0",
+                                                (ratios$`history_treatment_scabies/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.history_treatment_scabies/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`history_treatment_scabies/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.history_treatment_scabies/Examined_for_scabies`) |> one_dp(),
+                          ")")
+
+history_scabies <- ratios
+history_scabies
+
+## PCR positive by ethnicity
+
+dfTT_match_4$Priori
+
+ratios <- dfTT_match_4 %$%  svyby( ~PCR_positive,
+                                   denominator = ~Examined_for_scabies,
+                                   by = ~Ethnicity_prioritised,
+                                   design = dsn_complete_case, ci = TRUE, FUN = svyratio, na.rm = TRUE)
+
+ratios
+ratios$Point_CI <- paste0((ratios$`PCR_positive/Examined_for_scabies`*100) |> one_dp(),
+                          "% (95% CI: ", ifelse((ratios$`PCR_positive/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) < 0, "0.0",
+                                                (ratios$`PCR_positive/Examined_for_scabies`*100 - 
+                                                   1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) |> one_dp()),
+                          " to ", (ratios$`PCR_positive/Examined_for_scabies`*100 + 
+                                     1.96*100*ratios$`se.PCR_positive/Examined_for_scabies`) |> one_dp(),
+                          ")")
+
+PCR_ethnic <- ratios
+
+PCR_ethnic
+
+
+dfTT_match_4 |> names()
+dfTT_match_4$diagnosed_scabies_6_months |> tab1()
+dfTT_match_4$RF_people_in_house |> str()
+svyttest(RF_people_in_house ~ PCR_positive_f, 
+     dsn_complete_case)
+
+dfTT_match_4$PCR_positive_text <- ifelse(dfTT_match_4$PCR_positive == 1, "Yes", "No")
+dfTT_match_4$PCR_positive_text |> tab1()
+boxplot_numbers_in_house_by_PCR <- ggplot(data = dfTT_match_4, aes(y = RF_people_in_house, x= PCR_positive_text, 
+                              weight = recal_non_resp_weight_ind )) + 
+  geom_boxplot() + 
+  labs(x = "PCR positive?",  y = "People living in house", 
+       subtitle = "Weighted plot")
+
+
+## Comparing cases with non-cases
+svyttest(RF_people_sleep_in_child_room ~ PCR_positive_f, 
+         dsn_complete_case)
+
+ggplot(data=dfTT_match_4, aes(y = RF_people_sleep_in_child_room, x= PCR_positive_f, 
+                              weight = recal_non_resp_weight_ind )) + 
+  geom_boxplot() + 
+  labs(x = "PCR_positive",  y = "People living in child's room", 
+       subtitle = "Weighted plot")
+
+
+
+## Recruitment flow chart----
+
+
+# Derive statistics for diagram
+P_Resp_ECEC_deprived <- P_Resp_ECEC |> filter(Deprived == "Yes")
+P_Resp_ECEC_deprived |> nrow()
+P_Resp_ECEC_wealthy <- P_Resp_ECEC |> filter(Deprived == "No")
+P_Resp_ECEC_wealthy |> nrow()
+
+P_Resp_School_deprived <- P_Resp_School |> filter(Deprived == "Yes")
+P_Resp_School_wealthy <- P_Resp_School |> filter(Deprived == "No")
+
+
+## function takes df of responses for given school and SES and gives n and percent response for diagram
+P_Resp_ECEC
+est_n_pct <- function(df = P_Resp_ECEC_deprived, response = TRUE){
+              n <- df |> filter(Response == response) |> nrow()
+              pct <- (100*(df |> filter(Response == response) |> nrow())/(df |> nrow())) |> one_dp()
+              n_pct <- paste0(n, ' (', pct, '%)')
+              }
+
+est_n_pct() |> print() 
+
+response_diag <- DiagrammeR::grViz(diagram = "digraph flowchart {
+      graph [layout = dot, rankdir = LR]
+      # define node aesthetics
+      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      tab4 [label = '@@4']
+      tab5 [label = '@@5']
+      tab6 [label = '@@6']
+      tab7 [label = '@@7']
+      tab8 [label = '@@8']
+      tab9 [label = '@@9']
+      tab10 [label = '@@10']
+      tab11 [label = '@@11']
+      tab12 [label = '@@12']
+      tab13 [label = '@@13']
+      tab14 [label = '@@14']
+      tab15 [label = '@@15']
+      tab16 [label = '@@16']
+      tab17 [label = '@@17']
+      tab18 [label = '@@18']
+# set up node layout
+      # Childcare centres
+      tab1 -> tab2;
+      tab1 -> tab5;
+      tab2 -> tab7;
+      tab5 -> tab11;
+      tab7 -> tab13;
+      tab7 -> tab15;
+      tab11 -> tab16;
+      tab11 -> tab17;
+      # Schools
+      tab3 -> tab6;
+      tab3 -> tab4;
+      
+      tab4 -> tab8;
+     # tab6 -> tab9;
+      tab6 -> tab14;
+      tab8 -> tab10;
+      tab8 -> tab9;
+      tab14 -> tab12;
+      tab14 -> tab18;
+      }
+      [1]: 'Schools'
+      [2]: 'Poor'
+      [3]: 'Childcare centres'
+      [4]: 'Poor'
+      [5]: 'Wealthy'
+      [6]: 'Wealthy'
+      [7]: paste0('Invited: ', P_Resp_School_deprived |> nrow())
+      [8]: paste0('Invited: ', P_Resp_ECEC_deprived |> nrow()) 
+      [9]: paste0('Participated: ', est_n_pct() |> print() )
+      [10]: paste0('Declined: ', est_n_pct(response = FALSE) |> print() )
+      [11]: paste0('Invited: ', P_Resp_School_wealthy |> nrow() |> print()) 
+      [12]: paste0('Participated: ', est_n_pct(P_Resp_ECEC_wealthy, TRUE) |> print() )
+      [13]: paste0('Participated: ', est_n_pct(df = P_Resp_School_deprived, TRUE) |> print() )
+      [14]:  paste0('Invited: ', P_Resp_ECEC_wealthy |> nrow()|> print() )
+      [15]: paste0('Declined: ', est_n_pct(df = P_Resp_School_deprived, response = FALSE) |> print() )
+      [16]: paste0('Participated: ', est_n_pct(df = P_Resp_School_wealthy, TRUE) |> print() )
+      [17]: paste0('Declined: ', est_n_pct(df = P_Resp_School_wealthy, response = FALSE) |> print() )
+      [18]: paste0('Declined: ', est_n_pct(df = P_Resp_ECEC_wealthy, response = FALSE) |> print() )
+      ")
+
+response_diag
+
+
+
+dfTT_match_4[dfTT_match_4$`Name of the School/ECE` == "Pakuranga Intermediate school",]$history |> tab1()
+
+dfTT_match_4$Child_name

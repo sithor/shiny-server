@@ -1,0 +1,762 @@
+---
+title: "POPLHLTH 304 tutorial 5: linear regression"
+author: "Simon Thornley and John Sluyter"
+date: "`r format(Sys.time(), '%e %B, %Y')`"
+output: 
+  learnr::tutorial:
+        progressive: true
+        allow_skip: true
+  # prettydoc::html_pretty:
+  #               theme: tactile
+runtime: shiny_prerendered
+description: >
+  Inspecting our data for errors!
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+<center>
+
+```{r setup, include=FALSE}
+library(learnr)
+library(tufte)
+library(rio)
+library(visdat)
+library(fs)
+library(ggplot2)
+library(DiagrammeR)
+library(r2symbols) # cheatsheet here: https://r2symbols.obi.obianom.com/symbols/
+library(learnr)
+library(gradethis)
+library(skimr)
+library(lattice)
+gradethis::gradethis_setup()
+df <- rio::import("https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx")
+df <- df[!duplicated(df),]
+df$Mother_smoke <- ifelse(df$Mother_smoke == 0, "No", df$Mother_smoke)
+df$Mother_smoke <- ifelse(df$Mother_smoke == "_Yes", "Yes", df$Mother_smoke)
+## explanatory variables are exposures of interest and confounders.
+## Also known as 'predictors'
+explanatory <- c("Mother_age", "Mother_smoke", "Gestation", "Ethnic")
+
+## this is the outcome
+dependent <- "Birth_wt"
+
+#df <- rio::import("https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx")
+#dir.create("./data")
+#rio::export(df, "./data/sids.xlsx")
+
+# tutorial_options(
+#   exercise.timelimit = 60,
+#   # A simple checker function that just returns the message in the check chunk
+#   exercise.checker = function(check_code, ...) {
+#     list(
+#       message = eval(parse(text = check_code, ...)),
+#       correct = logical(0),
+#       type = "info",
+#       location = "append"
+#     )
+#   }
+# )
+knitr::opts_chunk$set(error = TRUE)
+```
+
+<br> </br>
+
+![Scatterplot with regression line (blue). Vertical black lines
+represent residuals.](./images/download.png "Regression illustrated")
+
+</center>
+
+## Getting started
+
+Today, we will learn how to:
+
+-   Plot and summarise the relationships between continuous variables
+-   Learn how to incorporate categorical variables into a regression
+-   Interpret regression models
+-   Think about which variables we should adjust for in regression
+    models
+-   Interpret the model fit and summary statistics of models.
+
+We will be leaning on the
+[`finalfit`](https://finalfit.org/){target="_blank"} and
+[`car`](https://socialsciences.mcmaster.ca/jfox/Books/Companion/index.html){target="_blank"}
+libraries to do these analyses.
+
+## Before we start
+
+We’ll be working on the cot death data again, which is a case-control study. The critical elements of a case-control study are the definition of cases and controls (the disease), and the exposures.
+
+Here, we will be focusing on the relationships between continuous
+variables, such as:
+
+-   `Gestation` at which the baby was born (weeks). It is defined by the number of weeks between conception and birth.
+
+-   Birth weight of the baby in grams (`Birth_wt`)
+
+-   The mother's age in years (`Mother_age`)
+
+Although these were not the primary aim of the study, we can nevertheless look at these relationships using linear regression.
+
+When it comes to analysing *continuous* outcomes, for binary categorical exposures, we can use *t*-tests, however, if we have continuous exposures, we really need regression, and if we have more than two groups (as an exposure), we use a special type of regression called 'ANOVA' or analysis of variance. Today, we will be using *linear* regression, which is most often used for continuous outcomes that are not counts. 
+
+For count data, we usually use Poisson regression or a variant on this theme.
+
+## Set-up
+
+<center>
+
+![Yak shaving: Photo by Jason An at
+Unsplash.com](images/jason-an-gnZ7krk_G_o-unsplash.jpg){width="500"}
+
+</center>
+
+To set-up our session for analysis and call the necessary libraries.
+Note, that I'm using `pacman::p_load()` in place of `install.packages()`
+and `library()`. The `pacman` library shortens this procedure, and
+`p_load()` will look for a package and install it if it can't be found.
+It will also put it on the search path, like the `library()` command
+does. I like the `pacman` library because it is efficient. 
+
+Good code is efficient code!
+
+```{r lib_load, exercise = TRUE}
+if(!require(pacman)) install.packages("pacman")
+
+pacman::p_load(rio, ## package for importing data easily
+               visdat, skimr, # data exploration 
+               car, #fancy plots
+               httr,
+               ggplot2, #fancy plots
+               dplyr, 
+               rmdHelpers,
+               kableExtra,
+               epiDisplay,
+               finalfit) # This is for making regression tables.
+```
+
+
+```{r lib_load2, echo = FALSE}
+
+## if above is skipped will preclude errors!
+if(!require(pacman)) install.packages("pacman")
+
+pacman::p_load(rio, ## package for importing data easily
+               visdat, skimr, # data exploration 
+               car, #fancy plots
+               httr,
+               ggplot2, #fancy plots
+               dplyr, 
+               rmdHelpers,
+               kableExtra,
+               epiDisplay,
+               finalfit) # This is for making regression tables.
+```
+
+
+### Import our data
+
+Run this code to import our data:
+
+```{r import_data, exercise = TRUE}
+
+missing_strings <- c("", NA, " ", "  ") # Specify what will be treated as missing
+
+url <- "https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx"
+
+df <- rio::import(url, na = missing_strings)
+
+```
+
+This takes our Excel sheet from the web and pulls it into
+our computer. The `<-` is an assignment operator which names our new
+spreadsheet `df`. I've chosen the name `df` because the technical word
+for a spreadsheet in `R` is a `data.frame` or `df` for short.
+
+### Remove duplicates
+
+```{r nodupl, exercise = TRUE}
+df <- df[!duplicated(df), ]
+```
+
+### Correcting errors in the `data.frame`
+
+We'll also just inspect our key variables and correct some errors. The
+heroic `ifelse()` command is used here. The first argument is a logical
+test (so we need to use `==` if testing for equality), the value if the
+first argument returns `TRUE`, and the second argument is the value to
+return if the first argument is `FALSE`.
+
+```{r correct_error, exercise = TRUE}
+df$Mother_smoke |> tab1()
+
+df$Case_status |> tab1()
+
+df$Bedshare |> tab1()
+
+## correct some data entry errors!
+
+df$Mother_smoke <- ifelse(df$Mother_smoke == 0, "No", df$Mother_smoke)
+df$Mother_smoke <- ifelse(df$Mother_smoke == "_Yes", "Yes", df$Mother_smoke)
+df$Mother_smoke |>  str()
+```
+
+
+## Scatter plot
+
+We want to know whether the length of time a woman is pregnant (**gestation**, in weeks) influences the **birth weight** of their child (measured in grams).
+
+First of all, let's examine the **crude** relationship with some plots. When you have both a continuous exposure and outcome, then a scatterplot is the most appropriate. A scatterplot alone is difficult to interpret, so it is worthwhile adding a regression line and a smoother. Traditionally, the outcome is on the vertical or *y*-axis, and the exposure is on the horizontal or *x*-axis.
+
+The `car::scatterplot()` function does all this by default. The **slope** of the line gives an indication of the **strength** and **direction** of the association, illustrated by the figure below.
+
+![Regression line meanings](images/regression_lines.jpg)
+
+```{r scatter1, exercise = TRUE}
+car::scatterplot(Birth_wt ~ Gestation, data = df)
+```
+
+#### Questions
+
+```{r scatter_1, echo = FALSE}
+question("Q1. In your scatter plot, look at the solid line passing through the middle of the shaded band. These statements relate to this line. Which of the following statements are true?",
+  answer("It’s the smoother or moving average", message = "No. That’s represented by the dashed curve"),
+  answer("It represents the linear regression line and is the average gestation for a given birth weight.", message = "This is the wrong way around!"),
+  answer("It represents the linear regression line and is the average birth weight for a given gestation.", 
+         message = "Yes, this is the correct description of the linear regression line.",  correct = TRUE),
+  allow_retry = TRUE
+)
+```
+
+```{r scatter_2, echo = FALSE}
+question("**Q2.** Approximately, what is the average birthweight at 35 weeks gestation?",
+  answer("2000 g", message = "No. At 35 weeks, the lower border of the shaded band is ~2000g but this is not the regression line"),
+  answer("2500 g", correct = TRUE, message = "Yes, the regression line, which gives the average birthweight, is ~2500 g at 35 weeks"),
+  answer("3000 g", message = "No. At 35 weeks, the upper border of the shaded band is ~3000g but this is not the regression line"),
+  allow_retry = TRUE
+)
+```
+
+We can also account for other variables. If `Mother_smoke` is thought to be an important **confounder**, since babies of smokers are known to be low birth weight, we can stratify our plot by smoking.
+
+```{r scatter2, exercise = TRUE}
+car::scatterplot(Birth_wt ~ Gestation | Mother_smoke, data = df)
+```
+
+We can also add **units** to our *x* and *y* axes:
+
+```{r scatter3, exercise = TRUE}
+car::scatterplot(Birth_wt ~ Gestation | Mother_smoke, data = df,
+xlab = "Gestation (weeks)", ylab = "Birth weight (grams)")
+```
+
+
+#### Questions
+
+
+**Q3.** Run code to produce a scatter plot of the association between `Gestation` period (independent variable) and birth weight (dependent variable; `Birth_wt`), stratified by ethnic group (`Ethnic`). Use the code format given.
+```{r scatter_by, exercise = TRUE}
+# car::scatterplot(y ~ x | group, data = dataset)
+```
+
+```{r scatter_by-solution}
+car::scatterplot(Birth_wt ~ Gestation | Ethnic, data = df)
+```
+
+::: {#scatter_by-hint}
+**Hint:** What are `y`, `x`, `group` and `dataset` for this question?
+:::
+
+```{r scatter_by-check}
+grade_this_code("Well done. It’s an important skill to make scatter plots, stratified by group in R")
+```
+
+```{r scatter_3, echo = FALSE}
+question("**Q4.** Which ethnic group has the steepest slope in the above plot?",
+  answer("European", message = "No. Try again"),
+  answer("Māori", message = "No. Try again"),
+  answer("Pacific", correct = TRUE, message = "To confirm, one could perform a statistical test to check if the slopes significantly differed"),
+  allow_retry = TRUE
+)
+```
+(**Hint:** Look at where each regression line starts (left-hand side) and ends (right-hand side))
+
+## Crude Linear Regression model
+
+To estimate the **strength** of association between birth weight and gestational age, run the following code:
+
+```{r crude_lr1, exercise = TRUE}
+model <- lm(Birth_wt ~ Gestation, data = df)
+summary(model)
+```
+
+The first line creates the `model` object and the second prints a summary of the `model`.
+
+The line of the model is defined by two major parameters:  
+
+-   slope or $\beta$ coefficient
+-   *y*-intercept
+
+The `Estimate` column in the above output gives these parameters:  
+
+-   `(Intercept)` is the *y*-intercept, or value of `Birth_wt` when `Gestation` is zero (conception).  
+-   `Gestation` is the slope (average increase in `Birth_wt` for a one week increase in `Gestation`).
+  
+
+#### Questions
+
+```{r crude_lr_1, echo=FALSE}
+question("**Q5.** You should get an `Estimate` value of 191.6 for Gestation. What does this tells us?",
+  answer("Birthweight is *exactly* 191.6 g heavier for every one-week increase in gestation", message = "No. This may not be correct for all babies. Please try again"),
+  answer("Birthweight is, *on average*, 191.6 g heavier for every one-week increase in gestation", correct = TRUE, message = "This is the average increase in the outcome (`Birth_wt`) per unit increase in the exposure (`Gestation`)"),
+  answer("Gestation is *exactly* 191.6 weeks longer for every 1g increase in birth weight", message = "No. Gestation is the exposure, rather than the outcome. Please try again"),
+  answer("Gestation is, *on average*, 191.6 weeks longer for every 1g increase in birth weight", message = "Gestation is the exposure, rather than the outcome. Please try again."),
+  allow_retry = TRUE
+)
+```
+
+```{r crude_lr_2, echo=FALSE}
+question("**Q6.** What’s the average weight of a baby at 40 weeks in grams?",
+  answer("40 * 191.6", message = "No. That would give a very heavy baby! You need to include the intercept in the calculation"),
+  answer("(40 * 191.6 + 4180)", message = "No. That adds a positive intercept. But the intercept is negative"),
+  answer("(40 * 191.6 – 4180)", correct = TRUE, message = "Yes, this would give 3481.7. This is consistent with what the scatter plot shows to be the average weight at 40 weeks"),
+  answer("40 * (191.6 – 4180)", message = "No. That’ll multiply the intercept by 40. But the equation for a line is:
+y = slope*x + intercept"),
+  allow_retry = TRUE
+)
+```
+
+The `R-squared` parameters give you an idea of how much variation is explained by the model.
+
+The `Pr(>|t|)` column gives you the *P*-value, testing whether each parameter is significantly different from a value of zero. Remember, a slope of zero is a horizontal line, and indicates *no association* or the [*null hypothesis*](https://www.statology.org/null-hypothesis-for-linear-regression/){target="_blank"} or [*independence*](https://openstax.org/books/statistics/pages/3-2-independent-and-mutually-exclusive-events){target="_blank"} between the two variables. The `Standard error` can be used to derive the 95% confidence interval (95% confidence interval = slope +/- 1.96\*standard error). Remember, 1.96 is the 97.5th percentile of the standard normal distribution curve. It is calculated in `R` using the following code:
+
+```{r qnorm1, exercise = TRUE}
+qnorm(0.975, mean = 0, sd = 1)
+```
+
+[![Why 1.96 is the magic number used to estimate the 95% confidence interval](images/NormalDist1.96.png)](https://en.wikipedia.org/wiki/1.96){target="_blank"}
+
+The
+[`Residual standard error`](https://www.statology.org/how-to-interpret-residual-standard-error/){target="_blank"}, despite it's name, is actually the *standard deviation* of the residuals and tells you about the average variation which occurs around the regression line. It is useful when thinking of the accuracy of predictions derived from the model. Unlike the standard error, it is not influenced by sample size.
+  
+
+#### Questions
+Look at your model summary output and answer the questions below.
+
+```{r crude_lr_3, echo=FALSE}
+question("**Q7.** You should get 0.4046 for `Multiple R-squared`. What does this tell us?",
+  answer("The average squared error is 0.4046%", message = "No. 0.4046 is not a % and averaging the squared error is used to calculate another model parameter"),
+  answer("The average squared error is 40.46%", message = "No. Averaging the squared error is used to calculate another model parameter"),
+  answer("The model explains 0.4046% of the variation in birthweight", message = "No. 0.4046 is not a %"),
+  answer("The model explains 40.46% of the variation", correct = TRUE, message = "Yes, 0.4046 is a proportion – so, expressed as a percentage, it’s 40.46%"),
+  allow_retry = TRUE
+)
+```
+
+```{r crude_lr_4, echo=FALSE}
+question("**Q8.** Which of the following gives the lower 95% confidence interval for the beta coefficient or slope for `Gestation`?",
+  answer("191.6 – 5.4", message = "No. Subtracting only the `Std. Error` from the `Estimate` from would give the lower end of a confidence interval smaller than 95%"),
+  answer("191.6 – 1.96 * 470.3", message = "No. That would give a negative value!"),
+  answer("191.6 + 1.96 * 5.4", message = "No. That would gives the **upper** 95% confidence interval for the estimate for Gestation"),
+  answer("191.6 – 1.96 * 5.4", correct = TRUE, message = "It's useful be able to calculate confidence intervals when they’re not shown"),
+  allow_retry = TRUE
+)
+```
+
+**Q9.** What’s the standard error of residuals?
+```{r crude_lr_5, exercise = TRUE}
+```
+```{r crude_lr_5-solution}
+470.3
+```
+::: {#crude_lr_5-hint}
+**Hint:** Check the model output for `standard error of residuals`
+:::
+```{r crude_lr_5-check}
+grade_this( {
+if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
+    pass("Correct! This is the residual standard error")
+  }
+  fail("Please try again")
+})
+```
+
+
+## Adjusting for confounding: multiple linear regression
+
+Let's imagine now that we wish to account for maternal smoking (`Mother_smoke`), since we believe it is a *shared common cause* of both the outcome (`Birth_wt`) and the exposure (`Gestation`). This is the definition of a *confounder*. We simply add `Mother_smoke` as another term in the right-hand side of the equation for the model.
+
+```{r confounding, echo = FALSE}
+
+response_diag <- DiagrammeR::grViz(diagram = "digraph dot {
+      # define node aesthetics
+      
+      graph [layout = dot, rankdir = LR]
+      
+      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        
+      conf [label = 'Confounder' ]
+      
+      
+      
+      subgraph cluster_0 {
+        graph[shape = rectangle]
+        style = rounded
+        bgcolor = Gold
+    
+        label = 'Hypothesis of interest'
+        node [fontname = Arial, shape = oval, color = orange, style = filled]  
+      exp [label = 'Exposure' ]
+      out [label = 'Outcome' ]
+      }
+      
+# set up node layout
+      edge [color = grey] 
+      conf -> {exp out}
+      exp -> out
+      }
+      ")
+
+response_diag
+```
+The above diagram illustrates the assumed causal relationships between exposure, outcome and confounder. It fulfils the definition of a likely 'shared common cause'.
+
+Please run the following code and respond to the multi-choice questions which ask you to interpret the output.
+
+```{r adj_lr1, exercise = TRUE}
+model <- lm(Birth_wt ~ Gestation + Mother_smoke, data = df)
+summary(model)
+```
+
+
+#### Questions
+
+
+```{r adj_lr_1, echo=FALSE}
+question("**Q10.** If a mother smokes, what is the average difference in birthweight of their offspring, compared to that of a non-smoking mother, after accounting for gestation?",
+  answer("217.8g heavier", message = "No. The size of the difference is correct but not the direction. Try again"),
+  answer("217.8 g lighter", correct = TRUE, message = "Well done! Smoking reduces the birth weight of a baby for a given gestation."),
+  answer("22.1 g heavier", message = "No. This is the standard error. Mean differences are given in the `Estimate` column"),
+  answer("9.8 g lighter", message = "No. This is the test statistic value. Mean differences are given in the `Estimate` column "),
+  allow_retry = TRUE
+)
+```
+
+```{r scatter_open1, echo = FALSE}
+ question("**Q11.** Is the `Mother_smoke` variable significantly associated with `Birth_wt`?",
+  answer("Yes", correct = TRUE, message = "Yes, the P-value for the Mother_smoke beta coefficient is less than 0.05"),
+  answer("No", message = "Sorry, check the $P$-value of the `Mother_smoke` beta coefficient and try again!"),
+  allow_retry = TRUE
+ )
+```
+
+**Q12.** How much has the $\beta$ coefficient for `Gestation` changed with the addition of `Mother_smoke`?
+Enter a value (to one decimal place) here:
+```{r adj_lr_2, exercise = TRUE}
+
+```
+
+```{r adj_lr_2-solution}
+5.7
+```
+
+::: {#adj_lr_2-hint}
+**Hint:** What’s the difference between the crude and adjusted `r symbol("beta")`  coefficients for `Mother_smoke`?
+:::
+
+```{r adj_lr_2-check}
+grade_this( {
+if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
+    pass("Correct! 191.6 g (crude coefficient) – 185.9 (adjusted coefficient) = 5.7 g")
+  }
+  fail("Please try again")
+})
+```
+
+```{r adj_lr_3, echo=FALSE}
+question("**Q13.** How much change (minimum) in the beta-coefficient (%) is likely to represent substantial confounding of the relationship between gestation and birth weight?",
+  answer("5%", message = "No. 5% is unlikely to be substantial"),
+  answer("10%", correct = TRUE, message = "10% is a the rule-of-thumb cut-off for a substantial change"),
+  answer("15%", message = "No. 15% is likely to be substantial. But lower than this is likely to be substantial too. Please try again"),
+  answer("20%", message = "No. 20% is likely to be substantial. But lower than this is likely to be substantial too. Please try again"),
+  allow_retry = TRUE
+)
+```
+
+**Extra practice!**
+
+**Q14.** Construct a linear model for the association between `Gestation` (independent variable) and birthweight (`Birth_wt`, dependent variable), adjusted for ethnicity (`Ethnic`). Use the code format given:
+```{r adj_lr_4, exercise = TRUE}
+
+model <- lm(y ~ x1 + x2, data = dataset)
+summary(model)
+
+```
+
+```{r adj_lr_4-solution}
+model <- lm(Birth_wt ~ Gestation + Ethnic, data = df)
+summary(model)
+```
+
+::: {#adj_lr_4-hint}
+**Hint:** 
+-   replace $y$, $x_1$, $x_2$ and `dataset` with appropriate names given in the stem and run.
+:::
+
+```{r adj_lr_4-check}
+grade_this_code("Great work!")
+```
+
+```{r adj_lr_5, echo=FALSE}
+question("**Q15.** Compare the slope for `Gestation` before and after adjustment for ethnic group. Does the difference in the slopes suggest that ethnicity is a confounder?",
+  answer("Yes", message = "No. When ethnicity is adjusted for, the slope decreases from 191.6 to 189.7. This % change is <10%, suggestive of no confounding"),
+  answer("No", correct = TRUE, message = "Yes, when ethnicity is adjusted for, the slope decreases from 191.6 to 189.7. This % change is <10%, indicating no substantial confounding"),
+  allow_retry = TRUE
+)
+```
+(**Hint:** See Q13 above.)
+
+## Using `finalfit()` for publication quality regression tables
+
+In epidemiology, it is usual to present a second table after your
+table 1. This is usually a table of regression coefficients and 95%
+confidence intervals, and *P*-values. It usually has crude and adjusted
+$\beta$ coefficients. The following code will help us here.
+
+```{r finalfit1, exercise = TRUE}
+## explanatory variables are exposures of interest and confounders.
+## Also known as 'predictors'
+explanatory <- c("Mother_age", "Mother_smoke", "Gestation", "Ethnic")
+
+## this is the outcome
+dependent <- "Birth_wt"
+
+## This little bit of code saves a world of pain and runs
+## all the crude and adjusted models and summarises into
+## a table. Wonderful...!!
+## Note: finalfit() will select the appropriate model
+## depending on the nature of the outcome variable
+## Here: continuous or numeric variable = linear regression.
+## You have to be cautious about this, as the selected model may not be
+## the one you are intending to use. Be careful and study the 
+## finalfit() documentation when you are using this in the wild!
+
+df %>%
+  finalfit::finalfit(dependent, 
+                     explanatory, metrics = FALSE) -> regression_table
+
+## Fancy format for cutting and pasting into Excel
+regress_tab <- knitr::kable(regression_table, row.names = FALSE, 
+                            align = c("l", "l", "r", "r", "r"))
+
+## Puts output into viewer so that it can be cut and pasted into Excel, 
+## then Word.
+regress_tab %>% kableExtra::kable_styling()
+
+
+```
+
+
+#### Questions
+
+**Q16.** What is the average difference in birth weight of baby of a woman who smokes, compared to the baby of a non-smoker, after accounting for confounders?
+```{r finalfit_1, exercise = TRUE}
+
+```
+
+```{r finalfit_1-solution}
+191.4
+```
+
+```{r finalfit_1-check}
+grade_this( {
+if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
+    pass("Yes. On average, smoker’s babies are 191.4g lighter as -191.4 is the coefficient for `Mother_smoke=Yes` in the multivariable column")
+  }
+  fail("“Accounting for confounders” refers to the multivariable model. What’s the coefficient for `Mother_smoke=Yes`? Please try again.")
+})
+```
+
+```{r finalfit_2, echo=FALSE}
+question("**Q17.** Describe the relationship between `Mother_age` and `Birth_wt`?",
+  answer("The crude and adjusted associations are both significant and positive", message = "Yes, the crude association is positive (*P* < 0.001). However, as the adjusted coefficient is not significant (*P* = 0.137), it’s better to say that there’s no adjusted association"),
+  answer("The crude association is significant and positive but there’s no significant adjusted association", correct = TRUE, message = "Because the coefficient is significant (*P* < 0.001) for the crude association but not significant for the adjusted association (*P* = 0.137)"),
+  allow_retry = TRUE
+)
+```
+
+**Q18.** After adjustment for confounders, on average, how much weight does a baby put on for each additional week of gestation?
+```{r finalfit_3, exercise = TRUE}
+
+```
+
+```{r finalfit_3-solution}
+185.31
+```
+
+```{r finalfit_3-check}
+grade_this( {
+if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
+    pass("Yes! Well done")
+  }
+  fail("“Adjusting for confounders” refers to the multivariable model. What’s the coefficient for `Gestation` from this model?")
+})
+```
+
+```{r finalfit_4, echo=FALSE}
+question("**Q19.** The correct ending to the statement, 'On average Pacific babies are 75g heavier than ____' is:?",
+  answer("Babies of all other ethnic groups ", message = "No. The 75g difference is for comparing Pacific with the reference group, which isn’t European and Māori combined"),
+  answer("European babies", correct = TRUE, message = "Yes, the 75g difference describes the difference comparing Pacific with the reference group, which is European (as “-“ is in the European row)"),
+  answer("Māori babies", message = "No. The 75g difference is for comparing Pacific with the reference group, which isn’t Māori"),
+  allow_retry = TRUE
+)
+```
+
+**Q20.** “Extra for experts” question:
+By how much heavier, on average, are Pacific babies compared to Māori babies (answer to 2 decimal places, in grams)?
+```{r finalfit_5, exercise = TRUE}
+
+```
+
+```{r finalfit_5-solution}
+126.0
+```
+
+::: {#finalfit_5-hint}
+**Hint:** The Māori and Pacific coefficients are both being compared with European. So you need to combine them in some way
+:::
+
+```{r finalfit_5-check}
+grade_this( {
+if(isTRUE(all.equal(.solution, .result, tolerance = 0.05) )){
+    pass("Yes. Looks like you’re an expert! Compared to European, on average, Māori babies are 50.9g lighter and Pacific babies 75.1g heavier. So compared to Māori, Pacific babies will be 50.9 + 75.1 = 126.0g heavier (on average)")
+  }
+  fail("Please try again")
+})
+```
+
+**Q21.** In the code below, to produce model metrics, change the `metrics` argument from `FALSE` to `TRUE` in the `finalfit()` function. Then run the `knitr::kable()` and `kableExtra::kable_styling()` functions again to get output. You will also need to specify the `dependent` and `explanatory` variables.
+
+```{r finalfit_6, exercise = TRUE}
+
+df %>%
+  finalfit::finalfit(dependent,
+  explanatory, metrics = FALSE) -> regression_table
+
+
+## Fancy format for cutting and pasting into Excel
+regress_tab <- knitr::kable(regression_table, row.names = FALSE, 
+                            align = c("l", "l", "r", "r", "r"))
+
+## Puts output into viewer so that it can be cut and pasted into Excel, 
+## then Word.
+regress_tab %>% kableExtra::kable_styling()
+
+```
+
+**Q22.** What proportion of the overall variation in the model is explained by the data?
+```{r finalfit_7, exercise = TRUE}
+
+```
+
+```{r finalfit_7-solution}
+0.44
+```
+
+```{r finalfit_7-check}
+grade_this( {
+if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
+    pass("Correct! This is the R-squared")
+  }
+  fail("Please try again")
+})
+```
+
+## Model fit
+
+How well a model fits the data can be assessed with a marginal model plot, which shows the relationship between the model predicted and observed data.
+
+Run this code to produce a marginal model plot:
+
+```{r modelfit1, exercise = TRUE}
+model <- lm(Birth_wt ~ Gestation + Mother_age, data = df)
+summary(model)
+
+car::marginalModelPlots(model) # Produces a marginal model plot
+
+```
+
+What is the nature of the overall fit in the data here?
+
+-   A good fit is indicated by good alignment between `Data` ([blue]{style="color: blue;"} line) and the `Model` ([red]{style="color: red;"} line). That is, with perfect model fit, you should see both lines very close or superimposed on each other.
+-   Poor fit is indicated by poor alignment between these lines. 
+-   Often, you see that for more extreme or outlying values of an exposure,
+there is deviation of the `Data` from the `Model`. This may not invalidate your model, but would be important to be aware of, and may be worthwhile highlighting to the readers that you are communicating with in your manuscript.
+
+
+#### Questions
+```{r modelfit_1, echo=FALSE}
+question("**Q23.** Which of the terms in the model is a good fit to the data?",
+  answer("`Gestation` only", message = "No. For the other plots, is there good alignment between the *data* (blue) and *model* (red) plots? Please try again"),
+  answer("`Mother_age` only", message = "No. For the other plots, although there is some deviation between the *data* (blue) and *model* (red) plots around the extremities, this is minor. Please try again"),
+  answer("The overall model (`fitted` values) only", message = "No. For the other plots, is there good alignment between the *data* (blue) and *model* (red) plots? Please try again"),
+  answer("`Gestation`, `Mother_age` and the overall model (`fitted` values)", correct = TRUE, message = "This is because, for all 3 plots, there’s good alignment (although not perfect) between the *data* (blue) and *model* (red) plots"),
+  allow_retry = TRUE
+)
+```
+
+**Q24.** We want to construct a marginal model plot for the association between `Gestation` and `Birth_wt`, adjusted for ethnic group.
+Before we do so, use the `str()` function, with the code format given, to check what type of variable `Ethnic` is.
+```{r modelfit_2, exercise = TRUE}
+
+dataset$variable |> str()
+
+```
+
+```{r modelfit_2-solution}
+df$Ethnic |> str()
+```
+
+::: {#modelfit_2-hint}
+**Hint:** What are `dataset` and `variable` for this question?
+:::
+
+```{r modelfit_2-check}
+grade_this_code("Well done!")
+
+```
+
+**Q25.** If `Ethnic` is a character variable, you need to first convert it to a factor variable, re-construct the model and then construct the plot. Submit code to do this below:
+```{r modelfit_3, exercise = TRUE}
+
+dataset$Ethnic_factor <- dataset$Ethnic |> as.factor()
+model <- lm(Birth_wt ~ Gestation, data = dataset)
+car::marginalModelPlots()
+
+```
+
+```{r modelfit_3-solution}
+df$Ethnic_factor <- df$Ethnic |> as.factor()
+model <- lm(Birth_wt ~ Gestation + Ethnic_factor, data = df)
+car::marginalModelPlots(model)
+```
+
+::: {#modelfit_3-hint}
+**Hint:**  
+This is a tricky one!
+Line 1: What should `dataset` be changed to?  
+Line 2: Change code so that ethnicity (as a factor variable) is adjusted for as well as `Gestation`  
+Line 3: What goes in the brackets? The `marginalModelPlots()` function requires the model object as its first argument.
+:::
+
+```{r modelfit_3-check}
+grade_this_code( "Well done!")
+  ```
+
+
+## Homework
+
+Is the duration of pregnancy influenced by the mothers’ age?
+
+To find out, repeat the above tasks with `Mother_age` as the exposure and `Gestation` as the outcome. Complete this task in posit as homework!
