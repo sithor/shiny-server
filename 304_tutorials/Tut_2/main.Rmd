@@ -14,13 +14,6 @@ description: >
 ---
 
 ```{r setup, include=FALSE}
-if(!require(remotes)) install.packages("remotes")
-if(!require(gradethis)) remotes::install_github("rstudio/gradethis")
-if(!require(rio)) install.packages("rio")
-if(!require(fs)) install.packages("fs")
-if(!require(DiagrammeR)) install.packages("DiagrammeR")
-if(!require(gradethis)) install.packages("gradethis")
-if(!require(r2symbols)) install.packages("r2symbols")
 library(tufte)
 library(rio)
 library(fs)
