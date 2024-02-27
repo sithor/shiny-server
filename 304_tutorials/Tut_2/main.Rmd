@@ -72,7 +72,7 @@ Our aim is to import our data into `R`. Along the way, we will learn about how t
 
 I love using **R** because it so flexible & powerful.
 
-Here's an example of a recent [paper](https://onlinelibrary.wiley.com/doi/epdf/10.1111/jpc.14697){target="_blank"} I published with collaborators. It incorporates maps, tables and plots of the regression models, all made possible by the use of R!
+Here's an example of a recent [paper](https://onlinelibrary.wiley.com/doi/epdf/10.1111/jpc.14697){target="_blank"} I published with collaborators. It incorporates maps, tables and plots of the regression models, all made possible by the power of `R`!
 
 ### Check your understanding
 
@@ -164,7 +164,7 @@ It is a good idea to know about file paths. Your computer has a lot of informati
 
 ### Where can we find file paths?
 
-In Windows, file paths can be found in *Windows Explorer*, the programme we use to navigate around the computer. You can bring up *Windows Explorer* by holding down the **Windows** () key and pressing **E**. The file path or address to the folder is highlighted in the address bar up the top.
+In Windows, file paths can be found in *Windows Explorer*, the programme we use to navigate around the computer. You can bring up *Windows Explorer* by holding down the **Windows** key and pressing **E**. The file path or address to the folder is highlighted in the address bar up the top.
 
 ![Windows explorer](./images/Screenshot%202022-12-16%20152042.png){#id .class width="100%" height="100%"}
 
@@ -172,11 +172,11 @@ On a Mac, you will need to use the equivalent, which is **Finder**. You may need
 
 ![Finder](./images/Finder-Show-Path-Bar.jpg){#id .class width="100%" height="100%"}
 
-In Windows, the convention is to have a drive letter followed by a colon e.g. `C:\My Programs`. Windows uses backslashes (`\\`) in its paths, whereas, due to its linux roots, `R` uses forward slashes (`/`) as do Macs. This can create much confusion 😵. Thus the equivalent `R` path to this directory is `C:/My Programs`.
+In Windows, the convention is to have a drive letter followed by a colon e.g. `C:\My Programs`. Windows uses backslashes (`\\`) in its paths, whereas, due to its linux roots, `R` uses forward slashes (`/`) as do Macs. This can create much confusion 😵. Thus the equivalent `R` path to the original Windows directory is `C:/My Programs`. Notice the subtle difference in the direction of the slashes??
 
 ## Relative or absolute paths?
 
-Paths can also be *relative* or *absolute*, which can be a tricky thing for novice programmers to get their heads around. An absolute path describes a location relative to the to the root or starting directory. In Windows this is `C:\` and on a Mac, it is `/`. A relative path is used more frequently in programming, because it makes your code more portable across different computers. Relative paths, instead have the concept of a **working directory**. This is the folder where the programme is looking for files. Deviations from this directory are indicated by paths that start with a `.` (current directory) or `..` (parent directory), such as `"./data/sids.xlsx"`. This means "start from the working directory where the programme is currently looking, then go to the `data` directory, then look in the `data` directory for `sids.xlsx`".
+Paths can also be *relative* or *absolute*, which can be another stumbling block for novice programmers. An absolute path describes a location relative to the to the root or starting directory. In Windows this is `C:\` and on a Mac, it is `/`. A relative path is used more frequently in programming, because it makes your code more portable across different computers. Relative paths, instead have the concept of a **working directory**. This is the folder where the programme is looking for files. Deviations from this directory are indicated by paths that start with a `.` (current directory) or `..` (parent directory), such as `"./data/sids.xlsx"`. This means "start from the working directory where the programme is currently looking, then go to the `data` directory, then look in the `data` directory for `sids.xlsx`".
 
 ```{r relative_paths, echo=FALSE, cache=FALSE}
 learnr::question("Which of the following are relative paths?",
@@ -189,7 +189,7 @@ learnr::question("Which of the following are relative paths?",
 )
 ```
 
-It is a good idea to store your work on a drive that will be backed up. Electronic storage is great from a convenience point of view, but it can be easily erased by accident or by hardware fault. Since Macs are descended from the same roots as linux, their paths, like `R` are composed of forward slashes.
+It is a good idea to store your work on a drive that will be backed up. Electronic storage is great from a convenience point of view, but it can be easily erased by accident or by hardware fault. 
 
 ### Revising R file paths
 
@@ -206,14 +206,14 @@ learnr::question("Which of the following are legitimate file paths in R?",
 
 ### Working directories
 
-R has a concept of the *'working directory'* or 'folder'. This is the directory where R looks to find stuff you may be working on. To find out where this is on your machine, input the code for the following function: `getwd()`. Try this below and observe the output.
+R has a concept of the *'working directory'* or 'folder'. This is the directory where `R` looks to find stuff you may be working on. To find out where this is on your machine, input the code for the following function: `getwd()`. Try this below and observe the output.
 
 ```{r working_directory, exercise=TRUE, cache=FALSE}
 getwd()
 
 ```
 
-This is actually the directory on the server this program is running, not your computer!
+Note: this is actually the directory on the server this program is running, not your computer!
 
 ## Comments
 
