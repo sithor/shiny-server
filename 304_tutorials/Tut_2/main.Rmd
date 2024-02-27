@@ -224,13 +224,13 @@ While we will focus on getting `R` to do stuff for us by writing code, sometimes
 
 ```
 
-## The basics of R: objects, functions and arguments
+## The basics of `R`: objects, functions and arguments
 
-This is the folder in which your R session is currently working.
+This is the folder in which your `R` session is currently working.
 
 It will be able to find files that you tell to look for in this directory.
 
-R is built on functions. Functions take some sort of input and transform it into output.
+`R` is built on functions. Functions take some sort of input and transform it into output.
 
 ```{r function_dia, echo = FALSE, cache=FALSE}
 
@@ -302,7 +302,7 @@ grade_this_code()
 
 It should show the arguments and defaults for `list.files()` and describe their behaviour, perhaps in a new browser tab. Also, some useful examples are given at the bottom. In `R`, it may open a browser and show the help file.
 
-We can now appreciate that an option is `recursive = TRUE`. This lists not only the files in the working directory, but also others that are contained in other directories or folders in the working directory and so on.
+We can now appreciate that an option (or in computer speak **argument**) is `recursive = TRUE`. This lists not only the files in the working directory, but also others that are contained in other directories or folders in the working directory and so on.
 
 We can look at what is in our working directory in Finder or Windows Explorer but we can also use `R`. Try running the following code. Note, the *argument* `recursive = TRUE` to our function `list.files()`. Note, that functions in `R` are always accompanied by brackets "`()`". This ensures that the output is displayed with subsequent folders and files within the working directory.
 
