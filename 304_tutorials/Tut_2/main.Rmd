@@ -57,7 +57,8 @@ Our aim is to import our data into `R`. Along the way, we will learn about how t
 
 -   Understand some history of `R` and where it originated from
 -   keep our analyses tidy using folders or directories
--   Understand and apply file paths, and how they may differ between using in `R` and the various different types of operating systems. Understand the concept of a working directory and the difference between relative and absolute file paths
+-   Understand and apply file paths, and how they may differ between using in `R` and the various different types of operating systems. 
+-   Understand the concept of a working directory and the difference between relative and absolute file paths
 -   Understand how comments are written in `R`
 -   Understand how to import data into `R` and write basic `R` code
 -   Understand the basic building blocks of `R` code: objects, functions and arguments, and
