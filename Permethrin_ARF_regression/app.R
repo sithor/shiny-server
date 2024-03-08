@@ -15,7 +15,7 @@ library(reshape2)
 library(epiDisplay)
 library(rms)
 library(car)
-library(regplot)
+
 
 
 two_dp <- function(x){
