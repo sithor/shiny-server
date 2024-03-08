@@ -9,6 +9,7 @@ library(oddsratio)
 library(epitools)
 library(ggplot2)
 library(shinythemes)
+library(eulerr)
 
 two_dp <- function(x){
   formatC(x, digits = 2, format = "f")
@@ -66,7 +67,11 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
                                       Shiny.onInputChange("dimension", dimension);
                                       });
                                       ')),
-  titlePanel("Visualizing odds and risk ratios"),
+  tabsetPanel(
+  tabPanel("Input data",
+  
+  headerPanel("Visualizing odds and risk ratios
+              \n\n from a 2x2 table"),
   sidebarLayout(
     sidebarPanel(
       numericInput("outcome_exposed", "Outcome in exposed:", value = 20),
@@ -80,7 +85,12 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
       plotOutput("risk_ratio_plot")
     )
   )
-)
+  ),
+tabPanel("Euler plot",
+  mainPanel(
+    plotOutput("euler_plot")
+  )
+)))
 
 # Define server logic
 server <- function(input, output) {
@@ -140,6 +150,18 @@ server <- function(input, output) {
                                                               size = 10, hjust = 0)
     
     
+    fit1 <- euler(c("exposed&all" = input$outcome_exposed + input$no_outcome_exposed,
+                    "outcome&all" = input$outcome_unexposed + input$no_outcome_unexposed,
+                    "exposed&outcome&all" = input$outcome_exposed,
+                    "all" = input$outcome_exposed + input$no_outcome_exposed + input$outcome_unexposed + input$no_outcome_unexposed))
+    
+    
+    output$euler_plot <- renderPlot({
+      plot(fit1, quantities = TRUE)
+    })
+    
+                  
+              
     output$odds_ratio_plot <- renderPlot({
       p
     })
