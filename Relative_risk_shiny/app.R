@@ -8,9 +8,64 @@ library(shiny)
 library(oddsratio)
 library(epitools)
 library(ggplot2)
+library(shinythemes)
+
+two_dp <- function(x){
+  formatC(x, digits = 2, format = "f")
+}
+
+three_dp <- function(x){
+  formatC(x, digits = 3, format = "f")
+}
 
 # Define UI
-ui <- fluidPage(
+ui <- fluidPage(theme = shinytheme("cyborg"),
+                tags$head(
+                  tags$style(HTML("
+                                  .shiny-output-error-validation {
+                                  color: green;
+                                  }
+                                  "))),
+                
+                tags$head(
+                  tags$style(HTML("
+                        @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
+                        
+                        h1 {
+                        font-family: 'Lobster', cursive;
+                        font-weight: 500;
+                        line-height: 1.1;
+                        color: #33ccff;
+                        }
+                        
+                        "))),
+                
+                tags$head(
+                  tags$style(HTML("
+                        @import url('https://fonts.googleapis.com/css?family=Frank+Ruhl+Libre');
+                        
+                        body {
+                        font-family: 'Frank Ruhl Libre', serif;
+                        font-weight:  50;
+                        line-height: 1.1;
+                        color: #FFCBB8;
+                        }
+                        
+                        "))),
+                
+                tags$head(tags$script('
+                        var dimension = [0, 0];
+                                      $(document).on("shiny:connected", function(e) {
+                                      dimension[0] = window.innerWidth;
+                                      dimension[1] = window.innerHeight;
+                                      Shiny.onInputChange("dimension", dimension);
+                                      });
+                                      $(window).resize(function(e) {
+                                      dimension[0] = window.innerWidth;
+                                      dimension[1] = window.innerHeight;
+                                      Shiny.onInputChange("dimension", dimension);
+                                      });
+                                      ')),
   titlePanel("Visualizing odds and risk ratios"),
   sidebarLayout(
     sidebarPanel(
@@ -46,7 +101,7 @@ server <- function(input, output) {
     # Plot the odds ratio using plot_odds_ratio
     p <- ggplot(df, aes(x = oddsratio, y = 1))
     p <- p + geom_vline(aes(xintercept = 1), size = .25, linetype = "dashed") +
-      geom_errorbarh(aes(xmax = upper, xmin = lower), size = .5, height = .2, color = "gray50") +
+      geom_errorbarh(aes(xmax = upper, xmin = lower), size = .5, height = .1, color = "gray50") +
       geom_point(size = 3.5, color = "orange") +
       theme_bw() +
       theme(panel.grid.minor = element_blank()) +
@@ -55,14 +110,18 @@ server <- function(input, output) {
       coord_trans(x = "log10") +
       ylab("") +
       xlab("odds ratio (log scale)") +
-      annotate(geom = "text", y =1.1, x = 1, label = paste0("Odds ratio: ", round(df$oddsratio, 2),
-                                                             "; 95% CI:", round(df$lower, 2), " to ", 
-                                                             round(df$upper, 2)), size = 3.5, hjust = 0) 
+      theme(axis.text=element_text(size=12),
+            axis.title=element_text(size=14,face="bold")) +
+      annotate(geom = "text", y =1.1, x = 1, label = paste0("\n\nOdds ratio: ", df$oddsratio |> two_dp(),
+                                                             "; 95% CI: ", df$lower |> two_dp(), " to ", 
+                                                            df$upper |> two_dp(), "\n P",
+                                                            ifelse(df$p.value < 0.001, " < 0.001",
+                                                                   paste0(" = ", df$p.value |> three_dp()))), size = 10, hjust = 0) 
     
     
     q <- ggplot(dfr, aes(x = riskratio, y = 1))
     q <- q + geom_vline(aes(xintercept = 1), size = .25, linetype = "dashed") +
-      geom_errorbarh(aes(xmax = upper, xmin = lower), size = .5, height = .2, color = "gray50") +
+      geom_errorbarh(aes(xmax = upper, xmin = lower), size = .5, height = .1, color = "gray50") +
       geom_point(size = 3.5, color = "orange") +
       theme_bw() +
       theme(panel.grid.minor = element_blank()) +
@@ -71,9 +130,14 @@ server <- function(input, output) {
       coord_trans(x = "log10") +
       ylab("") +
       xlab("risk ratio (log scale)") +
-      annotate(geom = "text", y =1.1, x = 1, label = paste0("Risk ratio: ", round(dfr$riskratio, 2),
-                                                            "; 95% CI:", round(dfr$lower, 2), " to ", 
-                                                            round(dfr$upper, 2)), size = 3.5, hjust = 0) 
+      theme(axis.text=element_text(size=12),
+            axis.title=element_text(size=14,face="bold")) +
+      annotate(geom = "text", y =1.1, x = 1, label = paste0("\n\nRisk ratio: ", dfr$riskratio |> two_dp(),
+                                                            "; 95% CI: ", dfr$lower |> two_dp(), " to ", 
+                                                            dfr$upper |> two_dp(), "\n P",
+                                                            ifelse(df$p.value < 0.001, " < 0.001",
+                                                                  paste0(" = ", df$p.value |> three_dp()))), 
+                                                              size = 10, hjust = 0)
     
     
     output$odds_ratio_plot <- renderPlot({
