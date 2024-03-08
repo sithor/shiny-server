@@ -1,8 +1,8 @@
 # Install required packages if not already installed
-if (!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny")
-if (!requireNamespace("effectsize", quietly = TRUE)) install.packages("effectsize")
-if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
-if (!requireNamespace("epitools", quietly = TRUE)) install.packages("epitools")
+# if (!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny")
+# if (!requireNamespace("effectsize", quietly = TRUE)) install.packages("effectsize")
+# if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
+# if (!requireNamespace("epitools", quietly = TRUE)) install.packages("epitools")
 # Load required libraries
 library(shiny)
 library(oddsratio)
