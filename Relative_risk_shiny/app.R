@@ -11,7 +11,7 @@ library(ggplot2)
 
 # Define UI
 ui <- fluidPage(
-  titlePanel("Visualizing Odds Ratios"),
+  titlePanel("Visualizing odds and risk ratios"),
   sidebarLayout(
     sidebarPanel(
       numericInput("outcome_exposed", "Outcome in exposed:", value = 20),
