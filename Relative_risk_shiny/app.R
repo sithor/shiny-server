@@ -157,7 +157,7 @@ server <- function(input, output) {
     
     
     output$euler_plot <- renderPlot({
-      plot(fit1, quantities = TRUE)
+      plot(fit1, quantities = TRUE, legend = TRUE, labels = TRUE)
     })
     
                   
