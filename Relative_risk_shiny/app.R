@@ -2,10 +2,10 @@
 # if (!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny")
 # if (!requireNamespace("effectsize", quietly = TRUE)) install.packages("effectsize")
 # if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
-# if (!requireNamespace("epitools", quietly = TRUE)) install.packages("epitools")
+if (!requireNamespace("epitools", quietly = TRUE)) install.packages("epitools")
 # Load required libraries
 library(shiny)
-library(oddsratio)
+#ßlibrary(oddsratio)
 library(epitools)
 library(ggplot2)
 library(shinythemes)
@@ -150,10 +150,10 @@ server <- function(input, output) {
                                                               size = 10, hjust = 0)
     
     
-    fit1 <- euler(c("exposed&all" = input$outcome_exposed + input$no_outcome_exposed,
-                    "outcome&all" = input$outcome_unexposed + input$no_outcome_unexposed,
+    fit1 <- euler(c("exposed&all" = input$no_outcome_exposed,
+                    "outcome&all" =  input$outcome_unexposed,
                     "exposed&outcome&all" = input$outcome_exposed,
-                    "all" = input$outcome_exposed + input$no_outcome_exposed + input$outcome_unexposed + input$no_outcome_unexposed))
+                    "all" = input$no_outcome_unexposed))
     
     
     output$euler_plot <- renderPlot({
