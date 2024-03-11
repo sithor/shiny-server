@@ -1,0 +1,11 @@
+name: POPLHLTH_304_Tutorial_1
+title: POPLHLTH_304_Tutorial_1
+username:
+account: sithor
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7903015
+bundleId: 8051392
+url: https://sithor.shinyapps.io/POPLHLTH_304_Tutorial_1/
+asMultiple: FALSE
+asStatic: FALSE

@@ -1,0 +1,387 @@
+---
+title: "Getting started with R!"
+author: "Simon Thornley"
+date: "`r format(Sys.time(), '%e %B, %Y')`"
+output: 
+  learnr::tutorial:
+        progressive: true
+        allow_skip: true
+  prettydoc::html_pretty:
+                theme: readable
+runtime: shiny_prerendered
+description: >
+  Learn about the basics of getting `R` up and running.
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(rio)
+library(fs)
+library(DiagrammeR)
+library(learnr)
+library(gradethis)
+library(r2symbols)
+gradethis_setup()
+# install.packages("remotes")
+# remotes::install_github("rstudio/gradethis")
+
+
+#df <- rio::import("https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx")
+#dir.create("./data")
+#rio::export(df, "./data/sids.xlsx")
+
+ # tutorial_options(
+ #   exercise.timelimit = 60,
+ #   # A simple checker function that just returns the message in the check chunk
+ #   exercise.checker = function(check_code, ...) {
+ #     list(
+ #       message = eval(parse(text = check_code)),
+ #       correct = logical(0),
+ #       type = "info",
+ #       location = "append"
+ #     )
+ #   }
+ # )
+knitr::opts_chunk$set(error = TRUE)
+```
+
+# How do I get started?
+
+![Ready, set, go!](./images/brett-jordan-E1por_SGvJE-unsplash.jpg "Photo by Brett Jordan"){#id .class width="50%" height="50%"}
+
+## Introduction and objectives
+
+In this tutorial, we will be introducing you to the main software we will be using to analyse data.
+
+Our aim is to import our data into `R`. Along the way, we will learn about how to:
+
+-   Understand some history of `R` and where it originated from
+-   keep our analyses tidy using folders or directories
+-   Understand and apply file paths, and how they may differ between using in `R` and the various different types of operating systems. 
+-   Understand the concept of a working directory and the difference between relative and absolute file paths
+-   Understand how comments are written in `R`
+-   Understand how to import data into `R` and write basic `R` code
+-   Understand the basic building blocks of `R` code: objects, functions and arguments, and
+-   Understand the structure of files used to store epidemiological data (often Excel`r r2symbols::sym("trademark")` spreadsheets)
+
+<break></break><break></break>
+
+### A brief history of `R`
+
+`R` was developed in Auckland by [Ross Ihaka](https://en.wikipedia.org/wiki/Ross_Ihaka){target="_blank"} and [Robert Gentleman](https://en.wikipedia.org/wiki/Robert_Gentleman_(statistician)){target="_blank"} as an open source copy of the **S** language developed by John Chambers at Bell Labs in the United States. It is free and open source, so you never have to pay for it. It is also very flexible and powerful but has a steep learning curve that can be difficult 😩. It is also very good for data visualisation. There is not much you can't do in `R`: data transformation, mapping, plotting, report writing are all up for grabs.
+
+I love using **R** because it so flexible & powerful.
+
+Here's an example of a recent [paper](https://onlinelibrary.wiley.com/doi/epdf/10.1111/jpc.14697){target="_blank"} I published with collaborators. It incorporates maps, tables and plots of the regression models, all made possible by the power of `R`!
+
+### Check your understanding
+
+```{r benefit, echo=FALSE, cache=FALSE}
+learnr::question("What is the main benefit of `R` compared to other statistical packages?",
+  learnr::answer("It always works as expected", message = "You'll quickly find this is not the case!"),
+  learnr::answer("It has no errors.", message = "`R` is not 100% error free, no software is."),
+  learnr::answer("It is easy to use.", message = "Unfortunately, some effort is required..."),
+  learnr::answer("It is free!", correct = TRUE, message = "Well done, yes! `R` is free, you'll never have to pay for it!"),
+  allow_retry = TRUE
+)
+```
+
+## Keeping your analysis tidy using folders
+
+![neat and tidy](./images/valeriia-svitlini-5w0ZbF8P5-4-unsplash_small.jpg "Photo by Valeriia Svitlini"){#id .class width="50%" height="50%"}
+
+> *"Science is organised knowledge.*
+
+`r tufte::quote_footer('--- Herbert Spencer')`
+
+<break></break><break></break>
+
+It is important to be *organised*. The **number one** problem I see in the health sector with data analysis is not remembering the definition of a *P*-value, but staying **organised**. Data analysis is a complex task, with many different steps. It is important to record where you've been and where you are heading. You need a map to negotiate the murky research waters. Start with a clear research question in mind and have the objectives or milestones written down beforehand so that you know where you're heading. Without this, you'll flounder into the research swamp of confusion and frustration 🤯.
+
+Make sure your data is housed on a network drive -- not your desktop -- so that in the event of hardware failure, you'll still have your work backed up. Create a separate folder or directory for each new project, and within that folder create separate other folders, such as:
+
+-   Documentation (for aims and objectives, ethics application and relevant literature, and journal of where your project is up to)
+-   `R` code (where your `R` code lives, the file extension is `.R`)
+-   Raw data (the data you receive to analyse, which is often an Excel or `.xlsx` or `.csv` file)
+-   Outputs (papers, manuscripts or reports, often a `.docx` or Microsoft Word file)
+-   `.Rdata` files (this is the data that is worked on in `R`).
+
+### Check your understanding
+
+```{r R_code, echo=FALSE, cache=FALSE}
+learnr::question("What is the file type for your R code?",
+  learnr::answer(".Rdata", message = "No, this is the file type of R data storage, not code!"),
+  learnr::answer(".xlsx", message = "No, this is the file type of MS Excel spreadsheets."),
+  learnr::answer(".R", correct = TRUE, message = "Yes, this is the text file used to write R code."),
+  learnr::answer(".docx", message = "No, this is the file type of MS Word documents."),
+  allow_retry = TRUE
+)
+```
+
+### Creating directories in R
+
+We can easily use some `R` code to create these directories. Here's an example:
+
+```{r create_directory, exercise=TRUE, cache=FALSE}
+
+dir.create("Documents")
+dir.create("R_code")
+dir.create("Raw_data")
+dir.create("Outputs")
+dir.create("Rdata")
+
+
+# Check we've successfully created our directories!
+# Don't assume anything with R.
+dir_tree()
+
+```
+
+### 
+
+We can see that `R` has created the necessary directories for us to store the things we need. Brilliant!
+
+### Check your understanding...
+
+```{r files, echo=FALSE, cache=FALSE}
+learnr::question("What is best practice for file management for data analysis?",
+  learnr::answer("It doesn't matter where your analysis is stored.", message = "No, this is asking for trouble."),
+  learnr::answer("Each analysis should be stored in its own folder.", correct = TRUE, message = "Well done! It is important to stay organised."),
+  learnr::answer("Store all files on the 'desktop' is best.", message = "No way, there is nothing worse than seeing a full desktop on a computer! It shows the user is poorly organised!"),
+  learnr::answer("In 'My Documents' or the 'home' directory is fine.", message = "No way, folders or directories are free, use them!"),
+  allow_retry = TRUE
+)
+```
+
+## File paths
+
+![Under the hood](./images/tim-mossholder-VurHDpO4VYI-unsplash.jpg){#id .class width="75%" height="75%"}
+
+It is a good idea to know about file paths. Your computer has a lot of information on it! We need to know exactly where on the disk that file is stored. File paths are a bit like an **address** for files and folders for your computer system, just like an address locates buildings and houses in a town. It helps us find a file and are particularly important when importing files into `R`. Different operating systems have different file path conventions.
+
+-   In Windows`r sym("trademark")`, a file path usually starts with a letter and uses backslashes ("\\") e.g. **`C:\Users\Simon`**
+-   On a Mac`r sym("trademark")`, a file path usually starts with a forward slash ("/") e.g. **`/Users/Simon/Documents`**
+
+### Where can we find file paths?
+
+In Windows, file paths can be found in *Windows Explorer*, the programme we use to navigate around the computer. You can bring up *Windows Explorer* by holding down the **Windows** key and pressing **E**. The file path or address to the folder is highlighted in the address bar up the top.
+
+![Windows explorer](./images/Screenshot%202022-12-16%20152042.png){#id .class width="100%" height="100%"}
+
+On a Mac, you will need to use the equivalent, which is **Finder**. You may need to use **"View"** --\> **Show path bar** so that the path is highlighted down below. The path is highlighted down the bottom, and **CTRL** clicking on the path bar will give the option of **`Copy "File" as Pathname`**.
+
+![Finder](./images/Finder-Show-Path-Bar.jpg){#id .class width="100%" height="100%"}
+
+In Windows, the convention is to have a drive letter followed by a colon e.g. `C:\My Programs`. Windows uses backslashes (`\\`) in its paths, whereas, due to its linux roots, `R` uses forward slashes (`/`) as do Macs. This can create much confusion 😵. Thus the equivalent `R` path to the original Windows directory is `C:/My Programs`. Notice the subtle difference in the direction of the slashes??
+
+## Relative or absolute paths?
+
+Paths can also be *relative* or *absolute*, which can be another stumbling block for novice programmers. An absolute path describes a location relative to the to the root or starting directory. In Windows this is `C:\` and on a Mac, it is `/`. A relative path is used more frequently in programming, because it makes your code more portable across different computers. Relative paths, instead have the concept of a **working directory**. This is the folder where the programme is looking for files. Deviations from this directory are indicated by paths that start with a `.` (current directory) or `..` (parent directory), such as `"./data/sids.xlsx"`. This means "start from the working directory where the programme is currently looking, then go to the `data` directory, then look in the `data` directory for `sids.xlsx`".
+
+```{r relative_paths, echo=FALSE, cache=FALSE}
+learnr::question("Which of the following are relative paths?",
+  learnr::answer("`C:\\users\\Simon\\My documents`", message = "`Sorry, this is an absolute path from a Windows machine due to the 'C:\\' text indicating the root directory`"),
+  learnr::answer("`C:\\users/Simon/My photos`", message = "`Sorry, this is an absolute path from a Windows machine due to the 'C:\\' text indicating the root directory`"),
+  learnr::answer("`./images/my_brilliant_mugshot.jpg`", correct = TRUE, "`Well done, the '.' gives it away!`"),
+  learnr::answer("`/Users/Simon/Desktop`", message = "`Sorry, this is a Mac absolute path, starting at the root directory ('/')`"),
+  learnr::answer("`/Users/Simon/Documents`",  message = "Sorry, this is a Mac absolute path, starting at the root directory ('/')`"),
+  allow_retry = TRUE
+)
+```
+
+It is a good idea to store your work on a drive that will be backed up. Electronic storage is great from a convenience point of view, but it can be easily erased by accident or by hardware fault. 
+
+### Revising R file paths
+
+```{r paths, echo=FALSE, cache=FALSE}
+learnr::question("Which of the following are legitimate file paths in R?",
+  learnr::answer("`C:\\users\\Simon\\My documents`", message = "`single backslashes (\\) are not allowed in R file paths. Double backslashes (\\\\) are however.`"),
+  learnr::answer("`C:\\users/Simon/My documents`", message = "`single backslashes (\\) are not allowed in R file paths. Double backslashes (\\\\) are however.`"),
+  learnr::answer("`C:/users/Simon/My documents`", correct = TRUE, "`Well done, forward slashes (/) are the way it is done!`"),
+  learnr::answer("`\\Users\\Simon\\Documents`", message = "`backslashes (\\) are not allowed in R file paths.`"),
+  learnr::answer("`/Users/Simon/Documents`", correct = TRUE, message = "File paths in R can be tricky!"),
+  allow_retry = TRUE
+)
+```
+
+### Working directories
+
+R has a concept of the *'working directory'* or 'folder'. This is the directory where `R` looks to find stuff you may be working on. To find out where this is on your machine, input the code for the following function: `getwd()`. Try this below and observe the output.
+
+```{r working_directory, exercise=TRUE, cache=FALSE}
+getwd()
+
+```
+
+Note: this is actually the directory on the server this program is running, not your computer!
+
+## Comments
+
+While we will focus on getting `R` to do stuff for us by writing code, sometimes we want to write stuff for us to see, not the computer. This is useful for your future self, who may not understand what your very clever code is accomplishing today. These annotations are called **comments**. All you need to do is preface what you are saying with a `#`🤓.
+
+```{r}
+# long and complicated function that does miraculous things...
+
+```
+
+## The basics of `R`: objects, functions and arguments
+
+This is the folder in which your `R` session is currently working.
+
+It will be able to find files that you tell to look for in this directory.
+
+`R` is built on functions. Functions take some sort of input and transform it into output.
+
+```{r function_dia, echo = FALSE, cache=FALSE}
+
+response_diag <- DiagrammeR::grViz(diagram = "digraph flowchart {
+      graph [layout = dot, rankdir = LR]
+      # define node aesthetics
+      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      
+# set up node layout
+      # Childcare centres
+      tab1 -> tab2;
+      tab2 -> tab3;
+      }
+      [1]: 'Input'
+      [2]: 'Function'
+      [3]: 'Output'
+      ")
+
+response_diag
+```
+
+In addition, *arguments* and *options* are used to modify the output of functions. Functions often have default or automatically applied arguments, that have to be explicitly modified.
+
+```{r arg_dia, echo = FALSE, cache=FALSE}
+
+response_diag2 <- DiagrammeR::grViz(diagram = "digraph flowchart {
+      graph [layout = dot, rankdir = LR]
+      # define node aesthetics
+      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        
+      tab1 [label = '@@1']
+      tab2 [label = '@@2']
+      tab3 [label = '@@3']
+      tab4 [label = '@@4']
+      
+# set up node layout
+      tab1 -> tab3;
+      tab2 -> tab3;
+      tab3 -> tab4;
+      }
+      [1]: 'Arguments'
+      [2]: 'Options'
+      [3]: 'Function \\n default arguments'
+      [4]: 'Output'
+      ")
+
+response_diag2
+```
+
+For example, `list.files()` is an example of a **function**. The brackets at the end distinguish a **function** from another type of object, such as the name of a `data.frame` which does not have brackets. To see what the arguments for a particular file are type a question mark `?`, followed by the name of the function. 
+
+* Try to get the documentation for the function `list.files()` in the pane below.
+
+```{r get_help, exercise=TRUE}
+
+```
+
+```{r get_help-solution}
+# without_brackets ----
+?list.files
+
+```
+
+```{r get_help-check}
+grade_this_code()
+```
+
+It should show the arguments and defaults for `list.files()` and describe their behaviour, perhaps in a new browser tab. Also, some useful examples are given at the bottom. In `R`, it may open a browser and show the help file.
+
+We can now appreciate that an option (or in computer speak **argument**) is `recursive = TRUE`. This lists not only the files in the working directory, but also others that are contained in other directories or folders in the working directory and so on.
+
+We can look at what is in our working directory in Finder or Windows Explorer but we can also use `R`. Try running the following code. Note, the *argument* `recursive = TRUE` to our function `list.files()`. Note, that functions in `R` are always accompanied by brackets "`()`". This ensures that the output is displayed with subsequent folders and files within the working directory.
+
+```{r list_files_directory, exercise=TRUE}
+## default argument (recursive = FALSE)
+list.files()
+
+## altered argument
+list.files(recursive = TRUE)
+
+dir_tree()
+
+```
+
+We can see that there is a `sids.xlsx` dataset in the `data` directory. The `data` directory is in our current directory. The `dir_tree()` command shows the structure more explicitly. `.` is shorthand for the *current* or *working* directory.
+
+Ok, so we know that `sids.xlsx` is in our `data` directory, and that the `data` folder or directory is in our current directory.
+
+## Importing data using file paths
+
+Now we can go ahead and import our dataset `sids.xlsx` into R for analysis. We need to tell `R` where to find `sids.xlsx`. We know of a function that reads `.xlsx` files called `import()` in the `rio` package. We need to add the path as the first argument to the `import()` function. Go ahead and try importing the Excel`r sym("trademark")` sheet by modifying the following code. Remember that the path has to be in quotation marks as it is a string. We have decided to name our spreadsheet `df`, standing for *data frame*. The `<-` is an *assignment* operator.
+
+```{r import_excel, exercise=TRUE, cache=FALSE}
+## This function needs a text relative file path in quotes as an argument
+df <- rio::import()
+
+
+```
+
+```{r import_excel-solution}
+## This function needs a text relative file path in quotes as an argument
+df <- rio::import("./data/sids.xlsx")
+```
+
+<div id="import_excel-hint">
+**Hint:** You need to add the **file path** `"./data/sids.xlsx"` as the first *argument* to the `rio::import()` *function*.
+</div>
+
+```{r import_excel-check}
+grade_this_code("Awesome! But don't worry, we are writing more difficult exercises as we speak :)")
+```
+
+### A sneak peak at our data
+
+Next have a sneak peak at your spreadsheet by using the `head()` *function* with `df` as an *argument* to it, after loading our data.
+
+```{r check_spreadsheet, exercise=TRUE}
+df <- rio::import("./data/sids.xlsx")
+## how do we see a sneak peak of the data?
+
+```
+
+```{r check_spreadsheet-solution}
+df <- rio::import("./data/sids.xlsx")
+## how do we see a sneak peak of the data?
+head(df)
+
+```
+
+<div id="check_spreadsheet-hint">
+**Hint:** The *function* to use after import is `head()` with the *name* object (unquoted) `df` as the first *argument* to this function.
+</div>
+
+```{r check_spreadsheet-check}
+grade_this_code("Awesome, you now know how to have a sneak peak at your new data.")
+
+```
+
+### 
+
+Great! We now have our spreadsheet in `R`, and we are now ready to roll!
+
+### Interpreting the meaning of the *sids.xlsx* data
+
+```{r interpret_df, echo=FALSE, cache=FALSE}
+learnr::question("What are the columns and what are the rows of the `df` data.frame?",
+  learnr::answer("Rows are subjects and columns are characteristics or variables.", correct = TRUE),
+  learnr::answer("Rows are characteristics or variables and columns are subjects or people."),  
+  allow_retry = TRUE)
+```
+
+Great, we are now ready for the next step. Well done! 🤠
