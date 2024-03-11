@@ -5,9 +5,7 @@
 # if (!requireNamespace("epitools", quietly = TRUE)) install.packages("epitools")
 # Load required libraries
 
-## I'm adding stuff
 library(shiny)
-#ßlibrary(oddsratio)
 library(epitools)
 library(ggplot2)
 library(shinythemes)
@@ -167,7 +165,7 @@ server <- function(input, output) {
     
     
     output$euler_plot <- renderPlot({
-      plot(fit1, quantities = TRUE, legend = TRUE, labels = TRUE)
+      plot(fit1, quantities = TRUE, legend = TRUE, labels = FALSE)
     })
     
                   
