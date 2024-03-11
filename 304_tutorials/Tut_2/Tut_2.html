@@ -123,8 +123,7 @@ if (window.hljs) {
 <ul>
 <li>Understand some history of <code>R</code> and where it originated from</li>
 <li>keep our analyses tidy using folders or directories</li>
-<li>Understand and apply file paths, and how they may differ between using in <code>R</code> and the various different types of operating systems.</li>
-<li>Understand the concept of a working directory and the difference between relative and absolute file paths</li>
+<li>Understand and apply file paths, and how they may differ between using in <code>R</code> and the various different types of operating systems. Understand the concept of a working directory and the difference between relative and absolute file paths</li>
 <li>Understand how comments are written in <code>R</code></li>
 <li>Understand how to import data into <code>R</code> and write basic <code>R</code> code</li>
 <li>Understand the basic building blocks of <code>R</code> code: objects, functions and arguments, and</li>
@@ -135,7 +134,7 @@ if (window.hljs) {
 <h3>A brief history of <code>R</code></h3>
 <p><code>R</code> was developed in Auckland by <a href="https://en.wikipedia.org/wiki/Ross_Ihaka" target="_blank">Ross Ihaka</a> and <a href="https://en.wikipedia.org/wiki/Robert_Gentleman_(statistician)" target="_blank">Robert Gentleman</a> as an open source copy of the <strong>S</strong> language developed by John Chambers at Bell Labs in the United States. It is free and open source, so you never have to pay for it. It is also very flexible and powerful but has a steep learning curve that can be difficult 😩. It is also very good for data visualisation. There is not much you can’t do in <code>R</code>: data transformation, mapping, plotting, report writing are all up for grabs.</p>
 <p>I love using <strong>R</strong> because it so flexible &amp; powerful.</p>
-<p>Here’s an example of a recent <a href="https://onlinelibrary.wiley.com/doi/epdf/10.1111/jpc.14697" target="_blank">paper</a> I published with collaborators. It incorporates maps, tables and plots of the regression models, all made possible by the power of <code>R</code>!</p>
+<p>Here’s an example of a recent <a href="https://onlinelibrary.wiley.com/doi/epdf/10.1111/jpc.14697" target="_blank">paper</a> I published with collaborators. It incorporates maps, tables and plots of the regression models, all made possible by the use of R!</p>
 </div>
 <div id="section-check-your-understanding" class="section level3">
 <h3>Check your understanding</h3>
@@ -228,7 +227,7 @@ dir_tree()</code></pre>
 </ul>
 <div id="section-where-can-we-find-file-paths" class="section level3">
 <h3>Where can we find file paths?</h3>
-<p>In Windows, file paths can be found in <em>Windows Explorer</em>, the programme we use to navigate around the computer. You can bring up <em>Windows Explorer</em> by holding down the <strong>Windows</strong> key and pressing <strong>E</strong>. The file path or address to the folder is highlighted in the address bar up the top.</p>
+<p>In Windows, file paths can be found in <em>Windows Explorer</em>, the programme we use to navigate around the computer. You can bring up <em>Windows Explorer</em> by holding down the <strong>Windows</strong> () key and pressing <strong>E</strong>. The file path or address to the folder is highlighted in the address bar up the top.</p>
 <div class="figure">
 <img src="images/Screenshot%202022-12-16%20152042.png" id="section-id" class="class" style="width:100.0%;height:100.0%" alt="" />
 <p class="caption">Windows explorer</p>
@@ -238,12 +237,12 @@ dir_tree()</code></pre>
 <img src="images/Finder-Show-Path-Bar.jpg" id="section-id" class="class" style="width:100.0%;height:100.0%" alt="" />
 <p class="caption">Finder</p>
 </div>
-<p>In Windows, the convention is to have a drive letter followed by a colon e.g. <code>C:\My Programs</code>. Windows uses backslashes (<code>\\</code>) in its paths, whereas, due to its linux roots, <code>R</code> uses forward slashes (<code>/</code>) as do Macs. This can create much confusion 😵. Thus the equivalent <code>R</code> path to the original Windows directory is <code>C:/My Programs</code>. Notice the subtle difference in the direction of the slashes??</p>
+<p>In Windows, the convention is to have a drive letter followed by a colon e.g. <code>C:\My Programs</code>. Windows uses backslashes (<code>\\</code>) in its paths, whereas, due to its linux roots, <code>R</code> uses forward slashes (<code>/</code>) as do Macs. This can create much confusion 😵. Thus the equivalent <code>R</code> path to this directory is <code>C:/My Programs</code>.</p>
 </div>
 </div>
 <div id="section-relative-or-absolute-paths" class="section level2">
 <h2>Relative or absolute paths?</h2>
-<p>Paths can also be <em>relative</em> or <em>absolute</em>, which can be another stumbling block for novice programmers. An absolute path describes a location relative to the to the root or starting directory. In Windows this is <code>C:\</code> and on a Mac, it is <code>/</code>. A relative path is used more frequently in programming, because it makes your code more portable across different computers. Relative paths, instead have the concept of a <strong>working directory</strong>. This is the folder where the programme is looking for files. Deviations from this directory are indicated by paths that start with a <code>.</code> (current directory) or <code>..</code> (parent directory), such as <code>"./data/sids.xlsx"</code>. This means “start from the working directory where the programme is currently looking, then go to the <code>data</code> directory, then look in the <code>data</code> directory for <code>sids.xlsx</code>”.</p>
+<p>Paths can also be <em>relative</em> or <em>absolute</em>, which can be a tricky thing for novice programmers to get their heads around. An absolute path describes a location relative to the to the root or starting directory. In Windows this is <code>C:\</code> and on a Mac, it is <code>/</code>. A relative path is used more frequently in programming, because it makes your code more portable across different computers. Relative paths, instead have the concept of a <strong>working directory</strong>. This is the folder where the programme is looking for files. Deviations from this directory are indicated by paths that start with a <code>.</code> (current directory) or <code>..</code> (parent directory), such as <code>"./data/sids.xlsx"</code>. This means “start from the working directory where the programme is currently looking, then go to the <code>data</code> directory, then look in the <code>data</code> directory for <code>sids.xlsx</code>”.</p>
 <div class="panel panel-default tutorial-question-container">
 <div data-label="relative_paths" class="tutorial-question panel-body">
 <div id="relative_paths-answer_container" class="shiny-html-output"></div>
@@ -252,7 +251,7 @@ dir_tree()</code></pre>
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
-<p>It is a good idea to store your work on a drive that will be backed up. Electronic storage is great from a convenience point of view, but it can be easily erased by accident or by hardware fault.</p>
+<p>It is a good idea to store your work on a drive that will be backed up. Electronic storage is great from a convenience point of view, but it can be easily erased by accident or by hardware fault. Since Macs are descended from the same roots as linux, their paths, like <code>R</code> are composed of forward slashes.</p>
 <div id="section-revising-r-file-paths" class="section level3">
 <h3>Revising R file paths</h3>
 <div class="panel panel-default tutorial-question-container">
@@ -266,12 +265,12 @@ dir_tree()</code></pre>
 </div>
 <div id="section-working-directories" class="section level3">
 <h3>Working directories</h3>
-<p>R has a concept of the <em>‘working directory’</em> or ‘folder’. This is the directory where <code>R</code> looks to find stuff you may be working on. To find out where this is on your machine, input the code for the following function: <code>getwd()</code>. Try this below and observe the output.</p>
+<p>R has a concept of the <em>‘working directory’</em> or ‘folder’. This is the directory where R looks to find stuff you may be working on. To find out where this is on your machine, input the code for the following function: <code>getwd()</code>. Try this below and observe the output.</p>
 <div class="tutorial-exercise" data-label="working_directory" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|&gt;">
 <pre class="text"><code>getwd()</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>Note: this is actually the directory on the server this program is running, not your computer!</p>
+<p>This is actually the directory on the server this program is running, not your computer!</p>
 </div>
 </div>
 <div id="section-comments" class="section level2">
@@ -280,10 +279,10 @@ dir_tree()</code></pre>
 <pre class="r"><code># long and complicated function that does miraculous things...</code></pre>
 </div>
 <div id="section-the-basics-of-r-objects-functions-and-arguments" class="section level2">
-<h2>The basics of <code>R</code>: objects, functions and arguments</h2>
-<p>This is the folder in which your <code>R</code> session is currently working.</p>
+<h2>The basics of R: objects, functions and arguments</h2>
+<p>This is the folder in which your R session is currently working.</p>
 <p>It will be able to find files that you tell to look for in this directory.</p>
-<p><code>R</code> is built on functions. Functions take some sort of input and transform it into output.</p>
+<p>R is built on functions. Functions take some sort of input and transform it into output.</p>
 <div class="grViz html-widget html-fill-item" id="htmlwidget-eaa7354b2f5e9aca5948" style="width:624px;height:384px;"></div>
 <script type="application/json" data-for="htmlwidget-eaa7354b2f5e9aca5948">{"x":{"diagram":"digraph flowchart {\n      graph [layout = dot, rankdir = LR]\n      # define node aesthetics\n      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        \n      tab1 [label = \"Input\"]\n      tab2 [label = \"Function\"]\n      tab3 [label = \"Output\"]\n      \n# set up node layout\n      # Childcare centres\n      tab1 -> tab2;\n      tab2 -> tab3;\n      }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p>In addition, <em>arguments</em> and <em>options</em> are used to modify the output of functions. Functions often have default or automatically applied arguments, that have to be explicitly modified.</p>
@@ -301,7 +300,7 @@ dir_tree()</code></pre>
 ?list.files</code></pre>
 </div>
 <p>It should show the arguments and defaults for <code>list.files()</code> and describe their behaviour, perhaps in a new browser tab. Also, some useful examples are given at the bottom. In <code>R</code>, it may open a browser and show the help file.</p>
-<p>We can now appreciate that an option (or in computer speak <strong>argument</strong>) is <code>recursive = TRUE</code>. This lists not only the files in the working directory, but also others that are contained in other directories or folders in the working directory and so on.</p>
+<p>We can now appreciate that an option is <code>recursive = TRUE</code>. This lists not only the files in the working directory, but also others that are contained in other directories or folders in the working directory and so on.</p>
 <p>We can look at what is in our working directory in Finder or Windows Explorer but we can also use <code>R</code>. Try running the following code. Note, the <em>argument</em> <code>recursive = TRUE</code> to our function <code>list.files()</code>. Note, that functions in <code>R</code> are always accompanied by brackets “<code>()</code>”. This ensures that the output is displayed with subsequent folders and files within the working directory.</p>
 <div class="tutorial-exercise" data-label="list_files_directory" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0" data-pipe="|&gt;">
 <pre class="text"><code>## default argument (recursive = FALSE)
@@ -362,8 +361,15 @@ head(df)</code></pre>
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
-<p>Great, we are now ready for the next step. Well done! 🤠 
+<p>Great, we are now ready for doing going to the next step. Well done! 🤠 
 <script type="application/shiny-prerendered" data-context="server-start">
+if(!require(remotes)) install.packages("remotes")
+if(!require(gradethis)) remotes::install_github("rstudio/gradethis")
+if(!require(rio)) install.packages("rio")
+if(!require(fs)) install.packages("fs")
+if(!require(DiagrammeR)) install.packages("DiagrammeR")
+if(!require(gradethis)) install.packages("gradethis")
+if(!require(r2symbols)) install.packages("r2symbols")
 library(tufte)
 library(rio)
 library(fs)
@@ -484,10 +490,14 @@ output$`tutorial-exercise-create_directory-output` <- renderUI({
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "create_directory", global_setup = structure(c("library(tufte)", 
-"library(rio)", "library(fs)", "library(DiagrammeR)", "library(learnr)", 
-"library(gradethis)", "library(r2symbols)", "gradethis_setup()", 
-"# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
+learnr:::store_exercise_cache(structure(list(label = "create_directory", global_setup = structure(c("if(!require(remotes)) install.packages(\"remotes\")", 
+"if(!require(gradethis)) remotes::install_github(\"rstudio/gradethis\")", 
+"if(!require(rio)) install.packages(\"rio\")", "if(!require(fs)) install.packages(\"fs\")", 
+"if(!require(DiagrammeR)) install.packages(\"DiagrammeR\")", 
+"if(!require(gradethis)) install.packages(\"gradethis\")", "if(!require(r2symbols)) install.packages(\"r2symbols\")", 
+"library(tufte)", "library(rio)", "library(fs)", "library(DiagrammeR)", 
+"library(learnr)", "library(gradethis)", "library(r2symbols)", 
+"gradethis_setup()", "# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
 "", "", "#df <- rio::import(\"https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx\")", 
 "#dir.create(\"./data\")", "#rio::export(df, \"./data/sids.xlsx\")", 
 "", " # tutorial_options(", " #   exercise.timelimit = 60,", 
@@ -499,32 +509,33 @@ learnr:::store_exercise_cache(structure(list(label = "create_directory", global_
 ), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
     chunks = list(list(label = "create_directory", code = "\ndir.create(\"Documents\")\ndir.create(\"R_code\")\ndir.create(\"Raw_data\")\ndir.create(\"Outputs\")\ndir.create(\"Rdata\")\n\n\n# Check we've successfully created our directories!\n# Don't assume anything with R.\ndir_tree()\n", 
         opts = list(label = "\"create_directory\"", exercise = "TRUE", 
-            cache = "FALSE"), engine = "r")), code_check = NULL, 
+            cache = "TRUE"), engine = "r")), code_check = NULL, 
     error_check = NULL, check = NULL, solution = NULL, tests = NULL, 
     options = list(eval = FALSE, echo = TRUE, results = "markup", 
         tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
         comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "main_cache/html/", cache.vars = NULL, cache.lazy = TRUE, 
-        dependson = NULL, autodep = FALSE, cache.rebuild = FALSE, 
-        fig.keep = "high", fig.show = "asis", fig.align = "default", 
-        fig.path = "main_files/figure-html/", dev = "png", dev.args = NULL, 
-        dpi = 192, fig.ext = "png", fig.width = 6.5, fig.height = 4, 
-        fig.env = "figure", fig.cap = NULL, fig.scap = NULL, 
-        fig.lp = "fig:", fig.subcap = NULL, fig.pos = "", out.width = 624, 
-        out.height = NULL, out.extra = NULL, fig.retina = 2, 
-        external = TRUE, sanitize = FALSE, interval = 1, aniopts = "controls,loop", 
-        warning = TRUE, error = TRUE, message = TRUE, render = NULL, 
-        ref.label = NULL, child = NULL, engine = "r", split = FALSE, 
-        include = TRUE, purl = TRUE, max.print = 1000, exercise.timelimit = 60, 
-        exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
+        background = "#F7F7F7", strip.white = TRUE, cache = 3, 
+        cache.path = "Tut_2_cache/html/", cache.vars = NULL, 
+        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
+        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
+        fig.align = "default", fig.path = "Tut_2_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = TRUE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, exercise.timelimit = 60, exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
         exercise.error.check.code = "gradethis_error_checker()", 
         label = "create_directory", exercise = TRUE, code = c("", 
         "dir.create(\"Documents\")", "dir.create(\"R_code\")", 
         "dir.create(\"Raw_data\")", "dir.create(\"Outputs\")", 
         "dir.create(\"Rdata\")", "", "", "# Check we've successfully created our directories!", 
         "# Don't assume anything with R.", "dir_tree()", ""), 
-        out.width.px = 624, out.height.px = 384, params.src = "create_directory, exercise=TRUE, cache=FALSE", 
+        out.width.px = 624, out.height.px = 384, hash = "Tut_2_cache/html/create_directory_5575da94c8e9b78f3c2b03fb31d65483", 
+        params.src = "create_directory, exercise=TRUE, cache=TRUE", 
         fig.num = 0, exercise.df_print = "paged"), engine = "r", 
     version = "4"), class = c("r", "tutorial_exercise")))
 </script>
@@ -653,10 +664,14 @@ output$`tutorial-exercise-working_directory-output` <- renderUI({
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "working_directory", global_setup = structure(c("library(tufte)", 
-"library(rio)", "library(fs)", "library(DiagrammeR)", "library(learnr)", 
-"library(gradethis)", "library(r2symbols)", "gradethis_setup()", 
-"# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
+learnr:::store_exercise_cache(structure(list(label = "working_directory", global_setup = structure(c("if(!require(remotes)) install.packages(\"remotes\")", 
+"if(!require(gradethis)) remotes::install_github(\"rstudio/gradethis\")", 
+"if(!require(rio)) install.packages(\"rio\")", "if(!require(fs)) install.packages(\"fs\")", 
+"if(!require(DiagrammeR)) install.packages(\"DiagrammeR\")", 
+"if(!require(gradethis)) install.packages(\"gradethis\")", "if(!require(r2symbols)) install.packages(\"r2symbols\")", 
+"library(tufte)", "library(rio)", "library(fs)", "library(DiagrammeR)", 
+"library(learnr)", "library(gradethis)", "library(r2symbols)", 
+"gradethis_setup()", "# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
 "", "", "#df <- rio::import(\"https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx\")", 
 "#dir.create(\"./data\")", "#rio::export(df, \"./data/sids.xlsx\")", 
 "", " # tutorial_options(", " #   exercise.timelimit = 60,", 
@@ -668,28 +683,29 @@ learnr:::store_exercise_cache(structure(list(label = "working_directory", global
 ), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
     chunks = list(list(label = "working_directory", code = "getwd()\n", 
         opts = list(label = "\"working_directory\"", exercise = "TRUE", 
-            cache = "FALSE"), engine = "r")), code_check = NULL, 
+            cache = "TRUE"), engine = "r")), code_check = NULL, 
     error_check = NULL, check = NULL, solution = NULL, tests = NULL, 
     options = list(eval = FALSE, echo = TRUE, results = "markup", 
         tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
         comment = NA, highlight = FALSE, size = "normalsize", 
-        background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "main_cache/html/", cache.vars = NULL, cache.lazy = TRUE, 
-        dependson = NULL, autodep = FALSE, cache.rebuild = FALSE, 
-        fig.keep = "high", fig.show = "asis", fig.align = "default", 
-        fig.path = "main_files/figure-html/", dev = "png", dev.args = NULL, 
-        dpi = 192, fig.ext = "png", fig.width = 6.5, fig.height = 4, 
-        fig.env = "figure", fig.cap = NULL, fig.scap = NULL, 
-        fig.lp = "fig:", fig.subcap = NULL, fig.pos = "", out.width = 624, 
-        out.height = NULL, out.extra = NULL, fig.retina = 2, 
-        external = TRUE, sanitize = FALSE, interval = 1, aniopts = "controls,loop", 
-        warning = TRUE, error = TRUE, message = TRUE, render = NULL, 
-        ref.label = NULL, child = NULL, engine = "r", split = FALSE, 
-        include = TRUE, purl = TRUE, max.print = 1000, exercise.timelimit = 60, 
-        exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
+        background = "#F7F7F7", strip.white = TRUE, cache = 3, 
+        cache.path = "Tut_2_cache/html/", cache.vars = NULL, 
+        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
+        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
+        fig.align = "default", fig.path = "Tut_2_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = TRUE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, exercise.timelimit = 60, exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
         exercise.error.check.code = "gradethis_error_checker()", 
         label = "working_directory", exercise = TRUE, code = c("getwd()", 
-        ""), out.width.px = 624, out.height.px = 384, params.src = "working_directory, exercise=TRUE, cache=FALSE", 
+        ""), out.width.px = 624, out.height.px = 384, hash = "Tut_2_cache/html/working_directory_20fd7d16b0ce412f8517346e0211c3d2", 
+        params.src = "working_directory, exercise=TRUE, cache=TRUE", 
         fig.num = 0, exercise.df_print = "paged"), engine = "r", 
     version = "4"), class = c("r", "tutorial_exercise")))
 </script>
@@ -702,10 +718,14 @@ output$`tutorial-exercise-get_help-output` <- renderUI({
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "get_help", global_setup = structure(c("library(tufte)", 
-"library(rio)", "library(fs)", "library(DiagrammeR)", "library(learnr)", 
-"library(gradethis)", "library(r2symbols)", "gradethis_setup()", 
-"# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
+learnr:::store_exercise_cache(structure(list(label = "get_help", global_setup = structure(c("if(!require(remotes)) install.packages(\"remotes\")", 
+"if(!require(gradethis)) remotes::install_github(\"rstudio/gradethis\")", 
+"if(!require(rio)) install.packages(\"rio\")", "if(!require(fs)) install.packages(\"fs\")", 
+"if(!require(DiagrammeR)) install.packages(\"DiagrammeR\")", 
+"if(!require(gradethis)) install.packages(\"gradethis\")", "if(!require(r2symbols)) install.packages(\"r2symbols\")", 
+"library(tufte)", "library(rio)", "library(fs)", "library(DiagrammeR)", 
+"library(learnr)", "library(gradethis)", "library(r2symbols)", 
+"gradethis_setup()", "# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
 "", "", "#df <- rio::import(\"https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx\")", 
 "#dir.create(\"./data\")", "#rio::export(df, \"./data/sids.xlsx\")", 
 "", " # tutorial_options(", " #   exercise.timelimit = 60,", 
@@ -724,19 +744,19 @@ learnr:::store_exercise_cache(structure(list(label = "get_help", global_setup = 
         tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
         comment = NA, highlight = FALSE, size = "normalsize", 
         background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "main_cache/html/", cache.vars = NULL, cache.lazy = TRUE, 
-        dependson = NULL, autodep = FALSE, cache.rebuild = FALSE, 
-        fig.keep = "high", fig.show = "asis", fig.align = "default", 
-        fig.path = "main_files/figure-html/", dev = "png", dev.args = NULL, 
-        dpi = 192, fig.ext = "png", fig.width = 6.5, fig.height = 4, 
-        fig.env = "figure", fig.cap = NULL, fig.scap = NULL, 
-        fig.lp = "fig:", fig.subcap = NULL, fig.pos = "", out.width = 624, 
-        out.height = NULL, out.extra = NULL, fig.retina = 2, 
-        external = TRUE, sanitize = FALSE, interval = 1, aniopts = "controls,loop", 
-        warning = TRUE, error = TRUE, message = TRUE, render = NULL, 
-        ref.label = NULL, child = NULL, engine = "r", split = FALSE, 
-        include = TRUE, purl = TRUE, max.print = 1000, exercise.timelimit = 60, 
-        exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
+        cache.path = "Tut_2_cache/html/", cache.vars = NULL, 
+        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
+        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
+        fig.align = "default", fig.path = "Tut_2_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = TRUE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, exercise.timelimit = 60, exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
         exercise.error.check.code = "gradethis_error_checker()", 
         label = "get_help", exercise = TRUE, code = "", out.width.px = 624, 
         out.height.px = 384, params.src = "get_help, exercise=TRUE", 
@@ -752,10 +772,14 @@ output$`tutorial-exercise-list_files_directory-output` <- renderUI({
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "list_files_directory", global_setup = structure(c("library(tufte)", 
-"library(rio)", "library(fs)", "library(DiagrammeR)", "library(learnr)", 
-"library(gradethis)", "library(r2symbols)", "gradethis_setup()", 
-"# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
+learnr:::store_exercise_cache(structure(list(label = "list_files_directory", global_setup = structure(c("if(!require(remotes)) install.packages(\"remotes\")", 
+"if(!require(gradethis)) remotes::install_github(\"rstudio/gradethis\")", 
+"if(!require(rio)) install.packages(\"rio\")", "if(!require(fs)) install.packages(\"fs\")", 
+"if(!require(DiagrammeR)) install.packages(\"DiagrammeR\")", 
+"if(!require(gradethis)) install.packages(\"gradethis\")", "if(!require(r2symbols)) install.packages(\"r2symbols\")", 
+"library(tufte)", "library(rio)", "library(fs)", "library(DiagrammeR)", 
+"library(learnr)", "library(gradethis)", "library(r2symbols)", 
+"gradethis_setup()", "# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
 "", "", "#df <- rio::import(\"https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx\")", 
 "#dir.create(\"./data\")", "#rio::export(df, \"./data/sids.xlsx\")", 
 "", " # tutorial_options(", " #   exercise.timelimit = 60,", 
@@ -772,10 +796,10 @@ learnr:::store_exercise_cache(structure(list(label = "list_files_directory", glo
         eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
         tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
         highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "main_cache/html/", 
+        strip.white = TRUE, cache = 0, cache.path = "Tut_2_cache/html/", 
         cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
         autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "main_files/figure-html/", 
+        fig.show = "asis", fig.align = "default", fig.path = "Tut_2_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -802,10 +826,14 @@ output$`tutorial-exercise-import_excel-output` <- renderUI({
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "import_excel", global_setup = structure(c("library(tufte)", 
-"library(rio)", "library(fs)", "library(DiagrammeR)", "library(learnr)", 
-"library(gradethis)", "library(r2symbols)", "gradethis_setup()", 
-"# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
+learnr:::store_exercise_cache(structure(list(label = "import_excel", global_setup = structure(c("if(!require(remotes)) install.packages(\"remotes\")", 
+"if(!require(gradethis)) remotes::install_github(\"rstudio/gradethis\")", 
+"if(!require(rio)) install.packages(\"rio\")", "if(!require(fs)) install.packages(\"fs\")", 
+"if(!require(DiagrammeR)) install.packages(\"DiagrammeR\")", 
+"if(!require(gradethis)) install.packages(\"gradethis\")", "if(!require(r2symbols)) install.packages(\"r2symbols\")", 
+"library(tufte)", "library(rio)", "library(fs)", "library(DiagrammeR)", 
+"library(learnr)", "library(gradethis)", "library(r2symbols)", 
+"gradethis_setup()", "# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
 "", "", "#df <- rio::import(\"https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx\")", 
 "#dir.create(\"./data\")", "#rio::export(df, \"./data/sids.xlsx\")", 
 "", " # tutorial_options(", " #   exercise.timelimit = 60,", 
@@ -817,7 +845,7 @@ learnr:::store_exercise_cache(structure(list(label = "import_excel", global_setu
 ), chunk_opts = list(label = "setup", include = FALSE)), setup = NULL, 
     chunks = list(list(label = "import_excel", code = "## This function needs a text relative file path in quotes as an argument\ndf <- rio::import()\n\n", 
         opts = list(label = "\"import_excel\"", exercise = "TRUE", 
-            cache = "FALSE"), engine = "r")), code_check = NULL, 
+            cache = "TRUE"), engine = "r")), code_check = NULL, 
     error_check = NULL, check = structure("grade_this_code(\"Awesome! But don't worry, we are writing more difficult exercises as we speak :)\")", chunk_opts = list(
         label = "import_excel-check")), solution = structure(c("## This function needs a text relative file path in quotes as an argument", 
     "df <- rio::import(\"./data/sids.xlsx\")"), chunk_opts = list(
@@ -825,10 +853,10 @@ learnr:::store_exercise_cache(structure(list(label = "import_excel", global_setu
         eval = FALSE, echo = TRUE, results = "markup", tidy = FALSE, 
         tidy.opts = NULL, collapse = FALSE, prompt = FALSE, comment = NA, 
         highlight = FALSE, size = "normalsize", background = "#F7F7F7", 
-        strip.white = TRUE, cache = 0, cache.path = "main_cache/html/", 
+        strip.white = TRUE, cache = 3, cache.path = "Tut_2_cache/html/", 
         cache.vars = NULL, cache.lazy = TRUE, dependson = NULL, 
         autodep = FALSE, cache.rebuild = FALSE, fig.keep = "high", 
-        fig.show = "asis", fig.align = "default", fig.path = "main_files/figure-html/", 
+        fig.show = "asis", fig.align = "default", fig.path = "Tut_2_files/figure-html/", 
         dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
         fig.width = 6.5, fig.height = 4, fig.env = "figure", 
         fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
@@ -841,7 +869,8 @@ learnr:::store_exercise_cache(structure(list(label = "import_excel", global_setu
         exercise.error.check.code = "gradethis_error_checker()", 
         label = "import_excel", exercise = TRUE, code = c("## This function needs a text relative file path in quotes as an argument", 
         "df <- rio::import()", "", ""), out.width.px = 624, out.height.px = 384, 
-        params.src = "import_excel, exercise=TRUE, cache=FALSE", 
+        hash = "Tut_2_cache/html/import_excel_074ccbc30c2004cc6680982a8d0308d3", 
+        params.src = "import_excel, exercise=TRUE, cache=TRUE", 
         fig.num = 0, exercise.df_print = "paged"), engine = "r", 
     version = "4"), class = c("r", "tutorial_exercise")))
 </script>
@@ -854,10 +883,14 @@ output$`tutorial-exercise-check_spreadsheet-output` <- renderUI({
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-learnr:::store_exercise_cache(structure(list(label = "check_spreadsheet", global_setup = structure(c("library(tufte)", 
-"library(rio)", "library(fs)", "library(DiagrammeR)", "library(learnr)", 
-"library(gradethis)", "library(r2symbols)", "gradethis_setup()", 
-"# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
+learnr:::store_exercise_cache(structure(list(label = "check_spreadsheet", global_setup = structure(c("if(!require(remotes)) install.packages(\"remotes\")", 
+"if(!require(gradethis)) remotes::install_github(\"rstudio/gradethis\")", 
+"if(!require(rio)) install.packages(\"rio\")", "if(!require(fs)) install.packages(\"fs\")", 
+"if(!require(DiagrammeR)) install.packages(\"DiagrammeR\")", 
+"if(!require(gradethis)) install.packages(\"gradethis\")", "if(!require(r2symbols)) install.packages(\"r2symbols\")", 
+"library(tufte)", "library(rio)", "library(fs)", "library(DiagrammeR)", 
+"library(learnr)", "library(gradethis)", "library(r2symbols)", 
+"gradethis_setup()", "# install.packages(\"remotes\")", "# remotes::install_github(\"rstudio/gradethis\")", 
 "", "", "#df <- rio::import(\"https://flexiblelearning.auckland.ac.nz/data-analysis/menu/1/files/simple_sids_epiinfo2.xlsx\")", 
 "#dir.create(\"./data\")", "#rio::export(df, \"./data/sids.xlsx\")", 
 "", " # tutorial_options(", " #   exercise.timelimit = 60,", 
@@ -879,19 +912,19 @@ learnr:::store_exercise_cache(structure(list(label = "check_spreadsheet", global
         tidy = FALSE, tidy.opts = NULL, collapse = FALSE, prompt = FALSE, 
         comment = NA, highlight = FALSE, size = "normalsize", 
         background = "#F7F7F7", strip.white = TRUE, cache = 0, 
-        cache.path = "main_cache/html/", cache.vars = NULL, cache.lazy = TRUE, 
-        dependson = NULL, autodep = FALSE, cache.rebuild = FALSE, 
-        fig.keep = "high", fig.show = "asis", fig.align = "default", 
-        fig.path = "main_files/figure-html/", dev = "png", dev.args = NULL, 
-        dpi = 192, fig.ext = "png", fig.width = 6.5, fig.height = 4, 
-        fig.env = "figure", fig.cap = NULL, fig.scap = NULL, 
-        fig.lp = "fig:", fig.subcap = NULL, fig.pos = "", out.width = 624, 
-        out.height = NULL, out.extra = NULL, fig.retina = 2, 
-        external = TRUE, sanitize = FALSE, interval = 1, aniopts = "controls,loop", 
-        warning = TRUE, error = TRUE, message = TRUE, render = NULL, 
-        ref.label = NULL, child = NULL, engine = "r", split = FALSE, 
-        include = TRUE, purl = TRUE, max.print = 1000, exercise.timelimit = 60, 
-        exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
+        cache.path = "Tut_2_cache/html/", cache.vars = NULL, 
+        cache.lazy = TRUE, dependson = NULL, autodep = FALSE, 
+        cache.rebuild = FALSE, fig.keep = "high", fig.show = "asis", 
+        fig.align = "default", fig.path = "Tut_2_files/figure-html/", 
+        dev = "png", dev.args = NULL, dpi = 192, fig.ext = "png", 
+        fig.width = 6.5, fig.height = 4, fig.env = "figure", 
+        fig.cap = NULL, fig.scap = NULL, fig.lp = "fig:", fig.subcap = NULL, 
+        fig.pos = "", out.width = 624, out.height = NULL, out.extra = NULL, 
+        fig.retina = 2, external = TRUE, sanitize = FALSE, interval = 1, 
+        aniopts = "controls,loop", warning = TRUE, error = TRUE, 
+        message = TRUE, render = NULL, ref.label = NULL, child = NULL, 
+        engine = "r", split = FALSE, include = TRUE, purl = TRUE, 
+        max.print = 1000, exercise.timelimit = 60, exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
         exercise.error.check.code = "gradethis_error_checker()", 
         label = "check_spreadsheet", exercise = TRUE, code = c("df <- rio::import(\"./data/sids.xlsx\")", 
         "## how do we see a sneak peak of the data?", ""), out.width.px = 624, 
@@ -932,7 +965,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","commonmark","compiler","datasets","DiagrammeR","digest","ellipsis","evaluate","fastmap","fontawesome","fs","glue","gradethis","graphics","grDevices","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","markdown","methods","mime","promises","r2symbols","R6","RColorBrewer","Rcpp","rio","rlang","rmarkdown","rprojroot","rstudioapi","sass","shiny","stats","stringi","stringr","tools","tufte","utils","vctrs","visNetwork","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.3.3","0.6.1","1.0.8","2.3.1","3.6.2","1.9.1","4.3.3","4.3.3","1.0.11","0.6.34","0.3.2","0.23","1.1.1","0.5.2","1.6.3","1.7.0","0.2.14","4.3.3","4.3.3","0.5.7","1.6.4","1.6.14","0.1.4","1.8.8","1.45","1.3.2","0.11.5.9000","1.0.4","2.0.3","1.12","4.3.3","0.12","1.2.1","1.4","2.5.1","1.1-3","1.0.12","1.0.1","1.1.3","2.25","2.0.4","0.15.0","0.4.8","1.8.0","4.3.3","1.8.3","1.5.1","4.3.3","0.13","4.3.3","0.6.5","2.1.2","3.0.0","0.42","1.8-4","2.3.8"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56]}},"value":[{"type":"character","attributes":{},"value":["backports","base","bslib","cachem","checkmate","cli","codetools","commonmark","compiler","datasets","DiagrammeR","digest","ellipsis","evaluate","fastmap","fontawesome","fs","glue","gradethis","graphics","grDevices","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","later","learnr","lifecycle","magrittr","markdown","methods","mime","promises","r2symbols","R6","RColorBrewer","Rcpp","remotes","rio","rlang","rmarkdown","rprojroot","rstudioapi","sass","shiny","stats","tools","tufte","utils","visNetwork","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.3.2","0.6.1","1.0.8","2.3.1","3.6.2","0.2-19","1.9.1","4.3.2","4.3.2","1.0.11","0.6.34","0.3.2","0.23","1.1.1","0.5.2","1.6.3","1.7.0","0.2.14","4.3.2","4.3.2","0.5.7","1.6.4","1.6.14","0.1.4","1.8.8","1.45","1.3.2","0.11.5.9000","1.0.4","2.0.3","1.12","4.3.2","0.12","1.2.1","1.4","2.5.1","1.1-3","1.0.12","2.4.2.1","1.0.1","1.1.3","2.25","2.0.4","0.15.0","0.4.8","1.8.0","4.3.2","4.3.2","0.13","4.3.2","2.1.2","3.0.0","0.42","1.8-4","2.3.8"]}]}]}
 </script>
 <!--/html_preserve-->
 </div>
@@ -950,7 +983,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 <div id="doc-metadata">
 <h1 class="title toc-ignore" style="display:none;">Getting started with R!</h1>
 <h4 class="author"><em>Simon Thornley</em></h4>
-<h4 class="date"><em>8 March, 2024</em></h4>
+<h4 class="date"><em>20 February, 2024</em></h4>
 </div>
 <!-- end doc-metadata -->
 

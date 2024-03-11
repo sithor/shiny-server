@@ -307,8 +307,8 @@ library(epiDisplay)</code></pre>
 <h2>Different types of objects</h2>
 <p>In R, just as in the real world, we want to store different types of information and assign it a name.</p>
 <p>For example, if we want to describe myself, I have different attributes.</p>
-<div class="grViz html-widget html-fill-item" id="htmlwidget-a50492082f3ff077e130" style="width:624px;height:384px;"></div>
-<script type="application/json" data-for="htmlwidget-a50492082f3ff077e130">{"x":{"diagram":"digraph flowchart {\n      graph [layout = dot, rankdir = LR]\n      # define node aesthetics\n      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        \n      tab1 [label = \"Object (e.g. person)\"]\n      tab2 [label = \"Number (e.g. age)\"]\n      tab3 [label = \"Character (e.g. name)\"]\n      tab4 [label = \"Factor (e.g. Ethnicity)\"]\n      tab5 [label = \"Logical or Boolean (e.g. diabetes status)\"]\n      \n# set up node layout\n      # Childcare centres\n      tab2 -> tab1;\n      tab3 -> tab1;\n      tab4 -> tab1;\n      tab5 -> tab1;\n      }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div class="grViz html-widget html-fill-item" id="htmlwidget-13592141a64a8e16129d" style="width:624px;height:384px;"></div>
+<script type="application/json" data-for="htmlwidget-13592141a64a8e16129d">{"x":{"diagram":"digraph flowchart {\n      graph [layout = dot, rankdir = LR]\n      # define node aesthetics\n      node [fontname = Arial, shape = oval, color = Lavender, style = filled]        \n      tab1 [label = \"Object (e.g. person)\"]\n      tab2 [label = \"Number (e.g. age)\"]\n      tab3 [label = \"Character (e.g. name)\"]\n      tab4 [label = \"Factor (e.g. Ethnicity)\"]\n      tab5 [label = \"Logical or Boolean (e.g. diabetes status)\"]\n      \n# set up node layout\n      # Childcare centres\n      tab2 -> tab1;\n      tab3 -> tab1;\n      tab4 -> tab1;\n      tab5 -> tab1;\n      }","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <div id="section-numbers" class="section level4">
 <h4>Numbers</h4>
 <p>For example, my age. At the time of writing it is <code>47</code> years. This is a number. Numbers have certain properties, for example we can do calculations on a number. For example, if I multiply my age by 365.25, I get the number of days I’ve been alive. It sounds silly, but numbers don’t include letters or any other special characters, such as exclamation marks. Numbers in <code>R</code> don’t have quotation marks (<code>"</code> or <code>'</code>).</p>
@@ -573,22 +573,22 @@ session$onSessionEnded(function() {
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "basics", question = structure("Which of the following windows or panes do we write code into when we use posit?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_b54b7c7", 
+"character")), answers = list(structure(list(id = "lnr_ans_f1938d1", 
     option = "`Source` (top left)", value = "`Source` (top left)", 
     label = structure("<code>Source<\u002fcode> (top left)", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, this is the text file that will do its work on various objects, such as a spreadsheet of epidemiological data.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_73c5415", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7076211", 
     option = "`Console` (bottom left)", value = "`Console` (bottom left)", 
     label = structure("<code>Console<\u002fcode> (bottom left)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, this is where you’ll see the output from your <code>Source<\u002fcode> panel.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7f98689", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_cec338a", 
     option = "`Environment` (upper right)", value = "`Environment` (upper right)", 
     label = structure("<code>Environment<\u002fcode> (upper right)", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, this is the various objects that are in your workspace.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_617fc51", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_5ed308", 
     option = "`Files, plots, Packages, Help` pane (bottom right)", 
     value = "`Files, plots, Packages, Help` pane (bottom right)", 
     label = structure("<code>Files, plots, Packages, Help<\u002fcode> pane (bottom right)", html = TRUE, class = c("html", 
@@ -601,19 +601,19 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "basics-answer", question = "basics"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 678307250.684139, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1119427951.47873, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "libraries", question = structure("If we want to use the <code>import<\u002fcode> function in the <code>rio<\u002fcode> package, and have installed with <code>install.packages(&quot;rio&quot;)<\u002fcode>, but we haven’t called <code>library(rio)<\u002fcode>, how can we make sure <code>R<\u002fcode> can find the function?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_58f3c6b", 
+"character")), answers = list(structure(list(id = "lnr_ans_a42ee92", 
     option = "use `rio::import()`", value = "use `rio::import()`", 
     label = structure("use <code>rio::import()<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, this tells <code>R<\u002fcode> to look in the <code>rio<\u002fcode> package for the <code>import()<\u002fcode> function.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_cbdfa8a", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_da3c6f8", 
     option = "use `import()`", value = "use `import()`", label = structure("use <code>import()<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, because the <code>rio<\u002fcode> package is not loaded, <code>R<\u002fcode> doesn’t know where to look for this function. You could use this option if you first ran the code: <code>library(rio)<\u002fcode>", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
@@ -624,7 +624,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "libraries-answer", question = "libraries"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 70486796.467177, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 396496338.815367, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -683,19 +683,19 @@ learnr:::store_exercise_cache(structure(list(label = "load_epiDisplay", global_s
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "windows_paths", 
     question = structure("You have a file with the following file path on Windows: <code>C:\\Users\\simonthornley\\Documents\\bigEpiStudy.xlsx<\u002fcode>. You wish to open it in R using the <code>import()<\u002fcode> command, which has the format <code>import('path/to/file')<\u002fcode>. What would be the most appropriate command to use in <code>R<\u002fcode>?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_2764f2b", 
+    "character")), answers = list(structure(list(id = "lnr_ans_7b97342", 
         option = "`import('C:/Users/simonthornley/Documents/bigEpiStudy.xlsx')`", 
         value = "`import('C:/Users/simonthornley/Documents/bigEpiStudy.xlsx')`", 
         label = structure("<code>import('C:/Users/simonthornley/Documents/bigEpiStudy.xlsx')<\u002fcode>", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Yes, note the need to convert ‘<code>\\<\u002fcode>’ to ‘<code>/<\u002fcode>.’ in the path", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_df78e7a", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_992eb65", 
         option = "`C:/Users/simonthornley/Documents/bigEpiStudy.xlsx`", 
         value = "`C:/Users/simonthornley/Documents/bigEpiStudy.xlsx`", 
         label = structure("<code>C:/Users/simonthornley/Documents/bigEpiStudy.xlsx<\u002fcode>", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, you need to use <code>import()<\u002fcode>", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_90a29de", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_92cd4b3", 
         option = "`import('C:\\Users\\simonthornley\\Documents\\bigEpiStudy.xlsx')`", 
         value = "`import('C:\\Users\\simonthornley\\Documents\\bigEpiStudy.xlsx')`", 
         label = structure("<code>import('C:\\Users\\simonthornley\\Documents\\bigEpiStudy.xlsx')<\u002fcode>", html = TRUE, class = c("html", 
@@ -709,30 +709,30 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "windows_paths-answer", question = "windows_paths"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 209635432.402381, options = list()), class = c("learnr_radio", 
+    seed = 246075621.885412, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "rel_path", question = structure("Which of the following paths is an acceptable relative path in R?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_d59760d", 
+"character")), answers = list(structure(list(id = "lnr_ans_fdea9f1", 
     option = "`./project/SIDS/data.xlsx`", value = "`./project/SIDS/data.xlsx`", 
     label = structure("<code>./project/SIDS/data.xlsx<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, this is a legitimate relative path in R. Note the use of forward slashes (/) rather than backslashes (<code>\\<\u002fcode>)", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_484064b", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_915fe4c", 
     option = "`C:/Users/SimonT/data_project/SIDS/data.xlsx`", 
     value = "`C:/Users/SimonT/data_project/SIDS/data.xlsx`", 
     label = structure("<code>C:/Users/SimonT/data_project/SIDS/data.xlsx<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, this is a legitimate path, but is absolute rather than relative", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_83a236a", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_5ce5736", 
     option = "`C:\\Users\\SimonT\\data_project\\SIDS\\data.xlsx`", 
     value = "`C:\\Users\\SimonT\\data_project\\SIDS\\data.xlsx`", 
     label = structure("<code>C:\\Users\\SimonT\\data_project\\SIDS\\data.xlsx<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, this is an illegitimate absolute path. The single backslashes () won’t work in R", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_cf24cf6", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4a9a642", 
     option = "`.\\project\\SIDS\\data.xlsx`", value = "`.\\project\\SIDS\\data.xlsx`", 
     label = structure("<code>.\\project\\SIDS\\data.xlsx<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("This is a relative path, but uses backslashes (<code>\\<\u002fcode>) rather than forward (/).", html = TRUE, class = c("html", 
@@ -744,7 +744,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "rel_path-answer", question = "rel_path"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 1581882446.76338, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 300866051.859898, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -801,22 +801,22 @@ learnr:::store_exercise_cache(structure(list(label = "check_data_type", global_s
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "data_type_case", 
     question = structure("Which of the following data types is <code>Case_status<\u002fcode>?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_7aa5ebc", 
+    "character")), answers = list(structure(list(id = "lnr_ans_ad13bb9", 
         option = "`chr` or character", value = "`chr` or character", 
         label = structure("<code>chr<\u002fcode> or character", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Yes, it is character. It could be changed to a <code>factor<\u002fcode> or even logical, since it has two categories.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_913f188", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_b116b63", 
         option = "`logi` or logical", value = "`logi` or logical", 
         label = structure("<code>logi<\u002fcode> or logical", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, this is true for <code>how many missing?<\u002fcode>.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_de4e56b", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_ce3bac2", 
         option = "`num` or numeric", value = "`num` or numeric", 
         label = structure("<code>num<\u002fcode> or numeric", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, this is true for <code>Birth_wt<\u002fcode> for example.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_f245a4", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_6565e46", 
         option = "`factor`", value = "`factor`", label = structure("<code>factor<\u002fcode>", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, there are no factor variables in the <code>data.frame<\u002fcode>.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
@@ -828,31 +828,31 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "data_type_case-answer", question = "data_type_case"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 636585035.703567, options = list()), class = c("learnr_radio", 
+    seed = 1780266757.671, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "checks", question = structure("What are the three most important issues to consider when you import data into <code>R<\u002fcode>?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_5f302b1", 
+"character")), answers = list(structure(list(id = "lnr_ans_3d542ef", 
     option = "Statistical significance, exposure and confounding variables are present.", 
     value = "Statistical significance, exposure and confounding variables are present.", 
     label = structure("Statistical significance, exposure and confounding variables are present.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("These are useful to know, but not crucial at the first stage!", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a03d589", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_34cc6be", 
     option = "Format of data, number of observations, type of study", 
     value = "Format of data, number of observations, type of study", 
     label = structure("Format of data, number of observations, type of study", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("These are important, but not crucial for avoiding errors!", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_58a08b9", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d513fb2", 
     option = "Length of dataset, number of variables, missing values", 
     value = "Length of dataset, number of variables, missing values", 
     label = structure("Length of dataset, number of variables, missing values", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("One is correct… the first two are useful to know, but not crucial", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ec89c23", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4a37d12", 
     option = "Duplicates, missing values and range checks", value = "Duplicates, missing values and range checks", 
     label = structure("Duplicates, missing values and range checks", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Well done, these are important to consider", html = TRUE, class = c("html", 
@@ -864,7 +864,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "checks-answer", question = "checks"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 681036295.182868, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 996725411.035864, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -1181,7 +1181,7 @@ learnr:::store_exercise_cache(structure(list(label = "miss", global_setup = stru
 <!--/html_preserve-->
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83]}},"value":[{"type":"character","attributes":{},"value":["backports","base","base64enc","bslib","cachem","cellranger","checkmate","cli","colorspace","commonmark","compiler","datasets","DiagrammeR","digest","dplyr","ellipsis","evaluate","fansi","farver","fastmap","fontawesome","fs","generics","ggplot2","glue","gradethis","graphics","grDevices","grid","gtable","highr","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","labeling","later","learnr","lifecycle","magrittr","markdown","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R.methodsS3","R.oo","R.utils","r2symbols","R6","RColorBrewer","Rcpp","readxl","repr","rio","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","skimr","stats","tibble","tidyr","tidyselect","tools","tufte","utf8","utils","vctrs","visdat","visNetwork","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.3.2","0.1-3","0.6.1","1.0.8","1.1.0","2.3.1","3.6.2","2.1-0","1.9.1","4.3.2","4.3.2","1.0.11","0.6.34","1.1.4","0.3.2","0.23","1.0.6","2.1.1","1.1.1","0.5.2","1.6.3","0.1.3","3.4.4","1.7.0","0.2.14","4.3.2","4.3.2","4.3.2","0.3.4","0.10","0.5.7","1.6.4","1.6.14","0.1.4","1.8.8","1.45","0.4.3","1.3.2","0.11.5.9000","1.0.4","2.0.3","1.12","4.3.2","0.12","0.5.0","1.9.0","2.0.3","1.2.1","1.0.2","1.8.2","1.26.0","2.12.3","1.4","2.5.1","1.1-3","1.0.12","1.4.3","1.1.6","1.0.1","1.1.3","2.25","2.0.4","0.15.0","0.4.8","1.3.0","1.8.0","2.1.5","4.3.2","3.2.1","1.3.1","1.2.0","4.3.2","0.13","1.2.4","4.3.2","0.6.5","0.6.0","2.1.2","3.0.0","0.42","1.8-4","2.3.8"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85]}},"value":[{"type":"character","attributes":{},"value":["backports","base","base64enc","bslib","cachem","cellranger","checkmate","cli","colorspace","commonmark","compiler","datasets","DiagrammeR","digest","dplyr","ellipsis","evaluate","fansi","farver","fastmap","fontawesome","fs","generics","ggplot2","glue","gradethis","graphics","grDevices","grid","gtable","highr","htmltools","htmlwidgets","httpuv","jquerylib","jsonlite","knitr","labeling","later","learnr","lifecycle","magrittr","markdown","methods","mime","munsell","pillar","pkgconfig","promises","purrr","R.methodsS3","R.oo","R.utils","r2symbols","R6","RColorBrewer","Rcpp","readxl","repr","rio","rlang","rmarkdown","rprojroot","rstudioapi","sass","scales","shiny","skimr","stats","stringi","stringr","tibble","tidyr","tidyselect","tools","tufte","utf8","utils","vctrs","visdat","visNetwork","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["1.4.1","4.3.3","0.1-3","0.6.1","1.0.8","1.1.0","2.3.1","3.6.2","2.1-0","1.9.1","4.3.3","4.3.3","1.0.11","0.6.34","1.1.4","0.3.2","0.23","1.0.6","2.1.1","1.1.1","0.5.2","1.6.3","0.1.3","3.5.0","1.7.0","0.2.14","4.3.3","4.3.3","4.3.3","0.3.4","0.10","0.5.7","1.6.4","1.6.14","0.1.4","1.8.8","1.45","0.4.3","1.3.2","0.11.5.9000","1.0.4","2.0.3","1.12","4.3.3","0.12","0.5.0","1.9.0","2.0.3","1.2.1","1.0.2","1.8.2","1.26.0","2.12.3","1.4","2.5.1","1.1-3","1.0.12","1.4.3","1.1.6","1.0.1","1.1.3","2.25","2.0.4","0.15.0","0.4.8","1.3.0","1.8.0","2.1.5","4.3.3","1.8.3","1.5.1","3.2.1","1.3.1","1.2.0","4.3.3","0.13","1.2.4","4.3.3","0.6.5","0.6.0","2.1.2","3.0.0","0.42","1.8-4","2.3.8"]}]}]}
 </script>
 <!--/html_preserve-->
 </div>
@@ -1198,7 +1198,7 @@ learnr:::store_exercise_cache(structure(list(label = "miss", global_setup = stru
 <div id="doc-metadata">
 <h1 class="title toc-ignore" style="display:none;">Getting started with Posit!</h1>
 <h4 class="author"><em>Simon Thornley</em></h4>
-<h4 class="date"><em>20 February, 2024</em></h4>
+<h4 class="date"><em>10 March, 2024</em></h4>
 </div>
 <!-- end doc-metadata -->
 
