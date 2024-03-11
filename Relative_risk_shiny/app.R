@@ -86,7 +86,11 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
     ),
     mainPanel(
       plotOutput("odds_ratio_plot"),
-      plotOutput("risk_ratio_plot")
+      plotOutput("risk_ratio_plot"),
+      br(), br(),
+      textOutput("rr_text"),
+      br(), br(),
+      textOutput("or_text"),
     )
   )
   ),
@@ -114,7 +118,19 @@ server <- function(input, output) {
     dfr <- dfr[-1,]
     
     PAR <-(100*(dfr$p0*(dfr$riskratio - 1))/(1 + dfr$p0*(dfr$riskratio - 1))) |> one_dp()
+    PAR <- paste0(PAR, "%")
     
+    RR_text <- paste0("\n\nRisk ratio: ", dfr$riskratio |> two_dp(),
+           "; 95% CI: ", dfr$lower |> two_dp(), " to ", 
+           dfr$upper |> two_dp(), "\n P",
+           ifelse(df$p.value < 0.001, " < 0.001",
+                  paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
+    
+    OR_text <- paste0("\n\nOdds ratio: ", df$oddsratio |> two_dp(),
+                      "; 95% CI: ", df$lower |> two_dp(), " to ", 
+                      df$upper |> two_dp(), "\n P",
+                      ifelse(df$p.value < 0.001, " < 0.001",
+                             paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
     
     # Plot the odds ratio using plot_odds_ratio
     p <- ggplot(df, aes(x = oddsratio, y = 1))
@@ -175,6 +191,14 @@ server <- function(input, output) {
     })
     output$risk_ratio_plot <- renderPlot({
       q
+    })
+    
+    output$or_text <- renderText({
+      OR_text
+    })
+    
+    output$rr_text <- renderText({
+      RR_text
     })
   })
 }
