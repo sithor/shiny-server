@@ -1,8 +1,20 @@
 tab <- matrix(c(50, 25,
                 100,
                 200), ncol = 2)
+#tab <- matrix(c( input$no_outcome_unexposed,input$no_outcome_exposed,
+       #          input$outcome_unexposed, input$outcome_exposed),
+        
+#      ncol = 2)
 tab
-rr <- epitools::epitab(tab, method = "riskratio")
+dimnames(tab) <- list(c("No","Yes"), c("No","Yes"))
+names(dimnames(tab)) <- c("Exposure", "Disease")
+tab
+df <- expand.table(tab)
+df |> str()
+
+
+
+rr <- epitools::epitabrr <- epitools::epitab(tab, method = "riskratio")
 rr$tab
 rr$tab[2,"riskratio"]
 rr$tab[2, "p0"]

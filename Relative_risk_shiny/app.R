@@ -10,6 +10,9 @@ library(epitools)
 library(ggplot2)
 library(shinythemes)
 library(eulerr)
+library(mekko)
+source("functions.R") #inzight plot
+
 
 one_dp <- function(x){
   formatC(x, digits = 1, format = "f")
@@ -97,7 +100,11 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
 tabPanel("Euler plot",
   mainPanel(
     plotOutput("euler_plot")
-  )
+  )),
+tabPanel("Bar plot",
+           mainPanel(
+             plotOutput("inzight_plot")
+           )
 )))
 
 # Define server logic
@@ -200,6 +207,19 @@ server <- function(input, output) {
     output$rr_text <- renderText({
       RR_text
     })
+    
+    
+    dimnames(tab) <- list(c("No","Yes"), c("No","Yes"))
+    names(dimnames(tab)) <- c("Exposure", "Disease")
+    dfi <-  expand.table(tab)
+   i <- inzight_plot(exposure = "Exposure", 
+                             outcome = "Disease",
+                             event = "Yes", data = dfi, x_axis_label = "Exposed?",
+                             y_axis_label = "Proportion with outcome")
+    output$inzight_plot <- renderPlot({
+    i
+    })
+    
   })
 }
 
