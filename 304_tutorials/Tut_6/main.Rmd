@@ -393,7 +393,8 @@ df$arf_rate |> histogram()
 ##### **`r Qnum()`**
 ```{r histogram_3, echo = FALSE}
 question("To decide what type of regression to use for our models, we need to check for overdispersion.  
-Look at your first histogram above – for `arf_count`. In the previous section, look at the mean of `arf_count` displayed from using the `skim` function and compare it with the variance you calculated. Which of the following, if any, is consistent with overdispersion?",
+Look at your first histogram above – for `arf_count`. In the previous section, you estimated the mean of  `arf_count` displayed from using the `skim` function (`0.55`) and compare it with the variance you calculated (`0.0033`).\n\n
+Which of the following, if any, is consistent with underdispersion?",
   answer("Variance < mean", message = "Yes. The variance (0.0033) is substantially smaller than the mean (0.55).", correct = TRUE),
   answer("Long tail of the distribution only", message = "No. A long tail is a feature of a power distribution. Please try again"),
   allow_retry = TRUE
@@ -403,10 +404,10 @@ Look at your first histogram above – for `arf_count`. In the previous section,
   
 ##### **`r Qnum()`**
 ```{r histogram_4, echo = FALSE}
-question("Your results should point to evidence of under dispersion. Given this observation, what type of regression would improve model fit?",
+question("Your results should point to evidence of underdispersion. Given this observation, what type of regression would improve model fit?",
   answer("Linear", message = "The outcome, ARF count, comprises whole numbers, even if there is overdispersion. So linear regression is unsuitable. Please try again"),
   answer("Poisson", message = "No, as there is overdispersion, we need to account for this by modelling a variant of Poisson regression. Please try again"),
-  answer("Quasi-Poisson regression or negative-binomial", message = "Yes, these forms of regression are used for accounting for overor under dispersion when modelling outcomes comprising counts", correct = TRUE),
+  answer("Quasi-Poisson regression or negative-binomial", message = "Yes, these forms of regression are used for accounting for over or under dispersion when modelling outcomes comprising counts", correct = TRUE),
   answer("Logistic regression", message = "This is used when the outcome is binary (2 values only), but our outcome (ARF count) comprises positive integers with more than 2 values. Please try again"),
   allow_retry = TRUE
 )
@@ -466,7 +467,10 @@ epiDisplay::tabpct(df$nzDepQuint, df$nzdep_decile)
 ```
 
 ## **Bivariate associations: scatterplots**
-Use the `car::scatterplot()` function for this.
+Before undertaking any regression analysis, it is useful to visualise the 
+relationships especially between key exposure and outcome variables.
+
+Use the `car::scatterplot()` function.
   
 ####Exposure and outcome
 ```{r scatterplot_1, exercise = TRUE}
@@ -476,7 +480,7 @@ How would you describe the association between the exposure and outcome?
 
 ##### **`r Qnum()`**  
 ```{r scatter_1, echo = FALSE}
-question("How would you interpret the scatter plot between `permethrin_rate` dispensing and `arf_rate`?",
+question("How would you interpret the scatter plot between `Permethrin_rate` dispensing and `arf_rate`?",
   answer("No evidence of association", message = "No, this would be expected if there were a horizontal regression line"),
   answer("Negative association", message = "No, we would expect to see a line in the top right hand corner going to the bottom left."),
   answer("A positive association", correct = TRUE, message = "Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever"),
@@ -486,7 +490,6 @@ question("How would you interpret the scatter plot between `permethrin_rate` dis
 
 ##### **`r Qnum()`**  
 Complete the following lines of code to make scatter plots between covariates and the outcome `arf_rate`.  
-Outcome vs. potential covariates:
 ```{r scatterplot_2, exercise = TRUE}
 arf_rate ~ nzdep_decile
 arf_rate ~ Pacific_proportion 
@@ -505,7 +508,7 @@ car::scatterplot(arf_rate ~ Maori_proportion, data = df)
 
 
 ```{r scatterplot_2-check}
-grade_this_code("Good, you can now visualise the distribution of two continuous variables!")
+grade_this_code("Good! You can now visualise the distribution of two continuous variables!")
 ```
 
 Are the potential confounders associated with the outcome?
@@ -521,23 +524,9 @@ question("How would you interpret the scatter plot between the potential confoun
 )
 ```
 
-
-
-Re-plot these scatter plots using the `ylab` function to label the y-axis:
-```{r scatterplot_3, exercise = TRUE}
-car::scatterplot(arf_rate ~ Pacific_proportion, data = df,
-                  ylab = "Permethrin rate per 100,000 per year")
-
-car::scatterplot(Permethrin_rate ~ Maori_proportion, data = df,
-                  ylab = "Permethrin rate per 100,000 per year")
-
-car::scatterplot(Permethrin_rate ~ nzdep_decile, data = df,
-                  ylab = "Permethrin rate per 100,000 per year")
-```
-  
 **Quick method to make several scatterplots**  
 Use the `PerformanceAnalytics::chart.Correlation()` function to get all correlations in 1 chart. A short-cut!
-Here, we select 5 variables from `df` and put them into a dataframe called `my_data`. The we apply our `PerformanceAnalytics::chart.Correlation` function to `my_data` to get histograms, scatter plots and Pearson correlation coefficients.
+Here, we select five variables from `df` and put them into a `data.frame` called `my_data`. The we apply our `PerformanceAnalytics::chart.Correlation()` function to `my_data` to get histograms, scatter plots and Pearson correlation coefficients.
 ```{r scatterplot_4, exercise = TRUE}
 ## Select variables of interest into new data.frame
 my_data <- df[, c("Pacific_proportion", "Maori_proportion", "Permethrin_rate", "nzdep_decile", "arf_rate")]
@@ -568,9 +557,10 @@ df$log_population <- log(df$population)
 
 ## Build model
 fit <- glm(arf_count ~ Permethrin_rate +
-             nzDepQuint +
-             Pacific_proportion +
-             Maori_proportion, offset = log_population,
+           nzDepQuint +
+           Pacific_proportion +
+           Maori_proportion, 
+           offset = log_population,
            family = poisson(link = "log"),
            data = df)
 
@@ -596,7 +586,7 @@ question("Commonly, offsets are based on the time spent observing each outcome (
 ##### **`r Qnum()`**
 ```{r regression_3, echo = FALSE}
 question("For `Permethrin_rate`, you should get an `Estimate` value of 3.527e-04. What does this tell us?",
-  answer("There is, on average, 3.527e-04 = 0.0003527 more acute rheumatic fever for every 1-unit increase in permethrin rate", message = "No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to give a meaningful interpretation"),
+  answer("There is, on average, 3.527e-04 = 0.0003527 more acute rheumatic fever for every one unit increase in permethrin rate", message = "No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to give a meaningful interpretation"),
   answer("The incidence rate of acute rheumatic fever is, on average, 3.527e-04 = 0.0003527 times higher for every 1-unit increase in permethrin rate", message = "No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to interpret the figure."),
   answer("There is, on average, exp(3.527e-04) more acute rheumatic fever for every 1-unit increase in permethrin rate", message = "No. Exponentiating this converts it into an incidence rate ratio. However, *exp(3.527e-04) more* does not imply a ratio. What word do we need to add to imply a ratio?"),
   answer("There is, on average, exp(3.527e-04) = 1.00035 times more acute rheumatic fever for every 1-unit increase in permethrin dispensing rate", message = "Yes, exponentiating 3.527e-04 converts it into an incidence rate ratio. The word *times* suggests a ratio", correct = TRUE),
@@ -604,7 +594,9 @@ question("For `Permethrin_rate`, you should get an `Estimate` value of 3.527e-04
 )
 ```
 
-While the exponentiated coefficient don't seem large (1.00035 is a 0.035% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(3.527e-04 * 3000)` which equals 2.88. This means that comparing the lowest to highest suburbs results in a 100 \* (2.88 - 1) = 188% change in acute rheumatic fever incidence. That weak association is now looking *very strong*. 
+While the exponentiated coefficient don't seem large (1.00035 is a 0.035% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. 
+
+From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(3.527e-04 * 3000)` which equals 2.88. This means that comparing the lowest to highest suburbs results in a 100 \* (2.88 - 1) = 188% change in acute rheumatic fever incidence. That weak association is now looking *very strong*. 
   
 Exponentiate our model coefficients with the `jtools::sum` function:
 ```{r regression_4, exercise = TRUE}
@@ -623,7 +615,7 @@ question("For `Pacific_proportion`, you get an `exp(Est.)` value of 11.56. What 
 ```
   
 ##### **`r Qnum()`**
-We saw before that, for the outcome, there’s evidence of underdispersion. To account for this, we will construct a *quasiPoisson* model (please use `fit_qp` as the new model object. Do this by changing `poisson` to `quasipoisson` in the code below and running it.
+We saw before that, for the outcome, there's evidence of under-dispersion. To account for this, we will specify a *quasiPoisson* model (please use `fit_qp` as the new model object. Do this by changing `poisson` to `quasipoisson` in the code below and running it.
 ```{r regression_6, exercise = TRUE}
 fit1 <- glm(arf_count ~ I(Permethrin_rate/1000) +
              nzDepQuint +
@@ -667,7 +659,7 @@ jtools::summ(fit_qp, exp = TRUE)
 :::
 
 ```{r regression_7-check}
-grade_this_code("Great! Above, we created a model named `fit_qp`. As we want to exponentiate, the logical value for `exp` will be `TRUE`")
+grade_this_code("Great! Above, we created a model named `fit_qp`. As we want to exponentiate, the logical value for the `exp` argument will be `TRUE`")
 ```
   
 Now, use the `jtools::plot_summs()` function to plot the rate ratios:
@@ -707,16 +699,16 @@ Now run our revised code below:
 df$log_population <- log(df$population)
 
 fit3 <- glm(arf_count ~ I(Permethrin_rate/1000) +
-             nzDepQuint +
+            nzDepQuint +
              #Pacific_proportion +
-             Maori_proportion, offset=(log(population)),
+            Maori_proportion, offset=(log(population)),
            family = quasipoisson(link = "log"),
            data = df)
 
 summary(fit3)
 ```
 
-Was is the slope for `Permethrin_rate/1000`?
+What is the slope for the `Permethrin_rate/1000` term?
 Is it statistically significant?  
   
 Run the code for the next model, which includes `Permethrin` as a predictor instead of `Permethrin_rate/1000.`
@@ -724,26 +716,26 @@ Run the code for the next model, which includes `Permethrin` as a predictor inst
 df$log_population <- log(df$population)
 
 fit4 <- glm(arf_count ~  I(Permethrin_rate/1000) +
-             nzDepQuint +
-             #Pacific_proportion +
-             Maori_proportion, offset=log_population,
-           family = quasipoisson(link = "log"),
-           data = df)
+              nzDepQuint +
+              #Pacific_proportion +
+              Maori_proportion, offset=log_population,
+              family = quasipoisson(link = "log"),
+              data = df)
 
 summary(fit4)
 ```
 
 Was is the incidence rate ratio for `I(Permethrin_rate/1000)`?
 
-This next model has `Pacific_proportion` included again. So we can test the effect of multi-collinearity. Run the code below.
+This next model has `Pacific_proportion` included again. So we can test for the effect of multi-collinearity. Run the code below.
 
 ```{r regression_11, exercise = TRUE}
 fit5 <- glm(arf_count ~ I(Permethrin_rate/1000) +
-             nzDepQuint +
-             Pacific_proportion +
-             Maori_proportion, offset(log(population)),
-           family = quasipoisson(link = "log"),
-           data = df)
+              nzDepQuint +
+              Pacific_proportion +
+              Maori_proportion, offset(log(population)),
+              family = quasipoisson(link = "log"),
+              data = df)
 
 summary(fit5)
 ```
@@ -810,7 +802,7 @@ regplot::regplot(fit, observation = df[df$Suburb == "Remuera South",])
 ![Regplot2](./images/remuera_regplot.png "Regression illustrated")
 
 ## **Model fit**
-How well a model fits the data can be assessed with a 'marginal model plot', which shows the relationship between model predicted (modelled) and observed data (observations). In a good fitting model, we expect to see the two lines almost superimposed on each other. Regions of poor fit may be identified by seeing separation between the two lines.
+How well a model fits the data can be assessed with a **'marginal model plot'**, which shows the relationship between model predicted (model) and observed data (data). In a good fitting model, we expect to see the two lines closely superimposed on each other. Poor fit is identified by seeing separation between the two lines.
 
 Run this code to produce a marginal model plot for our `fit` model object:
 ```{r model_fit_1, exercise = TRUE}
@@ -833,7 +825,7 @@ question("Which of the following terms for the model would be a POOR fit for the
 ```
 
 ## Publication-quality regression tables
-In published articles, it’s common to present univariable (unadjusted) and multivariable (adjusted) regression coefficients in a table. To create these, run the following code.
+In published articles, it's common to present univariable (unadjusted) and multivariable (adjusted) regression coefficients in a table. To create these, run the following code.
 
 ```{r publication_1, exercise = TRUE}
 df$Permethrin_rate_per_1000 <- df$Permethrin_rate/1000  # Like converting grams into kilograms
