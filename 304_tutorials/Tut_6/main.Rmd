@@ -33,7 +33,8 @@ library(epiDisplay)
 library(finalfit)
 library(vembedr)
 library(png)
-
+library(car)
+library(pryr)
 gradethis::gradethis_setup()
 #setwd("./data")
 # load("./Cloud/data/ARF_permethrin.rdata")
@@ -53,14 +54,15 @@ df$nzDepQuint <- cut(df$nzdep_decile, breaks = c(-Inf, 2, 4, 6, 8, Inf),
                                 "3 to 4",
                                 "5 to 6",
                                 "7 to 8",
-                                "9 to 10 (most deprived)"))
+                                "9 to 10 (most deprived)")) 
 
 df$log_population <- log(df$population)
 
 fit <- glm(arf_count ~ Permethrin_rate +
              nzDepQuint +
              Pacific_proportion +
-             Maori_proportion, offset=log_population,
+             Maori_proportion, 
+           offset = log_population,
            family = poisson(link = "log"),
            data = df)
 
@@ -618,9 +620,9 @@ jtools::summ(fit, exp = TRUE)
 ##### **`r Qnum()`**
 ```{r regression_5, echo = FALSE}
 question("For `Pacific_proportion`, you get an `exp(Est.)` value of 11.56. What does this tell us?",
-  answer("There is, on average, 11.56 more acute rheumatic fever for every 1-unit increase in Pacific proportion", message = "No. 11.56 is a rate. What word do we need to add to imply a ratio?"),
+  answer("There is, on average, 11.56 more acute rheumatic fever for a 1-unit increase in Pacific proportion", message = "No. 11.56 is a rate ratio. What word do we need to add to imply a ratio?"),
   answer("The incidence of acute rheumatic fever is, on average, 11.56 times higher for every 1-unit increase in Pacific proportion", message = "Well done! *11.56 times* implies a ratio and 11.56 is the incidence rate ratio", correct = TRUE),
-  answer("There is, on average, `exp(11.56)` more acute rheumatic fever for every 1-unit increase in Pacific proportion", message = "No, 11.56 is already an exponentiated value (R code above reads `exp = TRUE`) – you don’t need to exponentiate again!"),
+  answer("There is, on average, `exp(11.56)` more acute rheumatic fever for every 1-unit increase in Pacific proportion", message = "No, 11.56 is already an exponentiated value (R code above reads `exp = TRUE`) – you don't need to exponentiate again!"),
   answer("The incidence rate of acute rheumatic fever is, on average, `exp(11.56)` times higher for every 1-unit increase in Pacific proportion", message = "No, 11.56 is already an exponentiated value (R code above reads `exp = TRUE`) – you don’t need to exponentiate again!"),
   allow_retry = TRUE
 )
@@ -817,7 +819,13 @@ regplot::regplot(fit, observation = df[df$Suburb == "Remuera South",])
 How well a model fits the data can be assessed with a **'marginal model plot'**, which shows the relationship between model predicted (model) and observed data (data). In a good fitting model, we expect to see the two lines closely superimposed on each other. Poor fit is identified by seeing separation between the two lines.
 
 Run this code to produce a marginal model plot for our `fit` model object:
-```{r model_fit_1, exercise = TRUE}
+```{r model_fit_1, exercise=TRUE}
+## The assign commands are only needed in 
+## the shiny app to get the marginalModelPlot function working
+assign("fit", fit, envir = .GlobalEnv)
+assign("df", df, envir = .GlobalEnv)
+
+## model fit plot----
 car::marginalModelPlots(fit)
 ```
 
