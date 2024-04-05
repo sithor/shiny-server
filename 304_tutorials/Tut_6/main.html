@@ -176,11 +176,11 @@ which is overall rare disease, but it occurs much more commonly in Māori
 and Pacific children than children of any other ethnic group in NZ.</p>
 <p>This disease often presents with fever and inflamed joints and can
 lead to life-limiting sequelae which include thickened and dysfunctional
-heart valves. If these are bad enough, it may lead to the need for
+heart valves. If these aren’t bad enough, it may lead to the need for
 cardiac surgery and in some cases, premature death.</p>
 <center>
 <div class="float">
-<img src="images/arf.jfif" width="300"
+<img src="images/arf.png" width="300"
 alt="Thickened heart valves associated with rheumatic heart disease" />
 <div class="figcaption">Thickened heart valves associated with rheumatic
 heart disease</div>
@@ -233,9 +233,9 @@ outcome is the <strong>count or number of permethrin scripts dispensed
 in a suburb</strong> divided by the <strong>population of that
 suburb</strong>. The count of prescriptions is naturally influenced by
 the population, so this information is incorporated in the model as an
-offset. The offset allows us to model rates rather than counts.
-Technically, it is a covariate or independent variable whose value of
-beta coefficient is forced to be one.</p>
+<strong>offset</strong>. The offset allows us to model rates rather than
+counts. Technically, it is a covariate or independent variable whose
+value of beta coefficient is forced to be one.</p>
 <p>Covariates, or potential confounders in the analysis include:</p>
 <ul>
 <li>The proportion of Māori and Pacific people living in a suburb</li>
@@ -268,12 +268,13 @@ such as:</p>
 which makes linear regression unsuitable. First of all, the distribution
 is positive, asymmetric and right skewed, meaning a log transformation
 of the count is necessary. Also, the variance is usually proportional to
-the count, rather than a constant.</p>
+the count, rather than a constant, as is assumed for linear
+regression.</p>
 </div>
 <div id="section-lecture-revision" class="section level3">
 <h3>Lecture revision</h3>
 <p>Our outcome is acute rheumatic fever counts and we will build models
-for this using regression. For the following 3 questions, please answer
+to predict this outcome. For the following 3 questions, please answer
 <em>True</em> of <em>False</em> in response to each statement.</p>
 <div id="section-question-1" class="section level5">
 <h5><strong>Question 1</strong></h5>
@@ -353,8 +354,9 @@ data-pipe="|&gt;">
 <pre class="text"><code>for_shiny |&gt; names()</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-Rename our dataframe as <code>df</code>. Then rename the variables so
-they’re more understandable:
+<p>Rename our dataframe as <code>df</code>. Then rename the variables so
+they’re more understandable. Although this seems tedious, it really
+makes life easier and reduces confusion.</p>
 <div class="tutorial-exercise" data-label="rename_1" data-completion="1"
 data-diagnostics="1" data-startover="1" data-lines="0"
 data-pipe="|&gt;">
@@ -380,7 +382,8 @@ data-lines="0" data-pipe="|&gt;">
 <pre class="text"><code>stopifnot(df[df$Suburb |&gt; duplicated(),] == 0)</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>If <code>Suburb</code> is duplicated, the R output would read:
+<p>If <code>Suburb</code> is duplicated, the <code>R</code> output would
+read:
 <code>df[df$Suburb |&gt; duplicated(),] == 0 are not all TRUE</code>.<br />
 Are there any duplicates?</p>
 </div>
@@ -533,7 +536,7 @@ categories (last histogram above), we’ll combine consecutive pairs to
 create quintiles (5 groups). The breaks are included in the category.
 So, for example, the first category includes any value from negative
 infinity (<code>-Inf</code>) to 2. Any value greater than two will be
-incorporated in the next category.
+incorporated in the next category and so on.
 <div class="tutorial-exercise" data-label="histogram_8"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
@@ -555,7 +558,7 @@ epiDisplay::tabpct(df$nzDepQuint, df$nzdep_decile)</code></pre>
 class="section level2">
 <h2><strong>Bivariate associations: scatterplots</strong></h2>
 <p>Before undertaking any regression analysis, it is useful to visualise
-the relationships especially between key exposure and outcome
+the relationships between key exposure, confounding and outcome
 variables.</p>
 <p>Use the <code>car::scatterplot()</code> function.</p>
 ####Exposure and outcome
@@ -565,8 +568,6 @@ data-lines="0" data-pipe="|&gt;">
 <pre class="text"><code>car::scatterplot(arf_rate ~ Permethrin_rate, data = df)</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
-<p>How would you describe the association between the exposure and
-outcome?</p>
 <div id="section-question-10" class="section level5">
 <h5><strong>Question 10</strong></h5>
 <div class="panel panel-default tutorial-question-container">
@@ -605,7 +606,6 @@ data-pipe="|&gt;">
 car::scatterplot(arf_rate ~ Pacific_proportion, data = df)
 car::scatterplot(arf_rate ~ Maori_proportion, data = df)</code></pre>
 </div>
-<p>Are the potential confounders associated with the outcome?</p>
 </div>
 <div id="section-question-12" class="section level5">
 <h5><strong>Question 12</strong></h5>
@@ -617,22 +617,30 @@ car::scatterplot(arf_rate ~ Maori_proportion, data = df)</code></pre>
 <script>if (Tutorial.triggerMathJax) Tutorial.triggerMathJax()</script>
 </div>
 </div>
-<strong>Quick method to make several scatterplots</strong><br />
-Use the <code>PerformanceAnalytics::chart.Correlation()</code> function
-to get all correlations in 1 chart. A short-cut! Here, we select five
-variables from <code>df</code> and put them into a
-<code>data.frame</code> called <code>my_data</code>. The we apply our
+<p><strong>Quick method to make several scatterplots</strong><br />
+There is a method of making these scatterplots in one line of code!</p>
+<p>Use the <code>PerformanceAnalytics::chart.Correlation()</code>
+function to get all correlations in one chart. Here, we select five
+continuous variables from <code>df</code> and put them into a
+<code>data.frame</code> called <code>my_data</code>. Then, we apply our
 <code>PerformanceAnalytics::chart.Correlation()</code> function to
 <code>my_data</code> to get histograms, scatter plots and Pearson
-correlation coefficients.
+correlation coefficients.</p>
 <div class="tutorial-exercise" data-label="scatterplot_4"
 data-completion="1" data-diagnostics="1" data-startover="1"
 data-lines="0" data-pipe="|&gt;">
 <pre class="text"><code>## Select variables of interest into new data.frame
-my_data &lt;- df[, c(&quot;Pacific_proportion&quot;, &quot;Maori_proportion&quot;, &quot;Permethrin_rate&quot;, &quot;nzdep_decile&quot;, &quot;arf_rate&quot;)]
+my_data &lt;- df[, c(&quot;Pacific_proportion&quot;, 
+                  &quot;Maori_proportion&quot;, 
+                  &quot;Permethrin_rate&quot;, 
+                  &quot;nzdep_decile&quot;, 
+                  &quot;arf_rate&quot;)]
 
-## Chart the correlations and regressions and distributions of each variable.
-PerformanceAnalytics::chart.Correlation(my_data, histogram = TRUE, pch = 19)</code></pre>
+## Chart the correlations and regressions 
+## and distributions of each variable.
+PerformanceAnalytics::chart.Correlation(my_data, 
+                                        histogram = TRUE, 
+                                        pch = 19)</code></pre>
 <script type="application/json" data-ui-opts="1">{"engine":"r","has_checker":false,"caption":"<span data-i18n=\"text.enginecap\" data-i18n-opts=\"{&quot;engine&quot;:&quot;R&quot;}\">R Code<\/span>"}</script>
 </div>
 </div>
@@ -656,7 +664,9 @@ adjust for population size, we will include <code>log_population</code>
 as an offset. We will also adjust for NZDep quintile
 (<code>nzDepQuint</code>), <code>Pacific_proportion</code> and
 <code>Maori_proportion</code>.</p>
-<p>Run the following code to make a Poisson regression model of
+<p>Run the following code using the <code>glm()</code>
+(<strong>g</strong>eneralised <strong>l</strong>inear
+<strong>m</strong>odel) function to make a Poisson regression model of
 <code>arf_count</code> with all other risk factors as independent
 variables or covariates.</p>
 <div class="tutorial-exercise" data-label="regression_1"
@@ -715,7 +725,7 @@ the minimum values of permethrin dispensing is 0 and the maximum is
 comparing the lowest to highest suburbs results in a 100 * (2.88 - 1) =
 188% change in acute rheumatic fever incidence. That weak association is
 now looking <em>very strong</em>.</p>
-Exponentiate our model coefficients with the <code>jtools::sum</code>
+Exponentiate our model coefficients with the <code>jtools::summ()</code>
 function:
 <div class="tutorial-exercise" data-label="regression_4"
 data-completion="1" data-diagnostics="1" data-startover="1"
@@ -1168,11 +1178,11 @@ session$onSessionEnded(function() {
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "revision_1", question = structure("The measure of association derived from a count model is an odds ratio.", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_d12238f", 
+"character")), answers = list(structure(list(id = "lnr_ans_f1e24e8", 
     option = "True", value = "True", label = structure("True", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, the odds ratio is the measure of association for logistic regression (next tutorial)", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a916e4d", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_ecd4b0e", 
     option = "False", value = "False", label = structure("False", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, the odds ratio is the measure of association for logistic regression (next tutorial). For count regression, the measure of association is the <em>incidence rate ratio<\u002fem>", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
@@ -1183,18 +1193,18 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "revision_1-answer", question = "revision_1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 919222791.571954, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 994863129.536731, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "revision_2", question = structure("Linear regression is unsuitable to use for count outcomes as it may predict negative counts", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_a394bbb", 
+"character")), answers = list(structure(list(id = "lnr_ans_5b18ac8", 
     option = "True", value = "True", label = structure("True", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, count regression overcomes this problem as the outcome is modelled on a log scale (outcome is log(count)). Exponentiating log(count) predictions gives count predictions that are always positive as exponentiating any non zero number (even negative) gives positive values only", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c7e8a7a", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_abd4023", 
     option = "False", value = "False", label = structure("False", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, linear regression may predict negative counts", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
@@ -1205,7 +1215,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "revision_2-answer", question = "revision_2"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 1863133044.13241, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 2079212785.03179, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -1213,11 +1223,11 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "revision_3", question = structure("Linear regression is unsuitable for modelling count outcomes since the variance is likely to increase with the mean and the errors will not be normally distributed", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_b617447", 
+"character")), answers = list(structure(list(id = "lnr_ans_319dc84", 
     option = "True", value = "True", label = structure("True", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes. With count outcomes, the errors will not be normally distributed but linear regression assumes that they are. This happens when the variance increases with the mean. In contrast, count regression is suitable to use when the variance increases with the mean (e.g., when variance = mean)", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a410464", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_99d1022", 
     option = "False", value = "False", label = structure("False", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No. With count outcomes, the errors will not be normally distributed but linear regression assumes that they are. This happens when the variance increases with the mean. In contrast, count regression is suitable to use when the variance increases with the mean (e.g., when variance = mean)", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
@@ -1228,7 +1238,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "revision_3-answer", question = "revision_3"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 396726935.31526, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 918565814.572259, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -1896,13 +1906,13 @@ learnr:::store_exercise_cache(structure(list(label = "histogram_2", global_setup
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "histogram_3", 
-    question = structure("<p>To decide what type of regression to use for our models, we need to check for overdispersion.<br />\nLook at your first histogram above – for <code>arf_count<\u002fcode>. In the previous section, you estimated the mean of  <code>arf_count<\u002fcode> displayed from using the <code>skim<\u002fcode> function (<code>0.55<\u002fcode>) and compare it with the variance you calculated (<code>0.0033<\u002fcode>).<\u002fp>\n<p>Which of the following, if any, is consistent with underdispersion?<\u002fp>\n", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_d6bd11", 
+    question = structure("<p>To decide what type of regression to use for our models, we need to check for overdispersion.<br />\nLook at your first histogram above – for <code>arf_count<\u002fcode>. In the previous section, you estimated the mean of  <code>arf_count<\u002fcode> displayed from using the <code>skim<\u002fcode> function (<code>0.55<\u002fcode>) and compare it with the variance you calculated (<code>0.0033<\u002fcode>).<\u002fp>\n<p>Which of the following, if any, is consistent with under-dispersion?<\u002fp>\n", html = TRUE, class = c("html", 
+    "character")), answers = list(structure(list(id = "lnr_ans_e774c56", 
         option = "Variance < mean", value = "Variance < mean", 
         label = structure("Variance &lt; mean", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Yes. The variance (0.0033) is substantially smaller than the mean (0.55).", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_689f3e3", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a74d803", 
         option = "Long tail of the distribution only", value = "Long tail of the distribution only", 
         label = structure("Long tail of the distribution only", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No. A long tail is a feature of a power distribution. Please try again", html = TRUE, class = c("html", 
@@ -1915,7 +1925,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "histogram_3-answer", question = "histogram_3"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 1056633860.50797, options = list()), class = c("learnr_radio", 
+    seed = 672764285.68672, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
 
@@ -1923,21 +1933,21 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "histogram_4", 
     question = structure("Your results should point to evidence of underdispersion. Given this observation, what type of regression would improve model fit?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_e46b71", 
+    "character")), answers = list(structure(list(id = "lnr_ans_b5e3ff1", 
         option = "Linear", value = "Linear", label = structure("Linear", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("The outcome, ARF count, comprises whole numbers, even if there is overdispersion. So linear regression is unsuitable. Please try again", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e2a33c", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_f5cbf12", 
         option = "Poisson", value = "Poisson", label = structure("Poisson", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, as there is overdispersion, we need to account for this by modelling a variant of Poisson regression. Please try again", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_ee01c6b", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_2e51cfc", 
         option = "Quasi-Poisson regression or negative-binomial", 
         value = "Quasi-Poisson regression or negative-binomial", 
         label = structure("Quasi-Poisson regression or negative-binomial", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Yes, these forms of regression are used for accounting for over or under dispersion when modelling outcomes comprising counts", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_4749a26", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e2e0490", 
         option = "Logistic regression", value = "Logistic regression", 
         label = structure("Logistic regression", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("This is used when the outcome is binary (2 values only), but our outcome (ARF count) comprises positive integers with more than 2 values. Please try again", html = TRUE, class = c("html", 
@@ -1950,7 +1960,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "histogram_4-answer", question = "histogram_4"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 2009051519.06446, options = list()), class = c("learnr_radio", 
+    seed = 466510186.282764, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
@@ -2092,19 +2102,19 @@ learnr:::store_exercise_cache(structure(list(label = "histogram_6", global_setup
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "histogram_7", 
     question = structure("How would you interpret the histogram for <code>Pacific_proportion<\u002fcode>?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_c8eab87", 
+    "character")), answers = list(structure(list(id = "lnr_ans_a2eb54f", 
         option = "The proportion of Pacific people is evenly distributed in suburbs in Auckland", 
         value = "The proportion of Pacific people is evenly distributed in suburbs in Auckland", 
         label = structure("The proportion of Pacific people is evenly distributed in suburbs in Auckland", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, in fact, you can see that it is very uneven! Please try again", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_15900e6", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_2ba8b4f", 
         option = "Most suburbs in Auckland have a high proportion of Pacific people living in them", 
         value = "Most suburbs in Auckland have a high proportion of Pacific people living in them", 
         label = structure("Most suburbs in Auckland have a high proportion of Pacific people living in them", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, please reconsider the plot and try again. Please try again", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_5819e8e", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_fac347f", 
         option = "A small number of suburbs in Auckland have a very high proportion of Pacific people living in them", 
         value = "A small number of suburbs in Auckland have a very high proportion of Pacific people living in them", 
         label = structure("A small number of suburbs in Auckland have a very high proportion of Pacific people living in them", html = TRUE, class = c("html", 
@@ -2118,7 +2128,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "histogram_7-answer", question = "histogram_7"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 2061021185.54026, options = list()), class = c("learnr_radio", 
+    seed = 321614404.850237, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
 
@@ -2260,20 +2270,20 @@ learnr:::store_exercise_cache(structure(list(label = "scatterplot_1", global_set
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "scatter_1", question = structure("How would you interpret the scatter plot between <code>Permethrin_rate<\u002fcode> dispensing and <code>arf_rate<\u002fcode>?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_dd23ea9", 
+"character")), answers = list(structure(list(id = "lnr_ans_8671a50", 
     option = "No evidence of association", value = "No evidence of association", 
     label = structure("No evidence of association", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = structure("No, this would be expected if there were a horizontal regression line", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = structure("No, this would be expected if the regression line were horizontal.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8a21fe2", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4949325", 
     option = "Negative association", value = "Negative association", 
     label = structure("Negative association", html = TRUE, class = c("html", 
-    "character")), correct = FALSE, message = structure("No, we would expect to see a line in the top right hand corner going to the bottom left.", html = TRUE, class = c("html", 
+    "character")), correct = FALSE, message = structure("No, if that were the case, we would expect to see a line extend from the top right hand corner to the bottom left.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_8181b8a", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_d82f8ad", 
     option = "A positive association", value = "A positive association", 
     label = structure("A positive association", html = TRUE, class = c("html", 
-    "character")), correct = TRUE, message = structure("Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever", html = TRUE, class = c("html", 
+    "character")), correct = TRUE, message = structure("Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever, so the gradient or slope or beta coefficient term is positive", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
 "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
 "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
@@ -2282,7 +2292,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "scatter_1-answer", question = "scatter_1"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 2143656489.00178, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1017971052.02597, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -2361,23 +2371,23 @@ learnr:::store_exercise_cache(structure(list(label = "scatterplot_2", global_set
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "scatter_2_int", 
     question = structure("How would you interpret the scatter plot between the potential confounders and <code>arf_rate<\u002fcode>?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_83247a8", 
+    "character")), answers = list(structure(list(id = "lnr_ans_36905ef", 
         option = "No evidence of association in any variables", 
         value = "No evidence of association in any variables", 
         label = structure("No evidence of association in any variables", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = structure("No, this would be expected if the regression lines were horizontal", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = structure("No, this would be expected if all the regression lines were horizontal", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_9858616", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_d73c009", 
         option = "All Negative associations", value = "All Negative associations", 
         label = structure("All Negative associations", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, we would expect to see lines in the top right hand corner going to the bottom left.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a1b2df6", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_7e1eafc", 
         option = "All positive associations", value = "All positive associations", 
         label = structure("All positive associations", html = TRUE, class = c("html", 
-        "character")), correct = TRUE, message = structure("Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever", html = TRUE, class = c("html", 
+        "character")), correct = TRUE, message = structure("Yes, the slope of the line is in the positive direction (more x associated with greater y).", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_7f71f9a", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_a6ef3b7", 
         option = "Something else", value = "Something else", 
         label = structure("Something else", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("No, please try again!", html = TRUE, class = c("html", 
@@ -2390,7 +2400,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", lab
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "scatter_2_int-answer", question = "scatter_2_int"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 860426554.599333, options = list()), class = c("learnr_checkbox", 
+    seed = 2021778195.55854, options = list()), class = c("learnr_checkbox", 
 "tutorial_question")), session = session)
 </script>
 
@@ -2432,7 +2442,7 @@ learnr:::store_exercise_cache(structure(list(label = "scatterplot_4", global_set
 "  mycounter <<- mycounter + 1", "  paste0(\"Question \", mycounter)", 
 "}", "", "knitr::opts_chunk$set(error = TRUE)"), chunk_opts = list(
     label = "setup", include = FALSE)), setup = NULL, chunks = list(
-    list(label = "scatterplot_4", code = "## Select variables of interest into new data.frame\nmy_data <- df[, c(\"Pacific_proportion\", \"Maori_proportion\", \"Permethrin_rate\", \"nzdep_decile\", \"arf_rate\")]\n\n## Chart the correlations and regressions and distributions of each variable.\nPerformanceAnalytics::chart.Correlation(my_data, histogram = TRUE, pch = 19)", 
+    list(label = "scatterplot_4", code = "## Select variables of interest into new data.frame\nmy_data <- df[, c(\"Pacific_proportion\", \n                  \"Maori_proportion\", \n                  \"Permethrin_rate\", \n                  \"nzdep_decile\", \n                  \"arf_rate\")]\n\n## Chart the correlations and regressions \n## and distributions of each variable.\nPerformanceAnalytics::chart.Correlation(my_data, \n                                        histogram = TRUE, \n                                        pch = 19)", 
         opts = list(label = "\"scatterplot_4\"", exercise = "TRUE"), 
         engine = "r")), code_check = NULL, error_check = NULL, 
     check = NULL, solution = NULL, tests = NULL, options = list(
@@ -2454,10 +2464,13 @@ learnr:::store_exercise_cache(structure(list(label = "scatterplot_4", global_set
         max.print = 1000, exercise.timelimit = 60, exercise.checker = "function (label = NULL, solution_code = NULL, user_code = NULL, \n    check_code = NULL, envir_result = NULL, evaluate_result = NULL, \n    envir_prep = NULL, last_value = NULL, stage = NULL, ..., \n    solution_eval_fn = NULL) \n{\n    (utils::getFromNamespace(\"check_exercise\", \"gradethis\"))(label = label, \n        solution_code = solution_code, user_code = user_code, \n        check_code = check_code, envir_result = envir_result, \n        evaluate_result = evaluate_result, envir_prep = envir_prep, \n        last_value = last_value, stage = stage, ...)\n}", 
         exercise.error.check.code = "gradethis_error_checker()", 
         label = "scatterplot_4", exercise = TRUE, code = c("## Select variables of interest into new data.frame", 
-        "my_data <- df[, c(\"Pacific_proportion\", \"Maori_proportion\", \"Permethrin_rate\", \"nzdep_decile\", \"arf_rate\")]", 
-        "", "## Chart the correlations and regressions and distributions of each variable.", 
-        "PerformanceAnalytics::chart.Correlation(my_data, histogram = TRUE, pch = 19)"
-        ), out.width.px = 624, out.height.px = 384, params.src = "scatterplot_4, exercise = TRUE", 
+        "my_data <- df[, c(\"Pacific_proportion\", ", "                  \"Maori_proportion\", ", 
+        "                  \"Permethrin_rate\", ", "                  \"nzdep_decile\", ", 
+        "                  \"arf_rate\")]", "", "## Chart the correlations and regressions ", 
+        "## and distributions of each variable.", "PerformanceAnalytics::chart.Correlation(my_data, ", 
+        "                                        histogram = TRUE, ", 
+        "                                        pch = 19)"), 
+        out.width.px = 624, out.height.px = 384, params.src = "scatterplot_4, exercise = TRUE", 
         fig.num = 0, exercise.df_print = "paged"), engine = "r", 
     version = "4"), class = c("r", "tutorial_exercise")))
 </script>
@@ -2466,21 +2479,21 @@ learnr:::store_exercise_cache(structure(list(label = "scatterplot_4", global_set
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "scatterplot_5", 
     question = structure("What is the Pearson correlation coefficient (<code>r<\u002fcode>) for the association between Pacific proportion and permethrin rate?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_de90841", 
+    "character")), answers = list(structure(list(id = "lnr_ans_ca13b8e", 
         option = "`r` = 0.55", value = "`r` = 0.55", label = structure("<code>r<\u002fcode> = 0.55", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = structure("No, <code>r<\u002fcode> = 0.55 for the correlation between <code>Pacific_proportion<\u002fcode> and <code>Maori_proportion<\u002fcode>", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = structure("No, this is the correlation between <code>Pacific_proportion<\u002fcode> and <code>Maori_proportion<\u002fcode>", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_eb1d505", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e2ad273", 
         option = "`r` = 0.66", value = "`r` = 0.66", label = structure("<code>r<\u002fcode> = 0.66", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = structure("No, <code>r<\u002fcode> = 0.66 for the correlations of <code>Permethrin_rate<\u002fcode> with <code>Maori_proportion<\u002fcode> and <code>arf_rate<\u002fcode>", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = structure("No, this is the correlation between <code>Permethrin_rate<\u002fcode> and <code>Maori_proportion<\u002fcode> and <code>arf_rate<\u002fcode>", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_1b72f3", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_f248f52", 
         option = "`r` = 0.88", value = "`r` = 0.88", label = structure("<code>r<\u002fcode> = 0.88", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Yes, the row for <code>Pacific_proportion<\u002fcode> intersects with the column for <code>Permethrin_rate<\u002fcode> at the cell that has 0.88 in it. A correlation of 0.88 is extremely high and suggests a very strong association.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_39ff8f2", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_35ae3e8", 
         option = "`r` = 0.79", value = "`r` = 0.79", label = structure("<code>r<\u002fcode> = 0.79", html = TRUE, class = c("html", 
-        "character")), correct = FALSE, message = structure("No, <code>r<\u002fcode> = 0.79 for the correlation between <code>Permethrin_rate<\u002fcode> and <code>nzdep_decile<\u002fcode>", html = TRUE, class = c("html", 
+        "character")), correct = FALSE, message = structure("No, this is the correlation between <code>Permethrin_rate<\u002fcode> and <code>nzdep_decile<\u002fcode>", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
     "tutorial_quiz_answer"))), button_labels = list(submit = structure("<span data-i18n=\"button.questionsubmit\">Submit Answer<\u002fspan>", html = TRUE, class = c("html", 
     "character")), try_again = structure("<span data-i18n=\"button.questiontryagain\">Try Again<\u002fspan>", html = TRUE, class = c("html", 
@@ -2490,7 +2503,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "scatterplot_5-answer", question = "scatterplot_5"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 1039735321.01584, options = list()), class = c("learnr_radio", 
+    seed = 758865310.646626, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
@@ -2568,25 +2581,25 @@ learnr:::store_exercise_cache(structure(list(label = "regression_1", global_setu
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", label = "regression_2", 
     question = structure("Commonly, offsets are based on the time spent observing each outcome (observation period). When would it be appropriate to include <code>log(time in years)<\u002fcode> as an offset? (select all that apply)", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_1e25916", 
+    "character")), answers = list(structure(list(id = "lnr_ans_4b75fec", 
         option = "If the observation period differed by suburb", 
         value = "If the observation period differed by suburb", 
         label = structure("If the observation period differed by suburb", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("First, if the observation period differed by suburb, then  larger numbers of cases would be likely to in suburbs observed for longer periods. Having an offset based on time accounts for this.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_7bbda65", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e1abbab", 
         option = "If we wanted our outcome to be rates based on counts per *year*", 
         value = "If we wanted our outcome to be rates based on counts per *year*", 
         label = structure("If we wanted our outcome to be rates based on counts per <em>year<\u002fem>", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Second, with counts (<code>arf_count<\u002fcode>) as the outcome, adding <code>log(time)<\u002fcode> as the offset makes the model represent a rate in counts per <em>year<\u002fem>.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_8ae4ad2", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_99a0f6a", 
         option = "If we had data on the observation period of each suburb", 
         value = "If we had data on the observation period of each suburb", 
         label = structure("If we had data on the observation period of each suburb", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Third, we need the observation period for each suburb.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_b335883", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e338888", 
         option = "None of the above", value = "None of the above", 
         label = structure("None of the above", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("Please try again", html = TRUE, class = c("html", 
@@ -2599,7 +2612,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", lab
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "regression_2-answer", question = "regression_2"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 754287644.648757, options = list()), class = c("learnr_checkbox", 
+    seed = 1170009998.95517, options = list()), class = c("learnr_checkbox", 
 "tutorial_question")), session = session)
 </script>
 
@@ -2607,25 +2620,25 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_checkbox", lab
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "regression_3", 
     question = structure("For <code>Permethrin_rate<\u002fcode>, you should get an <code>Estimate<\u002fcode> value of 3.527e-04. What does this tell us?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_c04f66d", 
+    "character")), answers = list(structure(list(id = "lnr_ans_e609b8", 
         option = "There is, on average, 3.527e-04 = 0.0003527 more acute rheumatic fever for every one unit increase in permethrin rate", 
         value = "There is, on average, 3.527e-04 = 0.0003527 more acute rheumatic fever for every one unit increase in permethrin rate", 
         label = structure("There is, on average, 3.527e-04 = 0.0003527 more acute rheumatic fever for every one unit increase in permethrin rate", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to give a meaningful interpretation", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_8a9bcb0", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_b75c394", 
         option = "The incidence rate of acute rheumatic fever is, on average, 3.527e-04 = 0.0003527 times higher for every 1-unit increase in permethrin rate", 
         value = "The incidence rate of acute rheumatic fever is, on average, 3.527e-04 = 0.0003527 times higher for every 1-unit increase in permethrin rate", 
         label = structure("The incidence rate of acute rheumatic fever is, on average, 3.527e-04 = 0.0003527 times higher for every 1-unit increase in permethrin rate", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to interpret the figure.", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_c6178a1", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_48e4e5a", 
         option = "There is, on average, exp(3.527e-04) more acute rheumatic fever for every 1-unit increase in permethrin rate", 
         value = "There is, on average, exp(3.527e-04) more acute rheumatic fever for every 1-unit increase in permethrin rate", 
         label = structure("There is, on average, exp(3.527e-04) more acute rheumatic fever for every 1-unit increase in permethrin rate", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No. Exponentiating this converts it into an incidence rate ratio. However, <em>exp(3.527e-04) more<\u002fem> does not imply a ratio. What word do we need to add to imply a ratio?", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_4677616", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_3e3c809", 
         option = "There is, on average, exp(3.527e-04) = 1.00035 times more acute rheumatic fever for every 1-unit increase in permethrin dispensing rate", 
         value = "There is, on average, exp(3.527e-04) = 1.00035 times more acute rheumatic fever for every 1-unit increase in permethrin dispensing rate", 
         label = structure("There is, on average, exp(3.527e-04) = 1.00035 times more acute rheumatic fever for every 1-unit increase in permethrin dispensing rate", html = TRUE, class = c("html", 
@@ -2639,7 +2652,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "regression_3-answer", question = "regression_3"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 1691898587.21215, options = list()), class = c("learnr_radio", 
+    seed = 485345831.273993, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
@@ -2711,25 +2724,25 @@ learnr:::store_exercise_cache(structure(list(label = "regression_4", global_setu
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "regression_5", 
     question = structure("For <code>Pacific_proportion<\u002fcode>, you get an <code>exp(Est.)<\u002fcode> value of 11.56. What does this tell us?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_d890357", 
+    "character")), answers = list(structure(list(id = "lnr_ans_8245b59", 
         option = "There is, on average, 11.56 more acute rheumatic fever for every 1-unit increase in Pacific proportion", 
         value = "There is, on average, 11.56 more acute rheumatic fever for every 1-unit increase in Pacific proportion", 
         label = structure("There is, on average, 11.56 more acute rheumatic fever for every 1-unit increase in Pacific proportion", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No. 11.56 is a rate. What word do we need to add to imply a ratio?", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_2aca8cf", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_139355b", 
         option = "The incidence of acute rheumatic fever is, on average, 11.56 times higher for every 1-unit increase in Pacific proportion", 
         value = "The incidence of acute rheumatic fever is, on average, 11.56 times higher for every 1-unit increase in Pacific proportion", 
         label = structure("The incidence of acute rheumatic fever is, on average, 11.56 times higher for every 1-unit increase in Pacific proportion", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Well done! <em>11.56 times<\u002fem> implies a ratio and 11.56 is the incidence rate ratio", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_e2795b4", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_9e170b9", 
         option = "There is, on average, `exp(11.56)` more acute rheumatic fever for every 1-unit increase in Pacific proportion", 
         value = "There is, on average, `exp(11.56)` more acute rheumatic fever for every 1-unit increase in Pacific proportion", 
         label = structure("There is, on average, <code>exp(11.56)<\u002fcode> more acute rheumatic fever for every 1-unit increase in Pacific proportion", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, 11.56 is already an exponentiated value (R code above reads <code>exp = TRUE<\u002fcode>) – you don’t need to exponentiate again!", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_23f55db", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_af6bcc2", 
         option = "The incidence rate of acute rheumatic fever is, on average, `exp(11.56)` times higher for every 1-unit increase in Pacific proportion", 
         value = "The incidence rate of acute rheumatic fever is, on average, `exp(11.56)` times higher for every 1-unit increase in Pacific proportion", 
         label = structure("The incidence rate of acute rheumatic fever is, on average, <code>exp(11.56)<\u002fcode> times higher for every 1-unit increase in Pacific proportion", html = TRUE, class = c("html", 
@@ -2743,7 +2756,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "regression_5-answer", question = "regression_5"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 231266380.892308, options = list()), class = c("learnr_radio", 
+    seed = 2080081464.03139, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
 
@@ -3296,26 +3309,26 @@ learnr:::store_exercise_cache(structure(list(label = "nomogram_1", global_setup 
 
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "nomogram_3", question = structure("Which term (predictor) in the model contributes <em>most<\u002fem> to the outcome for Otara East?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_dc15d61", 
+"character")), answers = list(structure(list(id = "lnr_ans_73b10fc", 
     option = "`log_population`", value = "`log_population`", 
     label = structure("<code>log_population<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, if you identify the red dot in the graph for <code>log_population<\u002fcode> and read vertically up from it, you’ll touch the 2nd red dot (4th furthest) from 0 in the top line (<code>β(X-m) terms<\u002fcode>). So <code>log_population<\u002fcode> will contribute to the <em>4th most<\u002fem> to the outcome. Please try again", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_be6e535", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a0c739f", 
     option = "`Maori_proportion`", value = "`Maori_proportion`", 
     label = structure("<code>Maori_proportion<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, if you identify the red dot in the graph for <code>Maori_proportion<\u002fcode> and read vertically up from it, you’ll touch the red dot that’s closest from 0 in the top line (<code>β(X-m) terms<\u002fcode>). So <code>Maori_proportion<\u002fcode> will contribute the <em>least<\u002fem> to the outcome. Please try again", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_72466b6", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_43c4878", 
     option = "`Pacific_proportion`", value = "`Pacific_proportion`", 
     label = structure("<code>Pacific_proportion<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, if you identify the red dot that’s furthest from 0 in the top line – β(X-m) terms – then read vertically down from it, you’ll touch the red dot in the graph for <code>Pacific_proportion<\u002fcode>", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_68b3fb7", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_fcd726e", 
     option = "`nzDepQuint`", value = "`nzDepQuint`", label = structure("<code>nzDepQuint<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, if you identify the red dot in the graph for <code>nzDepQuint<\u002fcode> and read vertically up from it, you’ll touch the 4th red dot (2nd furthest) from 0 in the top line (<code>β(X-m) terms<\u002fcode>). So <code>nzDepQuint<\u002fcode> will contribute the <em>2nd most<\u002fem> to the outcome. Please try again", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_edccddb", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_7aadc2b", 
     option = "`Permethrin_rate`", value = "`Permethrin_rate`", 
     label = structure("<code>Permethrin_rate<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, if you identify the red dot in the graph for <code>Permethrin_rate<\u002fcode> and read vertically up from it, you’ll touch the 3<sup>rd<\u002fsup> red dot (3<sup>rd<\u002fsup> furthest) from 0 in the top line (<code>β(X-m) terms<\u002fcode>). So <code>Permethrin_rate<\u002fcode> will contribute the <em>3rd most<\u002fem> to the outcome. Please try again", html = TRUE, class = c("html", 
@@ -3327,31 +3340,31 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "nomogram_3-answer", question = "nomogram_3"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 848893140.604703, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 1722155124.19806, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "nomogram_4", question = structure("Which of the following is much higher for Otara East compared to the suburb averages?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_c05da96", 
+"character")), answers = list(structure(list(id = "lnr_ans_ea44808", 
     option = "`Total Score` and all predictors", value = "`Total Score` and all predictors", 
     label = structure("<code>Total Score<\u002fcode> and all predictors", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, this is not true for all predictors: the central position of the red dot in the plot for <code>log_population<\u002fcode> indicates that the population for Otara East is similar to the median population (for all suburbs). Please try again", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_4b3d552", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_2e2c570", 
     option = "`Total Score` and all predictors except `log_population`", 
     value = "`Total Score` and all predictors except `log_population`", 
     label = structure("<code>Total Score<\u002fcode> and all predictors except <code>log_population<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, for these terms, the red dot in each plot is to the far right of the distribution for all suburbs. The high <code>Total Score<\u002fcode> for Otara East (4.22), which equates to an ARF count of 5.52, is due to high average values for all predictors except <code>log_population<\u002fcode>", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_6b1e629", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_313e7b2", 
     option = "All predictors except `log_population` but not `Total Score`", 
     value = "All predictors except `log_population` but not `Total Score`", 
     label = structure("All predictors except <code>log_population<\u002fcode> but not <code>Total Score<\u002fcode>", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, the red dot in the <code>Total score<\u002fcode> plot is to the far right of the distribution for all suburbs. Please try again", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_85d9208", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_cc70656", 
     option = "`Total Score` only", value = "`Total Score` only", 
     label = structure("<code>Total Score<\u002fcode> only", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, the red dot is, not only to the far right of the plot for <code>Total Score<\u002fcode>, but also for most predictors. Please try again", html = TRUE, class = c("html", 
@@ -3363,7 +3376,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "nomogram_4-answer", question = "nomogram_4"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 212312325.401134, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 576188807.231691, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>
@@ -3437,18 +3450,18 @@ learnr:::store_exercise_cache(structure(list(label = "model_fit_1", global_setup
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "model_fit_2", 
     question = structure("Which of the following terms for the model would be a POOR fit for the data?", html = TRUE, class = c("html", 
-    "character")), answers = list(structure(list(id = "lnr_ans_269509d", 
+    "character")), answers = list(structure(list(id = "lnr_ans_103b34b", 
         option = "`Permethrin_rate`", value = "`Permethrin_rate`", 
         label = structure("<code>Permethrin_rate<\u002fcode>", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, that’s harsh! There’s only poor alignment between the <em>data<\u002fem> (blue) and <em>model<\u002fem> (red) curves for <code>Permethrin_rate<\u002fcode>&gt; 2500 but this is minor as there’s few observations in that extreme region. Please try again", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_27f4f4e", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_7543922", 
         option = "`Permethrin_rate` and `Pacific_proportion`", 
         value = "`Permethrin_rate` and `Pacific_proportion`", 
         label = structure("<code>Permethrin_rate<\u002fcode> and <code>Pacific_proportion<\u002fcode>", html = TRUE, class = c("html", 
         "character")), correct = FALSE, message = structure("No, that’s harsh! For <code>Permethrin_rate<\u002fcode>, there’s only poor alignment between the <em>data<\u002fem> (blue) and <em>model<\u002fem> (red) curves for Permethrin_rate&gt;2500 but this is minor as there’s few observations in that extreme region. For <code>Pacific_proportion<\u002fcode>, the <em>data<\u002fem> (blue) and <em>model<\u002fem> (red) curves are misaligned in some areas of the plot but the degree of deviation is minor. Please try again", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
-    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_559a77", 
+    "tutorial_quiz_answer")), structure(list(id = "lnr_ans_f87b0d3", 
         option = "None of these", value = "None of these", label = structure("None of these", html = TRUE, class = c("html", 
         "character")), correct = TRUE, message = structure("Yes, the <em>data<\u002fem> (blue) and <em>model<\u002fem> (red) curves are well-aligned for <code>Maori_proportion<\u002fcode> and the overall model (<code>Linear_Predictor<\u002fcode>). And although there is some misalignment in the other 2 plots, this is minor", html = TRUE, class = c("html", 
         "character")), type = "literal"), class = c("tutorial_question_answer", 
@@ -3460,7 +3473,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
     "character")), message = NULL, post_message = NULL), ids = list(
         answer = "model_fit_2-answer", question = "model_fit_2"), 
     loading = NULL, random_answer_order = FALSE, allow_retry = TRUE, 
-    seed = 894125097.583641, options = list()), class = c("learnr_radio", 
+    seed = 1240935788.42214, options = list()), class = c("learnr_radio", 
 "tutorial_question")), session = session)
 </script>
  
@@ -3548,18 +3561,18 @@ learnr:::store_exercise_cache(structure(list(label = "publication_1", global_set
  
 <script type="application/shiny-prerendered" data-context="server">
 learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label = "pub_model", question = structure("What is the explanation for no significant association with <code>Permethrin_rate_per_1000<\u002fcode> and <code>arf_count<\u002fcode> in the multivariable model, but an association in the crude model?", html = TRUE, class = c("html", 
-"character")), answers = list(structure(list(id = "lnr_ans_73e58b9", 
+"character")), answers = list(structure(list(id = "lnr_ans_59db171", 
     option = "Multicollinearity", value = "Multicollinearity", 
     label = structure("Multicollinearity", html = TRUE, class = c("html", 
     "character")), correct = TRUE, message = structure("Yes, if we leave out the collinear variable <code>Pacific_proportion<\u002fcode>, we find an adjusted rate ratio between <code>Permethrin_rate_per_1000<\u002fcode> and the outcome is significant.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_a206f75", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_146b34b", 
     option = "There really is no relationship between the two variables.", 
     value = "There really is no relationship between the two variables.", 
     label = structure("There really is no relationship between the two variables.", html = TRUE, class = c("html", 
     "character")), correct = FALSE, message = structure("No, think about the issue of the strong association between <code>Pacific_proportion<\u002fcode> and <code>Permethrin_rate_per_1000<\u002fcode>.", html = TRUE, class = c("html", 
     "character")), type = "literal"), class = c("tutorial_question_answer", 
-"tutorial_quiz_answer")), structure(list(id = "lnr_ans_f95472a", 
+"tutorial_quiz_answer")), structure(list(id = "lnr_ans_c17aa53", 
     option = "Correcting for confounding factors has resulted in no association.", 
     value = "Correcting for confounding factors has resulted in no association.", 
     label = structure("Correcting for confounding factors has resulted in no association.", html = TRUE, class = c("html", 
@@ -3572,7 +3585,7 @@ learnr:::question_prerendered_chunk(structure(list(type = "learnr_radio", label 
 "character")), incorrect = structure("Incorrect", html = TRUE, class = c("html", 
 "character")), message = NULL, post_message = NULL), ids = list(
     answer = "pub_model-answer", question = "pub_model"), loading = NULL, 
-    random_answer_order = FALSE, allow_retry = TRUE, seed = 2123604327.51112, 
+    random_answer_order = FALSE, allow_retry = TRUE, seed = 328697335.846938, 
     options = list()), class = c("learnr_radio", "tutorial_question"
 )), session = session)
 </script>

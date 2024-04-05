@@ -192,7 +192,7 @@ and rheumatic fever is given below:
 infection](https://linkinghub.elsevier.com/retrieve/pii/S0140-6736(19)31136-5){target="_blank"}
 
 
-We will be look for the evidence that prescribing for a certain treatment for scabies (the lotion **permethrin**) is linked with **acute rheumatic fever** at a **suburb level** (1 row of data for each suburb). Since the counts of acute rheumatic fever over a certain period constitute a 'count' variable, **Poisson** regression will be used. The population of the suburb will be used as an **offset** in the model. An [**offset**](https://stats.stackexchange.com/questions/175349/in-a-poisson-model-what-is-the-difference-between-using-time-as-a-covariate-or){target="_blank"} is often used as the denominator when rate values are modelled. For example, here, our outcome is the **count or number of permethrin scripts dispensed in a suburb** divided by the **population of that suburb**. The count of prescriptions is naturally influenced by the population, so this information is incorporated in the model as an offset. The offset allows us to model rates rather than counts. Technically, it is a covariate or independent variable whose value of beta coefficient is forced to be one.
+We will be look for the evidence that prescribing for a certain treatment for scabies (the lotion **permethrin**) is linked with **acute rheumatic fever** at a **suburb level** (1 row of data for each suburb). Since the counts of acute rheumatic fever over a certain period constitute a 'count' variable, **Poisson** regression will be used. The population of the suburb will be used as an **offset** in the model. An [**offset**](https://stats.stackexchange.com/questions/175349/in-a-poisson-model-what-is-the-difference-between-using-time-as-a-covariate-or){target="_blank"} is often used as the denominator when rate values are modelled. For example, here, our outcome is the **count or number of permethrin scripts dispensed in a suburb** divided by the **population of that suburb**. The count of prescriptions is naturally influenced by the population, so this information is incorporated in the model as an **offset**. The offset allows us to model rates rather than counts. Technically, it is a covariate or independent variable whose value of beta coefficient is forced to be one.
 
 Covariates, or potential confounders in the analysis include:
 
@@ -221,11 +221,11 @@ In comparison, continuous measures can include fractions or decimals, such as:
 - blood pressure
 - age.
 
-Count variables have special characteristics of their distribution which makes linear regression unsuitable. First of all, the distribution is positive, asymmetric and right skewed, meaning a log transformation of the count is necessary. Also, the variance is usually proportional to the count, rather than a constant.
+Count variables have special characteristics of their distribution which makes linear regression unsuitable. First of all, the distribution is positive, asymmetric and right skewed, meaning a log transformation of the count is necessary. Also, the variance is usually proportional to the count, rather than a constant, as is assumed for linear regression.
 
 ### Lecture revision
 
-Our outcome is acute rheumatic fever counts and we will build models for this using regression. For the following 3 questions, please answer *True* of *False* in response to each statement.
+Our outcome is acute rheumatic fever counts and we will build models to predict this outcome. For the following 3 questions, please answer *True* of *False* in response to each statement.
   
 ##### **`r Qnum()`**
 ```{r revision_1, echo = FALSE}
@@ -293,7 +293,10 @@ List the variable names:
 for_shiny |> names()
 ```
   
-Rename our dataframe as `df`. Then rename the variables so they're more understandable:
+Rename our dataframe as `df`. Then rename the variables so they're more 
+understandable. Although this seems tedious, it really makes life easier and 
+reduces confusion.
+
 ```{r rename_1, exercise = TRUE}
 df <- for_shiny # Rename dataframe
 
@@ -313,7 +316,7 @@ stopifnot(df[df$Suburb |> duplicated(),] == 0)
 ```
 
   
-If `Suburb` is duplicated, the R output would read: `df[df$Suburb |> duplicated(),] == 0 are not all TRUE`.  
+If `Suburb` is duplicated, the `R` output would read: `df[df$Suburb |> duplicated(),] == 0 are not all TRUE`.  
 Are there any duplicates?  
 
   
@@ -394,7 +397,7 @@ df$arf_rate |> histogram()
 ```{r histogram_3, echo = FALSE}
 question("To decide what type of regression to use for our models, we need to check for overdispersion.  
 Look at your first histogram above – for `arf_count`. In the previous section, you estimated the mean of  `arf_count` displayed from using the `skim` function (`0.55`) and compare it with the variance you calculated (`0.0033`).\n\n
-Which of the following, if any, is consistent with underdispersion?",
+Which of the following, if any, is consistent with under-dispersion?",
   answer("Variance < mean", message = "Yes. The variance (0.0033) is substantially smaller than the mean (0.55).", correct = TRUE),
   answer("Long tail of the distribution only", message = "No. A long tail is a feature of a power distribution. Please try again"),
   allow_retry = TRUE
@@ -452,7 +455,7 @@ question("How would you interpret the histogram for `Pacific_proportion`?",
 )
 ```
 
-When a categorical variable has many groups, it’s common to combine these to avoid sparse data. For `nzdep_decile`, which has 10 categories (last histogram above), we’ll combine consecutive pairs to create quintiles (5 groups). The breaks are included in the category. So, for example, the first category includes any value from negative infinity (`-Inf`) to 2. Any value greater than two will be incorporated in the next category.
+When a categorical variable has many groups, it’s common to combine these to avoid sparse data. For `nzdep_decile`, which has 10 categories (last histogram above), we’ll combine consecutive pairs to create quintiles (5 groups). The breaks are included in the category. So, for example, the first category includes any value from negative infinity (`-Inf`) to 2. Any value greater than two will be incorporated in the next category and so on.
 ```{r histogram_8, exercise = TRUE}
 # 5 groups instead of 10
 df$nzDepQuint <- cut(df$nzdep_decile, breaks = c(-Inf, 2, 4, 6, 8, Inf),
@@ -468,7 +471,7 @@ epiDisplay::tabpct(df$nzDepQuint, df$nzdep_decile)
 
 ## **Bivariate associations: scatterplots**
 Before undertaking any regression analysis, it is useful to visualise the 
-relationships especially between key exposure and outcome variables.
+relationships between key exposure, confounding and outcome variables.
 
 Use the `car::scatterplot()` function.
   
@@ -476,14 +479,13 @@ Use the `car::scatterplot()` function.
 ```{r scatterplot_1, exercise = TRUE}
 car::scatterplot(arf_rate ~ Permethrin_rate, data = df)
 ```
-How would you describe the association between the exposure and outcome?
 
 ##### **`r Qnum()`**  
 ```{r scatter_1, echo = FALSE}
 question("How would you interpret the scatter plot between `Permethrin_rate` dispensing and `arf_rate`?",
-  answer("No evidence of association", message = "No, this would be expected if there were a horizontal regression line"),
-  answer("Negative association", message = "No, we would expect to see a line in the top right hand corner going to the bottom left."),
-  answer("A positive association", correct = TRUE, message = "Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever"),
+  answer("No evidence of association", message = "No, this would be expected if the regression line were horizontal."),
+  answer("Negative association", message = "No, if that were the case, we would expect to see a line extend from the top right hand corner to the bottom left."),
+  answer("A positive association", correct = TRUE, message = "Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever, so the gradient or slope or beta coefficient term is positive"),
   allow_retry = TRUE
 )
 ```
@@ -511,37 +513,46 @@ car::scatterplot(arf_rate ~ Maori_proportion, data = df)
 grade_this_code("Good! You can now visualise the distribution of two continuous variables!")
 ```
 
-Are the potential confounders associated with the outcome?
-  
 ##### **`r Qnum()`**  
 ```{r scatter_2_int, echo = FALSE}
 question("How would you interpret the scatter plot between the potential confounders and `arf_rate`?",
-  answer("No evidence of association in any variables", message = "No, this would be expected if the regression lines were horizontal"),
+  answer("No evidence of association in any variables", message = "No, this would be expected if all the regression lines were horizontal"),
   answer("All Negative associations", message = "No, we would expect to see lines in the top right hand corner going to the bottom left."),
-  answer("All positive associations", correct = TRUE, message = "Yes, the greater the permethrin dispensing, the greater the rate of rheumatic fever"),
+  answer("All positive associations", correct = TRUE, message = "Yes, the slope of the line is in the positive direction (more x associated with greater y)."),
   answer("Something else", correct = TRUE, message = "No, please try again!"),
   allow_retry = TRUE
 )
 ```
 
 **Quick method to make several scatterplots**  
-Use the `PerformanceAnalytics::chart.Correlation()` function to get all correlations in 1 chart. A short-cut!
-Here, we select five variables from `df` and put them into a `data.frame` called `my_data`. The we apply our `PerformanceAnalytics::chart.Correlation()` function to `my_data` to get histograms, scatter plots and Pearson correlation coefficients.
+There is a method of making these scatterplots in one line of code! 
+
+Use the `PerformanceAnalytics::chart.Correlation()` function to get all correlations in one chart. 
+Here, we select five continuous variables from `df` and put them into a `data.frame` called `my_data`. Then, we apply our `PerformanceAnalytics::chart.Correlation()` function to `my_data` to get histograms, scatter plots and Pearson correlation coefficients.
+
+
 ```{r scatterplot_4, exercise = TRUE}
 ## Select variables of interest into new data.frame
-my_data <- df[, c("Pacific_proportion", "Maori_proportion", "Permethrin_rate", "nzdep_decile", "arf_rate")]
+my_data <- df[, c("Pacific_proportion", 
+                  "Maori_proportion", 
+                  "Permethrin_rate", 
+                  "nzdep_decile", 
+                  "arf_rate")]
 
-## Chart the correlations and regressions and distributions of each variable.
-PerformanceAnalytics::chart.Correlation(my_data, histogram = TRUE, pch = 19)
+## Chart the correlations and regressions 
+## and distributions of each variable.
+PerformanceAnalytics::chart.Correlation(my_data, 
+                                        histogram = TRUE, 
+                                        pch = 19)
 ```
   
 ##### **`r Qnum()`**
 ```{r scatterplot_5, echo = FALSE}
 question("What is the Pearson correlation coefficient (`r`) for the association between Pacific proportion and permethrin rate?",
-  answer("`r` = 0.55", message = "No, `r` = 0.55 for the correlation between `Pacific_proportion` and `Maori_proportion`"),
-  answer("`r` = 0.66", message = "No, `r` = 0.66 for the correlations of `Permethrin_rate` with `Maori_proportion` and `arf_rate`"),
+  answer("`r` = 0.55", message = "No, this is the correlation between `Pacific_proportion` and `Maori_proportion`"),
+  answer("`r` = 0.66", message = "No, this is the correlation between `Permethrin_rate` and `Maori_proportion` and `arf_rate`"),
   answer("`r` = 0.88", message = "Yes, the row for `Pacific_proportion` intersects with the column for `Permethrin_rate` at the cell that has 0.88 in it. A correlation of 0.88 is extremely high and suggests a very strong association.", correct = TRUE),
-  answer("`r` = 0.79", message = "No, `r` = 0.79 for the correlation between `Permethrin_rate` and `nzdep_decile`"),
+  answer("`r` = 0.79", message = "No, this is the correlation between `Permethrin_rate` and `nzdep_decile`"),
   allow_retry = TRUE
 )
 ```
@@ -549,7 +560,7 @@ question("What is the Pearson correlation coefficient (`r`) for the association 
 ## **Regression**
 We will build a Poisson regression model with our outcome as `arf_count` and exposure as `Permethrin_rate`. To adjust for population size, we will include `log_population` as an offset. We will also adjust for NZDep quintile (`nzDepQuint`), `Pacific_proportion` and `Maori_proportion`.
 
-Run the following code to make a Poisson regression model of `arf_count` with all other risk factors as independent variables or covariates.
+Run the following code using the `glm()` (**g**eneralised **l**inear **m**odel) function to make a Poisson regression model of `arf_count` with all other risk factors as independent variables or covariates.
 
 ```{r regression_1, exercise = TRUE}
 ## Make offset variable
@@ -598,7 +609,8 @@ While the exponentiated coefficient don't seem large (1.00035 is a 0.035% change
 
 From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(3.527e-04 * 3000)` which equals 2.88. This means that comparing the lowest to highest suburbs results in a 100 \* (2.88 - 1) = 188% change in acute rheumatic fever incidence. That weak association is now looking *very strong*. 
   
-Exponentiate our model coefficients with the `jtools::sum` function:
+Exponentiate our model coefficients with the `jtools::summ()` function which 
+is called on our model fit object:
 ```{r regression_4, exercise = TRUE}
 jtools::summ(fit, exp = TRUE)
 ```
