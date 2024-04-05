@@ -147,13 +147,13 @@ Māori and Pacific children than children of any other ethnic group in NZ.
 
 This disease often presents with fever and inflamed joints and can lead to
 life-limiting sequelae which include thickened and dysfunctional heart valves.
-If these are bad enough, it may lead to the need for cardiac surgery
+If these aren't bad enough, it may lead to the need for cardiac surgery
 and in some cases, premature death.
 
 <center>
 
 ![Thickened heart valves associated with rheumatic heart
-disease](images/arf.jfif){width="300"}
+disease](images/arf.png){width="300"}
 
 </center>
 
@@ -882,7 +882,7 @@ question("What is the explanation for no significant association with `Permethri
 
 ## Homework
 Select only suburbs that have a socioeconomic deprivation of 6 or more:  
-df_dep <- df[df$nzdep_decile >= 6, ]  
+`df_dep <- df[df$nzdep_decile >= 6, ]`  
 
 Then, for this subgroup, repeat the analyses we’ve covered in this tutorial.  
 
