@@ -154,6 +154,7 @@ ui <- fluidPage(
   tabPanel("Summary of associations",
     sidebarLayout(
       sidebarPanel(
+        "Please ensure the correct exposure and case category are selected."
         tags$hr(),
         
         uiOutput("case_var"),
@@ -400,7 +401,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
       print("PAR[i] is: ")
       print(PAR[i])
       
-      print(paste("pvalue is: ", p.value[i], sep = ""))
+      print(paste("P-value is: ", p.value[i], sep = ""))
       ret_dfi[[i]] <- data.frame(exposure = exposure_vars[i], odds_ratio = or$or, 
             conf.int = paste("(", or$ci.or[1] |>  twodp(), 
             " to ", or$ci.or[2] |>  twodp(), 
