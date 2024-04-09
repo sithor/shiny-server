@@ -154,7 +154,7 @@ ui <- fluidPage(
   tabPanel("Summary of associations",
     sidebarLayout(
       sidebarPanel(
-        "Please ensure the correct exposure and case category are selected."
+        "Please ensure the correct exposure and case category are selected.",
         tags$hr(),
         
         uiOutput("case_var"),
