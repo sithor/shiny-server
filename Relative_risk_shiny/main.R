@@ -16,6 +16,9 @@ dimnames(tab) <- list(c("No","Yes"), c("No","Yes"))
 names(dimnames(tab)) <- c("Exposure", "Disease")
 tab
 df <- expand.table(tab)
+dat.v01 <- c(13,2163,5,3349); dat.v01
+epi.2by2(dat = dat.v01, method = "cross.sectional", digits = 2, 
+         conf.level = 0.95, units = 100, interpret = FALSE, outcome = "as.columns")
 
 df |> str()
 tab[1,1]

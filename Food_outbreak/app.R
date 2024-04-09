@@ -10,6 +10,7 @@ library(magrittr)
 library(epiDisplay)
 library(lattice)
 library(shinyWidgets)
+library(epiR)
 
 
 
@@ -316,8 +317,9 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
     character_vars <- names(df)[character_vars]
     df[character_vars] <- lapply(df[character_vars] , as.factor)
     ###############################################################
-    checkTrue(df %>% is.data.frame, "check data.frame import") %>% print
-    df[ , c(case_var, exposure_vars[1]) ] %>% print
+    checkTrue(df |> is.data.frame(), "check data.frame import")  |>  print()
+    print("data is imported")
+    df[ , c(case_var, exposure_vars[1]) ] |>  print()
     
     ret_dfi <- as.list(1:length(exposure_vars))
     
@@ -327,6 +329,11 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
     n_unexposed_non_case <- 1:length(exposure_vars)
     p.value <- 1:length(exposure_vars)
     table_or <- as.list(1:length(exposure_vars))
+    tab <- as.list(1:length(exposure_vars))
+    PAR_alt <- as.list(1:length(exposure_vars))
+    PAR <- 1:length(exposure_vars)
+    
+    print('table variables set-up')
     
     for (i in 1:length(exposure_vars)){
       dfi <- na.omit( df[ , c(case_var, exposure_vars[i]) ] )
@@ -338,21 +345,21 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
       #dfi[, exposure_vars[i]] %>% str %>% print
       
       
-      table(dfi[, c(case_var)] %>% as.character == is_case %>% as.vector, 
-              dfi[ , exposure_vars[i]] == is_exposed %>% as.vector) %>% print
+      table(dfi[, c(case_var)]  |> as.character() == is_case  |> as.vector(), 
+              dfi[ , exposure_vars[i]] == is_exposed |> as.vector())  |> print()
       
       
       
       dfi <- na.omit(dfi[, c(case_var, exposure_vars[i])])
       
-      or <- cc( dfi[, c(case_var)] %>% as.character == is_case %>% as.vector, 
-        dfi[ , exposure_vars[i]] == is_exposed %>% as.vector ) ## odds ratio
+      or <- cc( dfi[, c(case_var)]  |>  as.character() == is_case |>  as.vector(), 
+        dfi[ , exposure_vars[i]] == is_exposed |>  as.vector() ) ## odds ratio
       print("Structure of 'or' object:")
-      or %>% str %>% print
-      table_or[[i]] <- ftable(table(dfi[, c(case_var)], dfi[ , exposure_vars[i] ])) %>% data.frame
+      or  |> str() |> print()
+      table_or[[i]] <- ftable(table(dfi[, c(case_var)], dfi[ , exposure_vars[i] ])) |> data.frame()
       names(table_or[[i]]) <- c(case_var,  exposure_vars[i], "Freq")
       
-      if (is_case %>% is.character){
+      if (is_case |> is.character()){
         for (j in 1:3) table_or[[i]][,j] <- as.character(table_or[[i]][,j])
       }
       
@@ -369,27 +376,53 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
       print(paste("structure of OR table is:", str(or$table)))
       
       p.value[i] <- ifelse(fisher.test(or$table)$p.value < 0.001, "< 0.001", 
-        fisher.test(or$table)$p.value %>% threedp)
+        fisher.test(or$table)$p.value |> threedp())
+      #browser()
+      tab[[i]] <- c(n_exposed_case[i], n_exposed_non_case[i], n_unexposed_case[i],
+                  n_unexposed_non_case[i]) |> as.numeric()
+      
+      print("Structure of tab[[i]] is:")
+      print(tab[[i]])
+      ## calculate population attributable risk
+      #browser()
+      PAR_alt[[i]] <- epiR::epi.2by2(tab[[i]],
+                                method="cohort.count",
+                                digits=2,
+                                conf.level=0.95, 
+                                units=100,
+                                interpret=TRUE,
+                                outcome="as.columns")
+      #browser()
+      PAR[i] <- paste0((PAR_alt[[i]]$massoc.detail$PAFRisk.strata.wald[[1]]*100) |> onedp(), "% (95% CI: ",
+                    (PAR_alt[[i]]$massoc.detail$PAFRisk.strata.wald[[2]]*100) |> onedp(), " to ",
+                    (PAR_alt[[i]]$massoc.detail$PAFRisk.strata.wald[[3]]*100) |> onedp(), ")")
+      
+      print("PAR[i] is: ")
+      print(PAR[i])
       
       print(paste("pvalue is: ", p.value[i], sep = ""))
       ret_dfi[[i]] <- data.frame(exposure = exposure_vars[i], odds_ratio = or$or, 
-            conf.int = paste("(", or$ci.or[1] %>% twodp, 
-            " to ", or$ci.or[2] %>% twodp, 
-            ")", sep = "" ), P_value = p.value[i])
+            conf.int = paste("(", or$ci.or[1] |>  twodp(), 
+            " to ", or$ci.or[2] |>  twodp(), 
+            ")", sep = "" ), P_value = p.value[i], PAR = PAR[i])
       
     }
-    n_exposed_case %>% print
+    n_exposed_case |> print()
     ret_df <- do.call(rbind, ret_dfi)
     #ret_df <- cbind(ret_dfi, n_exposed_case, n_unexposed_case, n_exposed_non_case, n_unexposed_non_case)
     
     #ret_df %>% print
-    cases <- cbind(n_exposed_case, n_unexposed_case, n_exposed_non_case, n_unexposed_non_case) %>% as.data.frame
+    cases <- cbind(n_exposed_case, n_unexposed_case, n_exposed_non_case, n_unexposed_non_case) |> 
+                                                                                        as.data.frame()
     for (i in 1:ncol(cases)) cases[, i ] <- as.numeric(cases[, i ] %>% as.character)
     ret_df <- cbind(ret_df, cases)
-    ret_df %>% print
-    names(ret_df) <- c("Exposure", "Odds ratio", "95% CI","P-value", "Exposed cases",
+    #ret_df |>  print()
+    names(ret_df) <- c("Exposure", "Odds ratio", "95% CI","P-value","PAR","Exposed cases",
                        "Unexposed cases", "Exposed non-cases",
                        "Unexposed non-cases")
+    
+    print("ret_df data.frame")
+    print(ret_df)
     
     ret_df$`Prevalence exposure` <- with(ret_df, (`Exposed cases` + 
             `Exposed non-cases`) / (`Exposed cases` +
@@ -400,22 +433,23 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
             (`Unexposed cases` /
             (`Unexposed cases` + `Unexposed non-cases`)))
     
-    ret_df$`PAR (percent)` <- with( ret_df,  100*((`Prevalence exposure` * (`Relative risk` - 1)) / (1 +
-            `Prevalence exposure` * (`Relative risk` - 1)))) %>% onedp
+  #  ret_df$`PAR (percent)` <- with( ret_df,  100*((`Prevalence exposure` * (`Relative risk` - 1)) / (1 +
+   #         `Prevalence exposure` * (`Relative risk` - 1)))) %>% onedp
     
     #ret_df$P_value <- with(ret_df, )
+    ret_df$`PAR (percent)` <- ret_df$PAR
     
-    checkTrue(ret_df[1, "Odds ratio"], max(ret_df[, "Odds ratio"] %>% as.numeric)) %>% print
+    checkTrue(ret_df[1, "Odds ratio"], max(ret_df[, "Odds ratio"] |> as.numeric())) |> print()
     
     ret_df <- ret_df[ order(ret_df[, "Odds ratio"], decreasing = TRUE) , ] 
     
-    checkTrue(ret_df[1, "Odds ratio"] == max(as.numeric(ret_df[, "Odds ratio"]))) %>% print
+    checkTrue(ret_df[1, "Odds ratio"] == max(as.numeric(ret_df[, "Odds ratio"])))  |>  print()
     
     ret_df <- ret_df[ , c("Exposure", "Exposed cases",  "Exposed non-cases", "Unexposed cases",
                           "Unexposed non-cases", "Odds ratio", "95% CI","P-value", "Relative risk",
                           "Prevalence exposure", "PAR (percent)")]
     
-    for (i in 2:5) ret_df[, i] <- ret_df[, i] %>% formatC(format = "f", digits = 0)
+    for (i in 2:5) ret_df[, i] <- ret_df[, i] |> formatC(format = "f", digits = 0)
     ret_df
   }
   #####################################################################################
@@ -698,7 +732,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
     
     df[, c(input$case_var)] %<>% as.factor %>% print
     
-    selectInput("is_case", "Select case", levels(df[, c(input$case_var)] %>% as.factor) )
+    selectInput("is_case", "Select case", levels(df[, c(input$case_var)] |> as.factor()) )
     #input$is_case %>% str %>% print
     
   })
@@ -710,7 +744,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
     
     
     selectInput("is_exposed", "Select exposed category", 
-     levels(df[, c(input$exposure_vars[1])] %>% as.factor) )
+     levels(df[, c(input$exposure_vars[1])] |> as.factor()) )
   })
   
   
@@ -720,7 +754,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
     checkTrue(df[, c(input$case_var), drop = FALSE] %>% as.factor %>% levels %>% length == 2) %>% print
     checkTrue(df[, c(input$case_var), drop = FALSE] %>% is.factor ) %>% print
     df[, c(input$case_var)] %<>% as.factor %>% print
-    selectInput("is_case_summ", "Select case", levels(df[, c(input$case_var)] %>% as.factor) )
+    selectInput("is_case_summ", "Select case", levels(df[, c(input$case_var)] |> as.factor()) )
     #input$is_case %>% str %>% print
   })
   
