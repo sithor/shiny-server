@@ -11,6 +11,7 @@ library(ggplot2)
 library(shinythemes)
 library(eulerr)
 library(mekko)
+library(epiR)
 source("functions.R") #inzight plot
 
 
@@ -124,8 +125,23 @@ server <- function(input, output) {
     df <- df[-1,]
     dfr <- dfr[-1,]
     
-    PAR <-(100*(dfr$p0*(dfr$riskratio - 1))/(1 + dfr$p0*(dfr$riskratio - 1))) |> one_dp()
-    PAR <- paste0(PAR, "%")
+    #PAR <-(100*(dfr$p0*(dfr$riskratio - 1))/(1 + dfr$p0*(dfr$riskratio - 1))) |> one_dp()
+    #PAR <- paste0(PAR, "%")
+    epiR_tab <-  cbind(tab[,2], tab[,1]) |> as.table()
+    epiR_tab <-  rbind(epiR_tab[2,], epiR_tab[1,]) |> as.table()
+    PAR_alt <- epiR::epi.2by2(epiR_tab,
+                        method="cohort.count",
+                        digits=2,
+                        conf.level=0.95, 
+                        units=100,
+                        interpret=TRUE,
+                        outcome="as.columns")
+    
+    #browser()
+     PAR <- paste0((PAR_alt$massoc.detail$PAFRisk.strata.wald[[1]]*100) |> one_dp(), "% (95% CI: ",
+                       (PAR_alt$massoc.detail$PAFRisk.strata.wald[[2]]*100) |> one_dp(), " to ",
+                       (PAR_alt$massoc.detail$PAFRisk.strata.wald[[3]]*100) |> one_dp(), ")")
+  
     
     RR_text <- paste0("\n\nRisk ratio: ", dfr$riskratio |> two_dp(),
            "; 95% CI: ", dfr$lower |> two_dp(), " to ", 
