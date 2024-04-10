@@ -80,23 +80,35 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
   
   headerPanel("Visualizing odds and risk ratios
               \n\n from a 2x2 table"),
-  sidebarLayout(
-    sidebarPanel(
-      numericInput("outcome_exposed", "Outcome in exposed:", value = 20),
-      numericInput("no_outcome_exposed", "No outcome in exposed:", value = 30),
-      numericInput("outcome_unexposed", "Outcome in unexposed:", value = 10),
-      numericInput("no_outcome_unexposed", "No outcome in unexposed:", value = 40),
-      actionButton("calculate_btn", "Calculate", icon = icon("calculator"))
-    ),
-    mainPanel(
+      mainPanel(
+      "Please input data and press 'calculate'.\n",
+      fluidRow(
+        column(width = 3, h3("Exposed?")),
+        column(width = 2, h4("Outcome", style="color:red")),
+        column(width = 2, h4("No outcome", style="color:#90EE90"))),
+        fluidRow(
+          column(width = 3, h4("Exposed", style="color:orange")),
+          column(width = 2, numericInput("outcome_exposed", "", value = 20)),
+          column(width = 2, numericInput("no_outcome_exposed", "", value = 30))),
+        fluidRow(
+          column(width = 3, h4("Not exposed", style="color:#ADD8E6")),
+          column(width = 2, numericInput("outcome_unexposed", "", value = 10)),
+          column(width = 2, numericInput("no_outcome_unexposed", "", value = 40))),
+        actionButton("calculate_btn", "Calculate", icon = icon("calculator")),
       plotOutput("odds_ratio_plot"),
       plotOutput("risk_ratio_plot"),
       br(), br(),
       textOutput("rr_text"),
       br(), br(),
       textOutput("or_text"),
+      br(), br(),
+      "Note: PAR is population attributable risk",
+      br(), br(),
+      "Confidence interval for population attributable risk
+      is estimated using the ", 
+      a("delta method.", 
+      href="https://onlinelibrary.wiley.com/doi/abs/10.1002/%28SICI%291097-0258%2820000430%2919%3A8%3C1089%3A%3AAID-SIM411%3E3.0.CO%3B2-0")
     )
-  )
   ),
 tabPanel("Euler plot",
   mainPanel(
