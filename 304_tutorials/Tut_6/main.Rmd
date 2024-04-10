@@ -35,6 +35,7 @@ library(vembedr)
 library(png)
 library(car)
 library(pryr)
+library(performance)
 gradethis::gradethis_setup()
 #setwd("./data")
 # load("./Cloud/data/ARF_permethrin.rdata")
@@ -266,21 +267,22 @@ To set-up our session for analysis and call the necessary libraries, we’ll use
 
 if(!require(pacman)) install.packages("pacman")
 pacman::p_load(tidyverse, 
-               epiDisplay,
-               visdat,
-               skimr,
-               lattice,
-               jtools,
+               epiDisplay, 
+               visdat, # missing data visualisation
+               skimr, # summarise data frame
+               lattice, # basic histograms
+               jtools, # exponentiate beta coefficients
                ggstance,
                broom.mixed,
-               finalfit,
+               finalfit, # final tables
                dplyr,
                kableExtra,
                car,
                MixAll,
-               regplot,
+               regplot, # nomograms
                PerformanceAnalytics,
-               corrplot)
+               corrplot, 
+               performance) # overdispersion check
 ```
   
 View the dataframe; called `for_shiny`. Notice that there’s 1 row for each suburb:
@@ -334,42 +336,22 @@ df |> skim()
 ```
 Are there any implausible extreme values (check `p0` [minimum] and `p100` [maximum])?
   
-##### **`r Qnum()`**
-From the summary data above, what is the *standard error* of `arf_count`?
 
-Hint, you will need to use the square root `sqrt()` function and use R as a calculator.
-
-```{r variance_1, exercise = TRUE}
-```
-```{r variance_1-solution}
-1.17/sqrt(413)
-```
-::: {#variance_1-hint}
-**Hint:** standard error = standard deviation/square root(number of observations)
-:::
-```{r variance_1-check}
-grade_this( {
-if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
-    pass("Yes, standard error = 1.17/ sqrt(413) = 0.0576")
-  }
-  fail("Please try again")
-})
-```
 
 ##### **`r Qnum()`**
-From the summary data above, what is the *variance* of `arf_count`?
+From the summary data above, what is the *variance* of `arf_count`? Note, *variance* is standard deviation squared. 
 ```{r variance_2, exercise = TRUE}
 ```
 ```{r variance_2-solution}
-(1.17/sqrt(413))^2
+var(df$arf_count)
 ```
 ::: {#variance_2-hint}
-**Hint:** Variance = (standard error)^2
+**Hint:** Variance = (standard deviation)^2
 :::
 ```{r variance_2-check}
 grade_this( {
 if(isTRUE(all.equal(.solution, .result, tolerance = 0.1) )){
-    pass("Yes, variance = (standard error)^2")
+    pass("Yes, variance = (standard deviation)^2")
   }
   fail("Please try again")
 })
@@ -398,18 +380,23 @@ df$arf_rate |> histogram()
 ##### **`r Qnum()`**
 ```{r histogram_3, echo = FALSE}
 question("To decide what type of regression to use for our models, we need to check for overdispersion.  
-Look at your first histogram above – for `arf_count`. In the previous section, you estimated the mean of  `arf_count` displayed from using the `skim` function (`0.55`) and compare it with the variance you calculated (`0.0033`).\n\n
+Look at your first histogram above – for `arf_count`. In the previous section, you estimated the mean of  `arf_count` displayed from using the `skim` function (`0.55`) and compare it with the variance you calculated (`1.36`).\n\n
 Which of the following, if any, is consistent with under-dispersion?",
-  answer("Variance < mean", message = "Yes. The variance (0.0033) is substantially smaller than the mean (0.55).", correct = TRUE),
+  answer("Variance > mean", message = "Yes. The variance (1.36) is substantially greater than the mean (0.55).", correct = TRUE),
   answer("Long tail of the distribution only", message = "No. A long tail is a feature of a power distribution. Please try again"),
   allow_retry = TRUE
 )
 ```
- 
+
+A formal check for overdispersion in Poisson regression models can be estimated by running the `check_overdispersion(x)` function from the 
+`performance` package. The argument `x` is the Poisson regression model object which will be estimated later.
+
+
+
   
 ##### **`r Qnum()`**
 ```{r histogram_4, echo = FALSE}
-question("Your results should point to evidence of underdispersion. Given this observation, what type of regression would improve model fit?",
+question("Your results should point to evidence of over-dispersion. Given this observation, what type of regression would improve model fit?",
   answer("Linear", message = "The outcome, ARF count, comprises whole numbers, even if there is overdispersion. So linear regression is unsuitable. Please try again"),
   answer("Poisson", message = "No, as there is overdispersion, we need to account for this by modelling a variant of Poisson regression. Please try again"),
   answer("Quasi-Poisson regression or negative-binomial", message = "Yes, these forms of regression are used for accounting for over or under dispersion when modelling outcomes comprising counts", correct = TRUE),
@@ -579,6 +566,10 @@ fit <- glm(arf_count ~ Permethrin_rate +
 
 ## Print summary of model
 summary(fit)
+
+## check for overdispersion
+performance::check_overdispersion(fit)
+
 ```
   
 Look at the term, `offset = log_population`, in the model. With counts (`arf_count`) as the outcome, having `log_population` as the offset makes the model represent a *rate* (count per unit *population*).  
@@ -607,7 +598,7 @@ question("For `Permethrin_rate`, you should get an `Estimate` value of 3.527e-04
 )
 ```
 
-While the exponentiated coefficient don't seem large (1.00035 is a 0.035% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. 
+While the exponentiated coefficient for permethrin doesn't seem large (1.00035 is a 0.035% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. 
 
 From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(3.527e-04 * 3000)` which equals 2.88. This means that comparing the lowest to highest suburbs results in a 100 \* (2.88 - 1) = 188% change in acute rheumatic fever incidence. That weak association is now looking *very strong*. 
   
@@ -629,7 +620,9 @@ question("For `Pacific_proportion`, you get an `exp(Est.)` value of 11.56. What 
 ```
   
 ##### **`r Qnum()`**
-We saw before that, for the outcome, there's evidence of under-dispersion. To account for this, we will specify a *quasiPoisson* model (please use `fit_qp` as the new model object. Do this by changing `poisson` to `quasipoisson` in the code below and running it.
+We saw before that, for the outcome, there's some evidence of over-dispersion. A formal check for this was **negative**, so here a Poisson model is **sufficient**. If the `performance::check_overdispersion()` function returned a significant $P$-value, we would have to think about relaxing the strict assumptions of the Poisson model relating to the mean and variance of the outcome being equal. 
+
+In such a situation a *quasiPoisson* model (please use `fit_qp` as the new model object. Do this by changing `poisson` to `quasipoisson` in the code below and running it.
 ```{r regression_6, exercise = TRUE}
 fit1 <- glm(arf_count ~ I(Permethrin_rate/1000) +
              nzDepQuint +
