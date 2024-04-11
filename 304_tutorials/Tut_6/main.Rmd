@@ -913,6 +913,8 @@ question("What is the explanation for no significant association with `Permethri
   allow_retry = TRUE
 )
 ```
+
+
 ## Summary
 We have learned a number of things related to count models.
 
