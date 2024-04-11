@@ -409,7 +409,7 @@ question("Your results should point to evidence of over-dispersion. Given this o
 )
 ```
 
-First, we will check the distribution of our outcome
+Next, we will check the distribution of our exposure
   
 Exposure: `permethrin_rate`
 ```{r histogram_5, exercise = TRUE}
