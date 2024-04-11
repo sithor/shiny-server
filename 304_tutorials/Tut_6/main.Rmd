@@ -923,7 +923,7 @@ We have learned a number of things related to count models.
 - The beta coefficients or slopes for each exposure or confounder term need to be exponentiated to be readily interpretable as **incidence rate ratios** which are interpreted similarly to risk ratios or odds ratios (`jtools::summ(model, exp = TRUE)`).
 - We usually start with a Poisson model and check for over or under dispersion (mean and variance unequal) and may use a quasi-Poisson or negative binomial to accommodate this feature of the data.
 - We can check for model fit using **marginal model plots**.
-- Collinearity or strong associations within *exposure* or *independent* variables can be a feature of any regression analysis and can be checked for using correlation coefficients and scatterplots (`PerformanceAnalytics::chart.Correlation()`).
+- Collinearity or strong associations within *exposure* or *independent* variables can be a feature of any regression analysis and can be checked for using correlation coefficients and scatterplots (`PerformanceAnalytics::chart.Correlation()`). The inclusion or exclusion of colinear variables can make a big difference to the results of our regression!!
 - We often present models in scientific papers by comparing crude and adjusted modelled incidence rate ratios (`finalfit`).
 
 ## Homework
