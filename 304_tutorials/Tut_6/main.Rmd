@@ -387,10 +387,10 @@ df$arf_rate |> histogram()
 ##### **`r Qnum()`**
 ```{r histogram_3, echo = FALSE}
 question("To decide what type of regression to use for our models, we need to check for overdispersion.  
-Look at your first histogram above – for `arf_count`. In the previous section, you estimated the mean of  `arf_count` displayed from using the `skim` function (`0.55`) and compare it with the variance you calculated (`1.36`).\n\n
-Which of the following, if any, is consistent with under-dispersion?",
+Look at your first histogram above – for `arf_count`. In the previous section, you estimated the mean of  `arf_count` displayed from using the `skim` function (`0.55`) and compared it with the variance you calculated (`1.36`).\n\n
+Which of the following, if any, is consistent with over-dispersion?",
   answer("Variance > mean", message = "Yes. The variance (1.36) is substantially greater than the mean (0.55).", correct = TRUE),
-  answer("Long tail of the distribution only", message = "No. A long tail is a feature of a power distribution. Please try again"),
+  answer("Variance < mean", message = "No. This would be evidence of under-dispersion. Please try again"),
   allow_retry = TRUE
 )
 ```
@@ -602,7 +602,7 @@ question("For `Permethrin_rate`, you should get an `Estimate` value of `0.000294
 )
 ```
 
-While the exponentiated coefficient for permethrin doesn't seem large (1.00035 is a 0.035% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. 
+While the exponentiated coefficient for permethrin doesn't seem large (1.000294 is a 0.0294% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. 
 
 From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(0.000294 * 3000)` which equals `2.41`. This means that comparing the lowest to highest suburbs results in a 100 \* (2.41 - 1) = 141% increase in acute rheumatic fever incidence. That apparently weak association is now looking *very strong*. 
   
