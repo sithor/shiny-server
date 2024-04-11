@@ -81,6 +81,13 @@ fit5 <- glm(arf_count ~ Permethrin_rate +
            family = quasipoisson(link = "log"),
            data = df)
 
+fit_qp <- glm(arf_count ~ I(Permethrin_rate/1000) +
+             nzDepQuint +
+             Pacific_proportion +
+             Maori_proportion + offset(log(population)),
+           family = quasipoisson(link = "log"),
+           data = df)
+
 mycounter <- 0
 Qnum <- function(count = mycounter){
   mycounter <<- mycounter + 1
@@ -462,7 +469,7 @@ relationships between key exposure, confounding and outcome variables.
 Use the `car::scatterplot()` function.
   
 ####Exposure and outcome
-```{r scatterplot_1, exercise = TRUE}
+```{r scatterplot_1, exercise = TRUE, warning=FALSE}
 car::scatterplot(arf_rate ~ Permethrin_rate, data = df)
 ```
 
@@ -517,7 +524,7 @@ Use the `PerformanceAnalytics::chart.Correlation()` function to get all correlat
 Here, we select five continuous variables from `df` and put them into a `data.frame` called `my_data`. Then, we apply our `PerformanceAnalytics::chart.Correlation()` function to `my_data` to get histograms, scatter plots and Pearson correlation coefficients.
 
 
-```{r scatterplot_4, exercise = TRUE}
+```{r scatterplot_4, exercise = TRUE, warning = FALSE}
 ## Select variables of interest into new data.frame
 my_data <- df[, c("Pacific_proportion", 
                   "Maori_proportion", 
@@ -569,7 +576,7 @@ performance::check_overdispersion(fit)
 
 ```
   
-Look at the term, `offset = log_population`, in the model. With counts (`arf_count`) as the outcome, having `log_population` as the offset makes the model represent a *rate* (count per unit *population*).  
+Look at the term, `offset = log_population`, in the model. With counts (`arf_count`) as the outcome, having `log_population` as the offset makes the model represent a *rate* (count per unit *population*).  The overdispersion test is a test of the residual deviance differing substantially from the degrees of freedom in the model. Here, it greater than 0.05, so not significant. Hence, we can stick with our Poisson model.
 
 Check your understanding.
 
@@ -586,70 +593,85 @@ question("Commonly, offsets are based on the time spent observing each outcome (
   
 ##### **`r Qnum()`**
 ```{r regression_3, echo = FALSE}
-question("For `Permethrin_rate`, you should get an `Estimate` value of 3.527e-04. What does this tell us?",
-  answer("There is, on average, 3.527e-04 = 0.0003527 more acute rheumatic fever for every one unit increase in permethrin rate", message = "No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to give a meaningful interpretation"),
-  answer("The incidence rate of acute rheumatic fever is, on average, 3.527e-04 = 0.0003527 times higher for every 1-unit increase in permethrin rate", message = "No. 3.527e-04 is measured on a natural-log scale. So you need to exponentiate it to interpret the figure."),
-  answer("There is, on average, exp(3.527e-04) more acute rheumatic fever for every 1-unit increase in permethrin rate", message = "No. Exponentiating this converts it into an incidence rate ratio. However, *exp(3.527e-04) more* does not imply a ratio. What word do we need to add to imply a ratio?"),
-  answer("There is, on average, exp(3.527e-04) = 1.00035 times more acute rheumatic fever for every 1-unit increase in permethrin dispensing rate", message = "Yes, exponentiating 3.527e-04 converts it into an incidence rate ratio. The word *times* suggests a ratio", correct = TRUE),
+question("For `Permethrin_rate`, you should get an `Estimate` value of `0.000294`. What does this tell us?",
+  answer("There is, on average, `0.000294` more acute rheumatic fever for every one unit increase in permethrin rate", message = "No. `0.000294` is measured on a natural-log scale. So you need to exponentiate it to give a meaningful interpretation"),
+  answer("The incidence rate of acute rheumatic fever is, on average, `0.000294` times higher for every 1-unit increase in permethrin rate", message = "No. `0.000294` is measured on a natural-log scale. So you need to exponentiate it to interpret the figure."),
+  answer("There is, on average, `exp(0.000294)` more acute rheumatic fever for every 1-unit increase in permethrin rate", message = "No. Exponentiating this converts it into an incidence rate ratio. However, *`exp(0.000294)` more* does not imply a ratio. We need to use the **times** word to imply a ratio!"),
+  answer("There is, on average, `exp(0.000294)` = 1.000294 times higher counts of acute rheumatic fever for every 1-unit increase in permethrin dispensing rate", message = "Yes, exponentiating 0.000294 converts the beta coefficient into an incidence rate ratio. The word **times** suggests a ratio", correct = TRUE),
   allow_retry = TRUE
 )
 ```
 
 While the exponentiated coefficient for permethrin doesn't seem large (1.00035 is a 0.035% change, with a one unit increase of permethrin), the nature of the association may only be understood by also knowing to what extent permethrin dispensing varies in the population. 
 
-From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(3.527e-04 * 3000)` which equals 2.88. This means that comparing the lowest to highest suburbs results in a 100 \* (2.88 - 1) = 188% change in acute rheumatic fever incidence. That weak association is now looking *very strong*. 
+From our `skim()` function used earlier, we can see that the minimum values of permethrin dispensing is 0 and the maximum is 3,201. Therefore, the ratio of risk for a change of 3,000 is `exp(0.000294 * 3000)` which equals `2.41`. This means that comparing the lowest to highest suburbs results in a 100 \* (2.41 - 1) = 141% increase in acute rheumatic fever incidence. That apparently weak association is now looking *very strong*. 
   
 Exponentiate our model coefficients with the `jtools::summ()` function which 
 is called on our model fit object:
 ```{r regression_4, exercise = TRUE}
 jtools::summ(fit, exp = TRUE)
 ```
-  
+
+This output includes an `exp(Est.)` which are exponentiated beta coefficient or slope terms. 
+
+These are interpreted like **risk ratios**, where a value greater than one indicates higher incidence of the outcome with increasing exposure and a value less than one indicates lower incidence with increasing exposure. The correct term for these is **incidence rate ratios**. 
+
+
 ##### **`r Qnum()`**
 ```{r regression_5, echo = FALSE}
-question("For `Pacific_proportion`, you get an `exp(Est.)` value of 11.56. What does this tell us?",
-  answer("There is, on average, 11.56 more acute rheumatic fever for a 1-unit increase in Pacific proportion", message = "No. 11.56 is a rate ratio. What word do we need to add to imply a ratio?"),
-  answer("The incidence of acute rheumatic fever is, on average, 11.56 times higher for every 1-unit increase in Pacific proportion", message = "Well done! *11.56 times* implies a ratio and 11.56 is the incidence rate ratio", correct = TRUE),
-  answer("There is, on average, `exp(11.56)` more acute rheumatic fever for every 1-unit increase in Pacific proportion", message = "No, 11.56 is already an exponentiated value (R code above reads `exp = TRUE`) – you don't need to exponentiate again!"),
-  answer("The incidence rate of acute rheumatic fever is, on average, `exp(11.56)` times higher for every 1-unit increase in Pacific proportion", message = "No, 11.56 is already an exponentiated value (R code above reads `exp = TRUE`) – you don’t need to exponentiate again!"),
+question("For `Pacific_proportion`, you get an `exp(Est.)` value of 8.02. What does this tell us?",
+  answer("There is, on average, 8.02 more acute rheumatic fever for a 1-unit increase in Pacific proportion", message = "No. 8.02 is a rate ratio. What word do we need to add to imply a ratio?"),
+  answer("The incidence of acute rheumatic fever is, on average, 8.02 times higher for every 1-unit increase in Pacific proportion", message = "Well done! *8.02 times* implies a ratio and 8.02 is the incidence rate ratio", correct = TRUE),
+  answer("There is, on average, `exp(8.02)` more acute rheumatic fever for every 1-unit increase in Pacific proportion", message = "No, 8.02 is already an exponentiated value (R code above reads `exp = TRUE`) – you don't need to exponentiate again!"),
+  answer("The incidence rate of acute rheumatic fever is, on average, `exp(8.02)` times higher for every 1-unit increase in Pacific proportion", message = "No, 8.02 is already an exponentiated value (R code above reads `exp = TRUE`) – you don’t need to exponentiate again!"),
   allow_retry = TRUE
 )
 ```
   
 ##### **`r Qnum()`**
-We saw before that, for the outcome, there's some evidence of over-dispersion. A formal check for this was **negative**, so here a Poisson model is **sufficient**. If the `performance::check_overdispersion()` function returned a significant $P$-value, we would have to think about relaxing the strict assumptions of the Poisson model relating to the mean and variance of the outcome being equal. 
+We saw before that, for the outcome, there's some evidence of over-dispersion. A formal check for this was **negative**, so here a Poisson model is **sufficient**. If the `performance::check_overdispersion()` function returned a significant $P$-value (< 0.05), we would have to think about relaxing the strict assumptions of the Poisson model relating to the true mean and variance of the outcome variable being equal. 
 
-In such a situation a *quasiPoisson* model (please use `fit_qp` as the new model object. Do this by changing `poisson` to `quasipoisson` in the code below and running it.
+In such a situation a *quasiPoisson* or *negative binomial* model would be useful.
+
+Please change the code below from a Poisson to quasiPoisson model. 
+This can be achieved by changing `poisson` to `quasipoisson` in the code below and running it (please use `fit_qp` as the new model object).
+
 ```{r regression_6, exercise = TRUE}
+# fit model
 fit1 <- glm(arf_count ~ I(Permethrin_rate/1000) +
              nzDepQuint +
              Pacific_proportion +
              Maori_proportion + offset(log(population)),
            family = poisson(link = "log"),
            data = df)
+
+# view characteristics of model
 summary(fit1)
 ```
 
 ```{r regression_6-solution}
+# fit model
 fit_qp <- glm(arf_count ~ I(Permethrin_rate/1000) +
              nzDepQuint +
              Pacific_proportion +
              Maori_proportion + offset(log(population)),
            family = quasipoisson(link = "log"),
            data = df)
+
+# view characteristics of model
 summary(fit_qp)
 ```
 
 ::: {#regression_6-hint}
-**Hint:** Please change the `family` argument, and change the name of the model object from `fit1` to `fit_qp`.
+**Hint:** Please change the `family` argument to `quasipoisson`, and change the name of the model object from `fit1` to `fit_qp`.
 :::
 
 ```{r regression_6-check}
-grade_this_code("Good. It’s important to know how to change to a `quasipoisson` model when there is evidence of over or under dispersion")
+grade_this_code("Good. It’s important to know how to change to a `quasipoisson` model when there is evidence of over or under-dispersion")
 ```
   
 ##### **`r Qnum()`**
-Using the code format below, exponentiate your $\beta$ coefficients so that you get incidence rate ratios.
+Using the code format below, exponentiate your $\beta$ coefficients so that you get interpretable incidence rate ratios.
 ```{r regression_7, exercise = TRUE}
 # jtools::summ(model_object, exp = logical_value)
 ```
@@ -659,19 +681,20 @@ jtools::summ(fit_qp, exp = TRUE)
 ```
 
 ::: {#regression_7-hint}
-**Hint:** What is the new model object names and `logical_value` for this question?
+**Hint:** What is the new model object names and because the outcome is transformed by a natural logarithm, we wish to 
+specify the `exp` argument to `TRUE` so that beta coefficients are exponentiated.
 :::
 
 ```{r regression_7-check}
-grade_this_code("Great! Above, we created a model named `fit_qp`. As we want to exponentiate, the logical value for the `exp` argument will be `TRUE`")
+grade_this_code("Great! Above, we created a model named `fit_qp`. As we want to exponentiate the beta coefficients, the logical value for the `exp` argument needs to be `TRUE`")
 ```
   
-Now, use the `jtools::plot_summs()` function to plot the rate ratios:
+Now, use the `jtools::plot_summs()` function to plot the incidence rate ratios:
 ```{r regression_8, exercise = TRUE}
 jtools::plot_summs(fit_qp, exp = TRUE)
 ```
 
-You should get a graph showing rate ratios:  
+You should get a graph showing incidence rate ratios:  
 
 -  Circles for the `Estimates` 
 -  Horizontal lines for the 95% confidence intervals
@@ -694,9 +717,11 @@ Use the *cor()* function to get the correlation between `Pacific_proportion` and
 cor(df$Pacific_proportion, df$Permethrin_rate)
 ```
 
-You should get a correlation of 0.88, which is **strong**. Thus, multicollinearity may be a problem for our analysis.  
+You should get a correlation of `0.88`, which is **strong**. Thus, multicollinearity in the predictor variables may be a problem for our analysis.
+
 To deal with this, we can remove one of these predictors from the model. So that we retain our exposure (`Permethrin_rate`) in our model, let’s remove `Pacific_proportion` by adding `#` before it.  
-Another change is that we'll divide `Permethrin_rate` by 1000. This will increase the coefficient for this variable by 1000 so that it’s more meaningful. (This is like converting grams into kilograms; the latter is more meaningful for larger weights). Below, we use the `I()` function to do this calculation within the 'model' argument.  
+
+Another change is that we'll divide `Permethrin_rate` by 1000. This will increase the coefficient for this variable by 1000 so that it’s easier to interpret. (This is like converting grams into kilograms; the latter is more meaningful for larger weights). Below, we use the `I()` function to do this calculation within the 'model' argument.  
 Now run our revised code below:
 
 ```{r regression_9, exercise = TRUE}
@@ -704,10 +729,10 @@ df$log_population <- log(df$population)
 
 fit3 <- glm(arf_count ~ I(Permethrin_rate/1000) +
             nzDepQuint +
-             #Pacific_proportion +
-            Maori_proportion, offset=(log(population)),
-           family = poisson(link = "log"),
-           data = df)
+            # Pacific_proportion +
+            Maori_proportion, offset = log(population),
+            family = poisson(link = "log"),
+            data = df)
 
 summary(fit3)
 ```
@@ -723,7 +748,7 @@ fit4 <- glm(arf_count ~  I(Permethrin_rate/1000) +
               nzDepQuint +
               #Pacific_proportion +
               Maori_proportion, offset=log_population,
-              family = quasipoisson(link = "log"),
+              family = poisson(link = "log"),
               data = df)
 
 summary(fit4)
@@ -737,7 +762,7 @@ This next model has `Pacific_proportion` included again. So we can test for the 
 fit5 <- glm(arf_count ~ I(Permethrin_rate/1000) +
               nzDepQuint +
               Pacific_proportion +
-              Maori_proportion, offset(log(population)),
+              Maori_proportion, offset = log_population,
               family = poisson(link = "log"),
               data = df)
 
@@ -806,7 +831,7 @@ regplot::regplot(fit, observation = df[df$Suburb == "Remuera South",])
 ![Regplot2](./images/remuera_regplot.png "Regression illustrated")
 
 ## **Model fit**
-How well a model fits the data can be assessed with a **'marginal model plot'**, which shows the relationship between model predicted (model) and observed data (data). In a good fitting model, we expect to see the two lines closely superimposed on each other. Poor fit is identified by seeing separation between the two lines.
+How well a model fits the data can be assessed with a **'marginal model plot'**, which shows the relationship between model predicted (`model`) and observed data (`data`). In a good fitting model, we expect to see the two lines closely superimposed on each other. Poor fit is identified by seeing separation between the two lines, which may indicate over or under prediction of the model compared to the data.
 
 Run this code to produce a marginal model plot for our `fit` model object:
 ```{r model_fit_1, exercise=TRUE}
@@ -822,7 +847,7 @@ car::marginalModelPlots(fit)
 What is the nature of the overall fit of the data to the model?  
 -  **Good fit** is indicated by **good alignment** between `Data` (blue line) and the `Model` (red line)  
 -  **Poor fit** is indicated by **poor alignment** between these lines  
--   Often, for more extreme or outlying values of an exposure, there is deviation of the `Data` from the `Model`. This may not invalidate your model, but would be important to be aware of, and may be worthwhile noting this in your results.
+-   Often, for more extreme or outlying values of an exposure, there is deviation of the `Data` from the `Model`. This may not invalidate your model, but would be important to be aware of, and may be worthwhile discussing in your results.
   
 ##### **`r Qnum()`**
 ```{r model_fit_2, echo = FALSE}
@@ -888,7 +913,16 @@ question("What is the explanation for no significant association with `Permethri
   allow_retry = TRUE
 )
 ```
+## Summary
+We have learned a number of things related to count models.
 
+- The outcome is a count (non-negative integer) and this is transformed in the model using a natural logarithm.
+- We use **offsets** to convert count outcomes to rates by incorporating the denominator into our model.
+- The beta coefficients or slopes for each exposure or confounder term need to be exponentiated to be readily interpretable as **incidence rate ratios** which are interpreted similarly to risk ratios or odds ratios (`jtools::summ(model, exp = TRUE)`).
+- We usually start with a Poisson model and check for over or under dispersion (mean and variance unequal) and may use a quasi-Poisson or negative binomial to accommodate this feature of the data.
+- We can check for model fit using **marginal model plots**.
+- Collinearity or strong associations within *exposure* or *independent* variables can be a feature of any regression analysis and can be checked for using correlation coefficients and scatterplots (`PerformanceAnalytics::chart.Correlation()`).
+- We often present models in scientific papers by comparing crude and adjusted modelled incidence rate ratios (`finalfit`).
 
 ## Homework
 Select only suburbs that have a socioeconomic deprivation of 6 or more:  
