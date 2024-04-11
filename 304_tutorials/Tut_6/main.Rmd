@@ -389,11 +389,8 @@ Which of the following, if any, is consistent with under-dispersion?",
 ```
 
 A formal check for overdispersion in Poisson regression models can be estimated by running the `check_overdispersion(x)` function from the 
-`performance` package. The argument `x` is the Poisson regression model object which will be estimated later.
+`performance` package. The argument `x` is the Poisson regression model object which will be estimated later. We will see later that even though there is a greater variance than mean, a formal statistical test of difference in the conditional (on covariates) mean and variance of `arf_count` from the model is not statistically significant. 
 
-
-
-  
 ##### **`r Qnum()`**
 ```{r histogram_4, echo = FALSE}
 question("Your results should point to evidence of over-dispersion. Given this observation, what type of regression would improve model fit?",
@@ -709,7 +706,7 @@ fit3 <- glm(arf_count ~ I(Permethrin_rate/1000) +
             nzDepQuint +
              #Pacific_proportion +
             Maori_proportion, offset=(log(population)),
-           family = quasipoisson(link = "log"),
+           family = poisson(link = "log"),
            data = df)
 
 summary(fit3)
@@ -741,7 +738,7 @@ fit5 <- glm(arf_count ~ I(Permethrin_rate/1000) +
               nzDepQuint +
               Pacific_proportion +
               Maori_proportion, offset(log(population)),
-              family = quasipoisson(link = "log"),
+              family = poisson(link = "log"),
               data = df)
 
 summary(fit5)
@@ -787,7 +784,7 @@ question("Which term (predictor) in the model contributes *most* to the outcome 
   allow_retry = TRUE
 )
 ```
-(Hint: In the top line, `β(X-m) terms`, identify the red dot that’s furthest from 0. Then read vertically down from it)  
+(Hint: In the top line, `β(X-m) terms`, identify the red dot that's furthest from 0. Then read vertically down from it)  
   
 ##### **`r Qnum()`**
 ```{r nomogram_4, echo = FALSE}
@@ -831,7 +828,7 @@ What is the nature of the overall fit of the data to the model?
 ```{r model_fit_2, echo = FALSE}
 question("Which of the following terms for the model would be a POOR fit for the data?",
   answer("`Permethrin_rate`", message = "No, that’s harsh! There’s only poor alignment between the *data* (blue) and *model* (red) curves for `Permethrin_rate`> 2500 but this is minor as there’s few observations in that extreme region. Please try again"),
-  answer("`Permethrin_rate` and `Pacific_proportion`", message = "No, that’s harsh! For `Permethrin_rate`, there’s only poor alignment between the *data* (blue) and *model* (red) curves for Permethrin_rate>2500 but this is minor as there’s few observations in that extreme region. For `Pacific_proportion`, the *data* (blue) and *model* (red) curves are misaligned in some areas of the plot but the degree of deviation is minor. Please try again"),
+  answer("`Permethrin_rate` and `Pacific_proportion`", message = "No, that’s harsh! For `Permethrin_rate`, there’s only poor alignment between the *data* (blue) and *model* (red) curves for Permethrin_rate > 2500 but this is minor as there’s few observations in that extreme region. For `Pacific_proportion`, the *data* (blue) and *model* (red) curves are misaligned in some areas of the plot but the degree of deviation is minor. Please try again"),
   answer("None of these", message = "Yes, the *data* (blue) and *model* (red) curves are well-aligned for `Maori_proportion` and the overall model (`Linear_Predictor`). And although there is some misalignment in the other 2 plots, this is minor", correct = TRUE),
   allow_retry = TRUE
 )
@@ -899,4 +896,4 @@ Select only suburbs that have a socioeconomic deprivation of 6 or more:
 
 Then, for this subgroup, repeat the analyses we’ve covered in this tutorial.  
 
-Please have a go at these tasks in posit.
+Please have a go at these tasks in posit (desktop) or posit cloud.
