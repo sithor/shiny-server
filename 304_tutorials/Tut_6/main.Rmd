@@ -704,20 +704,20 @@ Which variables are significantly associated with the outcome?
 
 ## **Multi-collinearity**
 
-In a model, when 2 or more predictors are *strongly correlated* with one other, this is called **multicollinearity**. In a model, it’s a problem as it:  
+In a model, when 2 or more predictors are *strongly correlated* with one other, this is called **multi-collinearity**. In a model, it may be problematic, since:  
 
 -   increases the variance of estimates of regression coefficients
 -   makes these estimates unstable and unreliable  <br>
 
-We can detect it by looking for strong correlations between variables.
+We can detect it by first looking for strong correlations between variables.
   
-Use the *cor()* function to get the correlation between `Pacific_proportion` and `Permethrin_rate`:
+Use the *cor()* function to estimate the correlation between `Pacific_proportion` and `Permethrin_rate`:
 
 ```{r multicollinearity_1, exercise = TRUE}
 cor(df$Pacific_proportion, df$Permethrin_rate)
 ```
 
-You should get a correlation of `0.88`, which is **strong**. Thus, multicollinearity in the predictor variables may be a problem for our analysis.
+You should get a correlation of `0.88`, which is **strong**. Thus, multi-collinearity in the predictor variables may be a problem for our analysis.
 
 To deal with this, we can remove one of these predictors from the model. So that we retain our exposure (`Permethrin_rate`) in our model, let’s remove `Pacific_proportion` by adding `#` before it.  
 
@@ -737,24 +737,11 @@ fit3 <- glm(arf_count ~ I(Permethrin_rate/1000) +
 summary(fit3)
 ```
 
-What is the slope for the `Permethrin_rate/1000` term?
+What is the beta-coefficient or slope for the `Permethrin_rate/1000` term?
+
 Is it statistically significant?  
   
-Run the code for the next model, which includes `Permethrin` as a predictor instead of `Permethrin_rate/1000.`
-```{r regression_10, exercise = TRUE}
-df$log_population <- log(df$population)
-
-fit4 <- glm(arf_count ~  I(Permethrin_rate/1000) +
-              nzDepQuint +
-              #Pacific_proportion +
-              Maori_proportion, offset=log_population,
-              family = poisson(link = "log"),
-              data = df)
-
-summary(fit4)
-```
-
-Was is the incidence rate ratio for `I(Permethrin_rate/1000)`?
+Was is the **incidence rate ratio** for `I(Permethrin_rate/1000)`? We need to exponentiate the beta-coefficient.
 
 This next model has `Pacific_proportion` included again. So we can test for the effect of multi-collinearity. Run the code below.
 

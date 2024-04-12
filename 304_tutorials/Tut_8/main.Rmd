@@ -994,9 +994,15 @@ How well a model fits the data can be assessed with a marginal model
 plot, which shows the relationship between model predicted and observed
 data.
 
-`car::marginalModelPlots(model, sd = TRUE)`
 
-![Marginal model plot](images/MMPS.jpeg)
+```{r mmp, exercise = TRUE, warning = FALSE, error=FALSE}
+assign("M", M, envir = .GlobalEnv)
+assign("model_bin", model, envir = .GlobalEnv)
+
+## marginal model plot
+car::marginalModelPlots(model_bin)
+```
+
 
 We covered marginal model plots in the previous tutorials.\
 Look at the plots above. [How well does the overall model fit the
@@ -1025,6 +1031,16 @@ regress_tab |> kableExtra::kable_styling()
 
 [Which demographic group has the highest odds for marijuana
 use?]{style="color:blue"}
+
+## Summary
+
+Today, we have extended regression to account for binary variables which are 
+often used in epidemiology. Logistic regression is used to predict the probability of a binary outcome such as disease.
+
+- It is often used when the outcome is a binary variable and there are confounders to adjust for.
+- The principles are similar to usual regression, however the beta coefficients are exponentiated and interpreted as odds ratios.
+- The outcome variable must have only two levels (`1` and `0`, `Yes` or `No`, or `TRUE` or `FALSE`).
+- We often present results in a table with both crude and adjusted odds ratios to see the effect of adjusting for confounders on an association.
 
 ## **Homework**
 
