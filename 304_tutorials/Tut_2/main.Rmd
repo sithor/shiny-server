@@ -385,3 +385,14 @@ learnr::question("What are the columns and what are the rows of the `df` data.fr
 ```
 
 Great, we are now ready for the next step. Well done! 🤠
+
+
+## Summary
+
+Hopefully, we have learned a lot in this session. 
+
+Specifically, we have covered:
+
+- The need to keep our files tidy. Folders are free! Don't just dump everything on the desktop!
+- A knowledge of file paths are essential for working with R. Subtle but important differences between Windows and MacOs file paths. `R` prefers the MacOs version due to its Linux/Unix roots.
+- The basic building blocks of `R` include **`objects`**, **`functions()`** and **`arguments`**. Please learn what these dreaded jargon words mean, it will make your `R` life much simpler! 🥸
