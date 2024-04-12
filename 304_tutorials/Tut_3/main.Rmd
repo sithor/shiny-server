@@ -686,3 +686,11 @@ You can see that the proportion of missing data is low except for the last varia
 ## Homework
 
 I encourage you to reproduce the steps we have taken here in an `R` script in `posit` on your laptop, to make sure you can get it working in the real world, should you need to!
+
+## Summary
+
+This has been a busy session. We have learned:
+
+- That `R` often needs additional packages to accomplish what we want it to. We need to install additional packages using the `install.packages()` command, and the `library()` function means `R` will search for the `functions()` in this package in our current work session.
+- That `R` has different types of data that we wish to analyse. These include: numbers, characters, factors and logical values.
+- Before we dive in and analyse we need to take a breath and check the quality of our data. Common traps we need to look for are **duplicates**, **missing values** and **out of range or implausible variables**.
