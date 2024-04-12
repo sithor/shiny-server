@@ -1032,7 +1032,7 @@ regress_tab |> kableExtra::kable_styling()
 [Which demographic group has the highest odds for marijuana
 use?]{style="color:blue"}
 
-## Summary
+## **Summary**
 
 Today, we have extended regression to account for binary variables which are 
 often used in epidemiology. Logistic regression is used to predict the probability of a binary outcome such as disease.
