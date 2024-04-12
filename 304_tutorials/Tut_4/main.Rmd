@@ -722,6 +722,16 @@ summary(tab, text = TRUE)
 grade_this_code("Superb! Well done!")
 ```
 
+## Summary
+
+We have had a busy hour learning about simple statistical testing for categorical and continuous variables.
+These crude tests can be used if we are not concerned about the influence of third or confounding variables.
+
+- Please visualise statistical tests with a plot before doing the formal test.
+- For categorical exposures and outcomes, we often use chi-square tests or Fisher exact tests.
+- For categorical exposures and continuous outcomes or vice versa, we often use $t$-tests or ANOVA (analysis of variance).
+- Remember, the $P$-value is a conditional probability. The condition is that the null or no effect hypothesis is **true** and the *P*-value tells us how frequent our results or more extreme would occur given this belief. If the $P$-value is less than 0.05, then we abandon the null belief, and instead believe that the exposure and outcome are **associated**. Remember, statistical association is different from causation. 
+
 ### Homework
 
 Try and emulate these analyses in a desktop version of `posit`. 
