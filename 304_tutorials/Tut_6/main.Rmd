@@ -512,7 +512,7 @@ question("How would you interpret the scatter plot between the potential confoun
   answer("No evidence of association in any variables", message = "No, this would be expected if all the regression lines were horizontal"),
   answer("All Negative associations", message = "No, we would expect to see lines in the top right hand corner going to the bottom left."),
   answer("All positive associations", correct = TRUE, message = "Yes, the slope of the line is in the positive direction (more x associated with greater y)."),
-  answer("Something else", correct = TRUE, message = "No, please try again!"),
+  answer("Something else", message = "No, please try again!"),
   allow_retry = TRUE
 )
 ```
