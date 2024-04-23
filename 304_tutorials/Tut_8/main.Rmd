@@ -22,11 +22,12 @@ library("vembedr")
 
 <center>
 
-How marijuana works, by National Geographic.
+If you have a few minutes, this is worth watching on the subject of
+["how marijuana
+works"](https://www.youtube.com/watch?v=Kg8wrzmIdyI){target="_blank"},
+by National Geographic.
 
-```{r echo = FALSE}
-embed_url("https://www.youtube.com/watch?v=Kg8wrzmIdyI")
-```
+![Marijuana joint](./images/marijuana_joint.avif "Joint"){width="20%"}
 
 </center>
 
@@ -105,8 +106,12 @@ We will be leaning on the following libraries to do these analyses:
 
 ## **Background**
 
-<center>![Marijuana by Matthew Brodeur from
-unsplash.com](./images/matthew-brodeur-qcCPIhhdgTw-unsplash.jpg "marijuana"){width="400"}</center>
+<center>
+
+![Marijuana by Matthew Brodeur from
+unsplash.com](./images/matthew-brodeur-qcCPIhhdgTw-unsplash.jpg "marijuana"){width="400"}
+
+</center>
 
 Imagine that we have been assigned a task to consider risk factors for
 marijuana use, and we have in mind some programmes to help reduce
@@ -123,12 +128,7 @@ US national health survey.
 What sort of factors do you think are likely to increase the risk of
 taking recreational marijuana?
 
-[If you were selecting potential risk factors, which of all the
-variables in the NHANES dataset would you consider testing for and
-why?]{style="color:blue"}
-
 ## **Summary of analysis**
-
 
 1.  **Load libraries** and **import data** (here the data is imported
     from an installed library).
@@ -501,9 +501,8 @@ lattice::bwplot(Age ~ Marijuana, data = M)
 
 ##### **`r Qnum()`**
 
-Create a plot with `lattice::bwplot()` to
-show the relationship between `BMI` (exposure) and `Marijuana` use
-(outcome).
+Create a plot with `lattice::bwplot()` to show the relationship between
+`BMI` (exposure) and `Marijuana` use (outcome).
 
 ```{r univariable_11, exercise = TRUE}
 # lattice::bwplot(variable1 ~ variable2, data = dataset)
@@ -540,8 +539,8 @@ M$SmokeCurrent <- ifelse(M$SmokeNow == "Yes", "Yes", "No")
 M$SmokeCurrent |> tab1()
 ```
 
-Now use the `cc()` function to test whether `SmokeCurrent` is associated with
-`Marijuana`.
+Now use the `cc()` function to test whether `SmokeCurrent` is associated
+with `Marijuana`.
 
 ```{r univariable_13, exercise = TRUE}
 cc(M$Marijuana, M$SmokeCurrent)
@@ -566,7 +565,8 @@ answer("P = 0", message = "No. A P-value is *never exactly 0.* There is always a
 There are 2 alcohol variables and the first one we'll look at is
 `AlcoholYear`: the number of days over the past year that the
 participant drank alcohol. This is a continuous variable - so use a box
-plot to visualise its relationship with the categorical outcome `Marijuana` use.
+plot to visualise its relationship with the categorical outcome
+`Marijuana` use.
 
 ```{r univariable_15, exercise = TRUE}
 lattice::bwplot(AlcoholYear ~ Marijuana, data = M,
@@ -625,8 +625,8 @@ ellipses.
 When interpreting a Euler plot please note that:\
 - The **area** of the ellipse is proportional to the counts of
 individuals with that characteristic.\
-- More **overlap** between variables indicates
-*stronger* statistical association between them.
+- More **overlap** between variables indicates *stronger* statistical
+association between them.
 
 Create a Euler plot to visualise associations between `Marijuana`,
 `HardDrugs` and `Alcohol12PlusYr`.
@@ -707,8 +707,8 @@ answer("The area between the blue and grey areas represents those in the `Mariju
 
 ## **Publication-quality by-group frequency tables (Table 1)**
 
-We can use the `tableby()` function in the `arsenal` library to produce a
-publication-quality table of count and % values for variables by
+We can use the `tableby()` function in the `arsenal` library to produce
+a publication-quality table of count and % values for variables by
 Marijuana use. Usually, this is `Table 1` in a publication.
 
 ```{r pub_table1_1, exercise = TRUE}
@@ -774,7 +774,8 @@ answer("The odds of marijuana use is 3.31305 higher among hard drug users", mess
 )
 ```
 
-Exponentiate the model $\beta$ coefficients with the `jtools::summ()` function to derive odds ratios.
+Exponentiate the model $\beta$ coefficients with the `jtools::summ()`
+function to derive odds ratios.
 
 ```{r logistic_4, exercise = TRUE}
 jtools::summ(model, exp = TRUE)
@@ -959,8 +960,8 @@ PerformanceAnalytics::chart.Correlation(my_data,
 This is a visual summary of the contributions of predictors to an
 outcome. We covered regression nomograms in the previous tutorial.
 
-The following code draws a regression nomogram for our model from
-the **logistic model** section.
+The following code draws a regression nomogram for our model from the
+**logistic model** section.
 
 `regplot(model)`
 
@@ -970,13 +971,19 @@ The output is shown below
 
 The nomogram depicts the structure of the model as a weighted average.
 
-Each variable contributes a score `β(X-m) terms` based on the horizontal deviation.
-These are summed for each individual to give a `Total score`.\
-Reading vertically down from the `Total score`, then gives a probability of `Marijuana` use for each individual in the model (ranging between 0 and 1).
+Each variable contributes a score `β(X-m) terms` based on the horizontal
+deviation. These are summed for each individual to give a
+`Total score`.\
+Reading vertically down from the `Total score`, then gives a probability
+of `Marijuana` use for each individual in the model (ranging between 0
+and 1).
 
-The horizontal distance between boxes or degree of spread of density plots for variables represents the relative influence of the variable on the model outcome.
+The horizontal distance between boxes or degree of spread of density
+plots for variables represents the relative influence of the variable on
+the model outcome.
 
-The size of each box shows the distribution of categorical variables and the density plot shows the distribution of continuous variables.
+The size of each box shows the distribution of categorical variables and
+the density plot shows the distribution of continuous variables.
 
 ##### **`r Qnum()`**
 
@@ -994,15 +1001,19 @@ How well a model fits the data can be assessed with a marginal model
 plot, which shows the relationship between model predicted and observed
 data.
 
-
 ```{r mmp, exercise = TRUE, warning = FALSE, error=FALSE}
+
+# Note, all predictor variables must be factors for marginal model plot to work....
+model <- glm(Marijuana ~ factor(SmokeNow) + factor(HardDrugs) + factor(Race1) + Age + 
+               factor(Gender) + factor(Depressed) + factor(Alcohol12PlusYr), data = M,
+             family = binomial(link = "logit"))
+
 assign("M", M, envir = .GlobalEnv)
-assign("model_bin", model, envir = .GlobalEnv)
+assign("model", model, envir = .GlobalEnv)
 
 ## marginal model plot
-car::marginalModelPlots(model_bin)
+car::marginalModelPlots(model)
 ```
-
 
 We covered marginal model plots in the previous tutorials.\
 Look at the plots above. [How well does the overall model fit the
@@ -1011,7 +1022,10 @@ data?]{style="color:blue"}
 ## **Publication-quality regression tables (Table 2)**
 
 The code below allows us to produce publication-quality regression
-tables. Usually, a regression table is `Table 2` in a publication. Note that the `dependent` variable must be a `factor` variable with two levels for this code to produce a *logistic regression* model, rather than a linear or other regression.
+tables. Usually, a regression table is `Table 2` in a publication. Note
+that the `dependent` variable must be a `factor` variable with two
+levels for this code to produce a *logistic regression* model, rather
+than a linear or other regression.
 
 ```{r pub_table2_1, exercise = TRUE}
 dependent <- "Marijuana"
@@ -1034,13 +1048,19 @@ use?]{style="color:blue"}
 
 ## **Summary**
 
-Today, we have extended regression to account for binary variables which are 
-often used in epidemiology. Logistic regression is used to predict the probability of a binary outcome such as disease.
+Today, we have extended regression to account for binary variables which
+are often used in epidemiology. Logistic regression is used to predict
+the probability of a binary outcome such as disease.
 
-- It is often used when the outcome is a binary variable and there are confounders to adjust for.
-- The principles are similar to usual regression, however the beta coefficients are exponentiated and interpreted as odds ratios.
-- The outcome variable must have only two levels (`1` and `0`, `Yes` or `No`, or `TRUE` or `FALSE`).
-- We often present results in a table with both crude and adjusted odds ratios to see the effect of adjusting for confounders on an association.
+-   It is often used when the outcome is a binary variable and there are
+    confounders to adjust for.
+-   The principles are similar to usual regression, however the beta
+    coefficients are exponentiated and interpreted as odds ratios.
+-   The outcome variable must have only two levels (`1` and `0`, `Yes`
+    or `No`, or `TRUE` or `FALSE`).
+-   We often present results in a table with both crude and adjusted
+    odds ratios to see the effect of adjusting for confounders on an
+    association.
 
 ## **Homework**
 
