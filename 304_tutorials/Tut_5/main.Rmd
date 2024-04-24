@@ -33,6 +33,7 @@ library(car)
 library(finalfit)
 library(skimr)
 library(lattice)
+
 gradethis::gradethis_setup()
 load("./data/df.rdata")
 df <- df_no_dups
@@ -529,7 +530,8 @@ df |>
                      explanatory, metrics = FALSE) -> regression_table
 
 ## Fancy format for cutting and pasting into Excel
-regress_tab <- knitr::kable(regression_table, row.names = FALSE, 
+regress_tab <- knitr::kable(regression_table, row.names = FALSE,
+                            
                             align = c("l", "l", "r", "r", "r"))
 
 ## Puts output into viewer so that it can be cut and pasted into Excel, 

@@ -22,18 +22,22 @@ library("vembedr")
 
 <center>
 
+![Marijuana joint](./images/marijuana_joint.avif "Joint"){width="50%"}
+
+</center>
+
+<br></br>
+
+
 If you have a few minutes, this is worth watching on the subject of
 ["how marijuana
 works"](https://www.youtube.com/watch?v=Kg8wrzmIdyI){target="_blank"},
 by National Geographic.
-
-![Marijuana joint](./images/marijuana_joint.avif "Joint"){width="20%"}
-
-</center>
-
+<br></br>
 This session, we will focus on modelling of *binary outcomes* in
 epidemiology. These are very common, as many times we will be dealing
-with diseases which we either do or do not have.
+with risk factors or causes of diseases which we either do or do not
+have.
 
 We will learn how to:
 
@@ -49,7 +53,7 @@ We have, by now, covered linear regression which is used when an outcome
 variable is continuous. For count outcomes, we use Poisson regression
 and its derivatives, where the outcome variable is a count or integer.
 For outcomes that are binary ("yes" or "no" for example), logistic
-regression is the answer.
+regression is frequently the answer.
 
 ### Mathematical theory
 
@@ -57,7 +61,9 @@ Logistic models rely on a mathematical trick to transform the right hand
 side of a regression equation
 $\beta_0 + \beta_1 x_1 + \beta_2 x_2 + ... + \beta_z x_z$, with $z$
 exposures or confounders (covariates) from a real number (positive or
-negative) to a probability (constrained to be between zero and one).
+negative, with decimals) to a probability (constrained to be between
+zero and one).
+
 This is accomplished by the magical **logit** transformation of the
 outcome. The **logit** transformation or **log(odds)** is:
 
@@ -91,6 +97,9 @@ is linear. This is nicely illustrated in the following [shiny
 app](https://supsych.shinyapps.io/logistic_regression/){target="_blank"},
 by ticking the **Plot in logit domain** check box.
 
+Statistical tests of associations for $\beta$ coefficients are based on a value of `0` for the null
+ hypothesis. Exponentiated, this corresponds to an odds ratio of `1`, which of course is a null value of the odds ratio.
+ 
 ## Getting started
 
 We will be leaning on the following libraries to do these analyses:
@@ -101,7 +110,6 @@ We will be leaning on the following libraries to do these analyses:
 -   [`corrplot`](https://r-coder.com/correlation-plot-r/){target="_blank"}
 -   [`finalfit`](https://finalfit.org/){target="_blank"}
 -   [`car`](https://socialsciences.mcmaster.ca/jfox/Books/Companion/index.html){target="_blank"}
--   [`AF`](https://cran.r-project.org/web/packages/AF/AF.pdf){target="_blank"}
 -   [`arsenal`](https://mayoverse.github.io/arsenal/articles/tableby.html){target="_blank"}
 
 ## **Background**
@@ -109,7 +117,7 @@ We will be leaning on the following libraries to do these analyses:
 <center>
 
 ![Marijuana by Matthew Brodeur from
-unsplash.com](./images/matthew-brodeur-qcCPIhhdgTw-unsplash.jpg "marijuana"){width="400"}
+unsplash.com](./images/matthew-brodeur-qcCPIhhdgTw-unsplash.jpg "marijuana"){width="200"}
 
 </center>
 
@@ -162,19 +170,10 @@ taking recreational marijuana?
     visualise models. `jtools` is useful for making initial model output
     interpretable!
 
-7.  We've added a step here, which is to estimate the **population
-    attributable risk**, using the `AF::AFglm()` function. This gives an
-    idea of how important each exposure is, in terms of contributing to
-    the outcome. This calculation assumes that the exposure *causes* the
-    outcome (marijuana) here, rather than just being associated with it.
-    This function is less permissive than others, and expects us to do
-    the hard work of transforming categorical variables into a
-    mathematical form, like for the fourth point.
-
-8.  **Check model fit** (`car::marginalModelPlots()`) and adjust the
+7.  **Check model fit** (`car::marginalModelPlots()`) and adjust the
     model if necessary.
 
-9.  **Interpret the study results**. Which variables are significantly
+8.  **Interpret the study results**. Which variables are significantly
     associated Could there be other explanations other than a causal
     explanation? Could it be: reverse causation, measurement error,
     social desirability bias?
@@ -231,6 +230,7 @@ library(ggstance)
 library(broom.mixed)
 library(car)
 library(eulerr)
+library(glmtoolbox) # Hosmer-Lemeshow test
 #library(regplot)
 library(AF)
 library(PerformanceAnalytics)
@@ -383,8 +383,8 @@ Use the `skim()` function to get a summary of our dataset
 M |> skim()
 ```
 
-[Are there any implausible values (check `p0` and
-`p100`)?]{style="color:blue"}
+Check for any implausible values (check `p0` and
+`p100`).
 
 #### Outcome: **marijuana use**
 
@@ -395,9 +395,6 @@ removed.
 M$Marijuana |> tab1()
 ```
 
-[Please check that the missing responses been
-removed.]{style="color:blue"}
-
 #### Do depressed people self-medicate with marijuana?
 
 Inspect the groups for the `Depressed` variable.
@@ -406,12 +403,11 @@ Inspect the groups for the `Depressed` variable.
 M$Depressed |> tab1()
 ```
 
-You should get 3 depression groups: none, several and most.\
-- [What are their units?]{style="color:blue"}\
-- Use `?NHANES` to find out
+You should get three depression groups: **none**, **several** and **most**, indicating the number of days in the 
+last month that the subject felt *"down"* or *"depressed"* or *"hopeless"*.\
 
-Use the `str` function to find out what type of variable our outcome is.
-For our analyses, it should be of the type, `factor`. Check if it is.
+Use the `str()` function to find out what type of variable our outcome is.
+For our analyses, it should be of the type, `factor`. Check that.
 
 ```{r univariable_6, exercise = TRUE}
 M$Marijuana |> str()
@@ -562,7 +558,7 @@ answer("P = 0", message = "No. A P-value is *never exactly 0.* There is always a
 
 #### What about alcohol?
 
-There are 2 alcohol variables and the first one we'll look at is
+There are two alcohol variables and the first one we'll look at is
 `AlcoholYear`: the number of days over the past year that the
 participant drank alcohol. This is a continuous variable - so use a box
 plot to visualise its relationship with the categorical outcome
@@ -573,20 +569,88 @@ lattice::bwplot(AlcoholYear ~ Marijuana, data = M,
                 ylab = "Average number of days in year alcohol consumed")
 ```
 
-[How would you describe the relationship between `AlcoholYear` and
-`Marijuana`?]{style="color:blue"}
-
 The second alcohol variable we'll consider is `AlcoholDay`: the average
 number of drinks consumed on days that a participant drank alcohol. This
-is also continuous variable - so use a box plot.
+is also continuous variable - so use a box plot. 
+
+Notice that individuals who responded to `AlcoholYear` with a `0` have a missing (`NA`) value for 
+`AlcoholDay`. So we will have to correct `AlcoholDay` with the code below.
 
 ```{r univariable_16, exercise = TRUE}
-lattice::bwplot(AlcoholDay ~ Marijuana, data = M,
-                ylab = "Average number of drinks of alcohol consumed")
+
+## These values are missing but should be rather zero
+M[M$AlcoholYear == 0,]$AlcoholDay |> summary()
+
+## Change them to zero rather than missing
+M$AlcoholDay_corrected <- ifelse(M$AlcoholYear == 0, 0, M$AlcoholDay)
+
+M$AlcoholDay |> summary()
+
+lattice::bwplot(AlcoholDay_corrected ~ Marijuana, data = M,
+                ylab = "Average number of alcoholic drinks consumed 
+                in a drinking session")
 ```
 
-[Is the *strength* of the association between `AlcoholDay` and
-`Marijuana` weak, medium or strong?]{style="color:blue"}
+
+##### **`r Qnum()`**
+
+```{r univariable_15_1, echo = FALSE}
+question("Describe the distribution of the variable `AlcoholDay_corrected`.",
+answer("Right skewed", message = "Correct!", correct = TRUE),
+  answer("Symmetric or normally distributed", message = "No, have a close look at the box and whiskers, they are not symmetric!"),
+  answer("Left skewed", message = "No, the outliers (blue dots) would be below the box in that case."),
+  allow_retry = TRUE
+)
+```
+
+With the **right-skewed** nature of the plot, we can use a log transformation 
+to achieve a more symmetric distribution and better compare the two distributions.
+
+We can confirm the need for a log transformation with the following code, 
+which tests for the optimum power transformation $\lambda$ to achieve normality for the distribution.
+
+A $P$-value that is significant means we reject the proposed value of $\lambda$, which in each case is 0 (meaning a log transformation is necessary) and 1 (meaning no transformation is necessary).
+
+Notice that for log transformations, we often need to add a small number to avoid negative values.
+
+```{r p_transform, exercise = TRUE}
+car::powerTransform(I(AlcoholDay_corrected + 0.5) ~ 1, data = M,
+                          family = "bcPower") |> summary()
+
+car::symbox(~ I(AlcoholDay_corrected + 0.5), data = M)
+
+```
+
+The results indicate that both no transformation and a log transformation can be rejected and that the suggested transformation is `-0.30`, which is close to $\frac{1}{\sqrt[3]{x}}$. We could use such a transformation, but it is unfamiliar and hard to interpret the result.
+
+However, the boxplot of a range of powers (`car::symbox()` function) shows that a close approximation to a symmetrical distribution is achieved with a log transformation. Since this is familiar and easy to interpret, we will use this.
+
+
+```{r univariable_16_2, exercise = TRUE}
+summary(M$AlcoholDay)
+
+lattice::bwplot(I(log(AlcoholDay_corrected + 0.5)) ~ Marijuana, data = M,
+                ylab = "ln(Average number of alcoholic drinks consumed 
+                in a drinking session)")
+```
+
+
+
+[{style="color:blue"}
+
+##### **`r Qnum()`**
+
+```{r strength_alcohol, echo = FALSE}
+question("Is the strength of the association between `AlcoholDay_corrected` and
+`Marijuana` use weak, medium or strong?",
+answer("medium", message = "Correct! The median values are the same, but the extreme high values are higher in marijuana users.", correct = TRUE),
+  answer("Weak", message = "No, please try again."),
+  answer("Strong", message = "No, please try again."),
+  allow_retry = TRUE
+)
+```
+
+
 
 #### Is marijuana a rich or poor issue?
 
@@ -600,6 +664,19 @@ lattice::bwplot(HHIncomeMid ~ Marijuana, data = M,
 
 [Does medium income differ much across marijuana
 groups?]{style="color:blue"}
+
+##### **`r Qnum()`**
+
+```{r strength_hh_income, echo = FALSE}
+question("Are marijuana users on average poorer or wealthier than abstainers?",
+
+  answer("No difference", message = "No, please try again."),
+  answer("Wealthier", message = "Correct! You can see the box of marijuana users is shifted higher", correct = TRUE),
+  answer("Poorer", message = "No, please try again."),
+  allow_retry = TRUE
+)
+```
+
 
 #### Hard drugs?
 
@@ -661,10 +738,6 @@ group and the group that a Euler plot shows is the *reference* group\
 the area of the `All` (white) group. This indicates that a *high %* of
 the sample were in the `Alcohol_factor=Yes` group.
 
-[Do the ellipses for `Alcohol_factor_Yes`, `Marijuana_factor_Yes` and
-`HardDrugs_factor_Yes` overlap?]{style="color:blue"}\
-[What does this tell us about the strength of their
-associations?]{style="color:blue"}
 
 ```{r euler_2, exercise = TRUE}
 M$Marijuana |> tab1()
@@ -694,16 +767,32 @@ fit1 <- eulerr::euler(M[,c("Marijuana_factor",
 plot(fit1, main = "Marijuana and Alcohol")
 ```
 
-##### **`r Qnum()`**
+## **Correlations between variables**
 
-```{r euler_5, echo = FALSE}
-question("Look at the Euler plot. Which of the following statements are true? (select all that apply)",
-answer("The area between the blue and grey areas represents those in the `Marijuana=Yes` group *and* those in the `Alcohol_factor_Yes` group", message = "Statement 1 is true as, in that area, both ellipses overlap. ",  correct = TRUE),
-  answer("A high % of those in the `Marijuana=Yes` group (outcome) are also in the `Alcohol_factor_Yes` group", message = "Statements 2 and 3 are true as a high % of the area represented by the `Marijuana=Yes` group *overlaps* with the `Alcohol_factor=Yes` ellipse",  correct = TRUE),
-  answer("`Alcohol_factor` is strongly associated with `Marijuana_factor`", message = "",  correct = TRUE),
+In the previous section, we created binary variables. This allows us to
+look at correlations between them and other variables.
+
+```{r correl_1, exercise = TRUE, warning = FALSE}
+# Select variables for corelation analysis
+my_data <- M[, c("Male",
+                  "Marijuana_bin", "Alcohol_bin", "SmokeNow_bin",
+                  "HardDrugs_bin", "Age")]
+
+PerformanceAnalytics::chart.Correlation(my_data, 
+                                        histogram=TRUE, pch=19)
+```
+
+
+```{r correlation, echo = FALSE}
+question("Which variable is most strongly correlated with `Marijuana` use?",
+answer("`HardDrugs`", message = "Yes, the correlation coefficient is greatest!", correct = TRUE),
+  answer("`Alcohol_bin`", message = "Sorry, this is second strongest, please try again!"),
+  answer("`Male`", message = "Sorry, this is third strongest, please try again!"),
+  answer("`Age`", message = "Sorry, this is not associated, please try again!"),
   allow_retry = TRUE
 )
 ```
+
 
 ## **Publication-quality by-group frequency tables (Table 1)**
 
@@ -732,8 +821,17 @@ table manually by typing in values -- so it saves you time!\
 `write2html(tab1, "./trash.html", title = "My table in html")`\
 `write2word(tab1, "./trash.doc", title = "My table in Word")`
 
-[From the table above, Which variables are associated with
-`Marijuana`?]{style="color:blue"}
+
+```{r table1, echo = FALSE}
+question("From the table above, which variables are associated with
+`Marijuana`?",
+
+  answer("None", message = "No, please try again."),
+  answer("`HardDrugs`, `Race1`, `Gender`, `Depressed` and `Alcohol12PlusYr`", message = "Correct! The P-values for these comparisons are less than 0.05", correct = TRUE),
+  answer("`HardDrugs` and `Race1`", message = "No, you've missed a few more, please try again!"),
+  allow_retry = TRUE
+)
+```
 
 ## **Logistic model**
 
@@ -793,9 +891,6 @@ answer("The odds of marijuana use is 27.47 higher among hard drug users", messag
 )
 ```
 
-[How would you describe the **strength** of association between hard
-drugs and marijuana use?]{style="color:blue"}
-
 That was a *univariable* model with just one exposure (`HardDrugs`). Now
 we'll create a *multivariable* model so that we can also adjust for
 potential confounders.
@@ -808,152 +903,8 @@ model <- glm(Marijuana ~ SmokeNow + HardDrugs + Race1 + Age +
 jtools::summ(model, exp = TRUE) # Exponentiate the beta coefficients to get odds ratios
 ```
 
-[Which variables are significantly associated with marijuana
-use?]{style="color:blue"}
-
-## **Attributable risk**
-
-Attributable risk quantifies the proportion of an outcome that is
-attributable to a particular exposure.
-
-To calculate this in **R**, we need to first:\
-- identify the group names for our variables\
-- assign these names values of `0` and `1` so that we create binary
-variables.
-
-First up is `HardDrugs`. Identify the group names and them assign these
-values of 0 and 1.
-
-```{r af_1, exercise = TRUE}
-M$HardDrugs |> tab1() # Identify group names
-M$HardDrugs_bin <- ifelse(M$HardDrugs == "Yes", 1, 0) # Change `"Yes"` to `1` and everything else to `0.`
-```
-
-Do the same for `SmokeNow.`
-
-```{r af_2, exercise = TRUE}
-## Change variable from factor to character to allow next line of 
-## code to run
-
-M$SmokeNow <-  M$SmokeNow |> as.character()
-
-## Change missing (never smokers) to "never"
-M[is.na(M$SmokeNow), "SmokeNow"] <- "Never"
-
-M$SmokeNow |> tab1()
-
-## Make a numeric binary variable from "Smokenow"
-M$SmokeNow_bin <- ifelse(M$SmokeNow == "Yes", 1, 0)
 
 
-```
-
-Do the same for `Gender.`
-
-```{r af_3, exercise = TRUE}
-M$Gender |> tab1()
-M$Male <- ifelse(M$Gender == "male", 1, 0)
-```
-
-And the same for `Marijuana.`
-
-```{r af_4, exercise = TRUE}
-M$Marijuana |> tab1()
-M$Marijuana_bin <- ifelse(M$Marijuana == "Yes", 1, 0)
-```
-
-And for `Alcohol12PlusYr.`
-
-```{r af_5, exercise = TRUE}
-M$Alcohol12PlusYr |> tab1()
-M$Alcohol_bin <- ifelse(M$Alcohol12PlusYr == "Yes", 1, 0)
-```
-
-Put the binary variables we created into a multivariable model so we can
-calculate attributable risk.
-
-```{r af_6, exercise = TRUE}
-model_bin <- glm(Marijuana_bin ~ SmokeNow_bin + 
-                    HardDrugs_bin + 
-                    Age + 
-                    Race1 +
-                    Male + 
-                    Alcohol_bin, 
-                    data = M,
-                    family = binomial(link = "logit"))
-```
-
-Calculate attributable fraction from cigarette smoking.
-
-```{r af_7, exercise = TRUE}
-AF::AFglm(model_bin, data = M, 
-          exposure = "SmokeNow_bin", 
-          case.control = FALSE)
-```
-
-Please interpret the output.
-
-##### **`r Qnum()`**
-
-```{r af_10, echo = FALSE}
-question("AF quantifies the impact of smoking on marijuana use, but makes the hidden assumption that smoking *causes* or leads to marijuana use",
-answer("True", message = "Yes, AF assumes that the exposure (smoking) causes the outcome (marijuana use)",  correct = TRUE),
-  answer("False", message = "No, AF assumes that the exposure (smoking) causes the outcome (marijuana use)"),
-  allow_retry = TRUE
-)
-```
-
-##### **`r Qnum()`**
-
-```{r af_11, echo = FALSE}
-question("If smoking was more prevalent in the population, the calculated AF would be the same.",
-answer("True", message = "No, if prevalence of smoking increased, then AF would also increase."),
-  answer("False", message = "Yes, AF would also increase if the prevalence of smoking increased.",  correct = TRUE),
-  allow_retry = TRUE
-)
-```
-
-Calculate the attributable fraction of the influence of `HardDrugs_bin`
-use on `Marijuana`.
-
-```{r af_12, exercise = TRUE}
-AF::AFglm(model_bin, data = M, 
-          exposure = "HardDrugs_bin", 
-          case.control = FALSE)
-```
-
-Calculate the attributable fraction from alcohol use (`Alcohol_bin`) on
-`Marijuana` use.
-
-```{r af_13, exercise = TRUE}
-AF::AFglm(model_bin, data = M, 
-          exposure = "Alcohol_bin", 
-          case.control = FALSE)
-```
-
-Previously, we saw that the odds ratio is much higher for hard drugs
-than for alcohol. However, the attributable fraction is highest for
-alcohol.
-
-[Why is this?]{style="color:blue"}
-
-## **Correlations**
-
-In the previous section, we created binary variables. This allows us to
-look at correlations between them and other variables.
-
-```{r correl_1, exercise = TRUE}
-# Select variables for corelation analysis
-my_data <- M[, c("Male",
-                  "Marijuana_bin", "Alcohol_bin", "SmokeNow_bin",
-                  "HardDrugs_bin", "Age")]
-
-PerformanceAnalytics::chart.Correlation(my_data, 
-                                        histogram=TRUE, pch=19)
-```
-
-[Which variable is most strongly correlated with the outcome
-(`Marijuana_bin`)?]{style="color:blue"}
 
 ## **Regression nomogram**
 
@@ -1011,13 +962,45 @@ model <- glm(Marijuana ~ factor(SmokeNow) + factor(HardDrugs) + factor(Race1) + 
 assign("M", M, envir = .GlobalEnv)
 assign("model", model, envir = .GlobalEnv)
 
+## Hosmer-Lemeshow test of model fit
+
+glmtoolbox::hltest(model)
+
 ## marginal model plot
 car::marginalModelPlots(model)
 ```
 
-We covered marginal model plots in the previous tutorials.\
-Look at the plots above. [How well does the overall model fit the
-data?]{style="color:blue"}
+### Hosmer-Lemeshow test
+
+This
+[test](https://en.wikipedia.org/wiki/Hosmer%E2%80%93Lemeshow_test){target="_blank"}
+divides the data into deciles based on ordered predicted probability of
+the outcome (here: marijuana use). Then, the test then compares the
+number of cases expected in each outcome group for expected and observed
+counts. The null hypothesis is that there is no difference between
+observed and model predicted cases throughout the range of risk.
+
+You can see that the observed and expected counts in the output above
+are very closely aligned.
+
+Here, the $P$-value is 0.8105, which is not significant. Therefore, the
+*calibration* of the model between observed and predicted numbers is
+good. There are some limitations of the Hosmer-Lemeshow test discussed
+[here](https://en.wikipedia.org/wiki/Hosmer%E2%80%93Lemeshow_test){target="_blank"}.
+
+### Model fit - marginal model plot
+
+We covered the theory related to marginal model plots in past
+tutorials.\
+Look at the plots above.
+
+```{r mms, echo = FALSE}
+question("From the marginal model plot, how well does the model fit the observed data?",
+answer("Very well", message = "Well done, the lines almost completely overlap, indicating the moving averages of the data and model predictions are almostly completely aligned.",  correct = TRUE),
+  answer("Poorly", message = "Sorry, try again. The overlapping lines suggest good model fit!"),
+  allow_retry = TRUE
+)
+```
 
 ## **Publication-quality regression tables (Table 2)**
 
@@ -1034,13 +1017,22 @@ explanatory <- c(
   "HardDrugs","Race1", "Age", "Depressed", "Alcohol12PlusYr")
 
 M |>
- finalfit(dependent, explanatory) -> regression_table
+ finalfit(dependent, explanatory, metrics = FALSE) -> regression_table
   
   
-regress_tab <- knitr::kable(regression_table, row.names = FALSE, 
-                            align = c("l", "l", "r", "r", "r"))
+regress_tab <- knitr::kable(regression_table, row.names = FALSE,
+                            
+                            align = c("l", "l", "r", "r", "r", "r"))
 
 regress_tab |> kableExtra::kable_styling()
+
+
+M |>
+ finalfit(dependent, explanatory, metrics = TRUE) -> metrics_table
+
+## show metrics only for display
+metrics_table[[2]]
+
 ```
 
 [Which demographic group has the highest odds for marijuana
@@ -1050,12 +1042,13 @@ use?]{style="color:blue"}
 
 Today, we have extended regression to account for binary variables which
 are often used in epidemiology. Logistic regression is used to predict
-the probability of a binary outcome such as disease.
+the probability of a binary outcome such as disease status.
 
--   It is often used when the outcome is a binary variable and there are
-    confounders to adjust for.
+-   Logistic regression is often used when the outcome is a binary
+    variable and there are confounders to adjust for.
 -   The principles are similar to usual regression, however the beta
-    coefficients are exponentiated and interpreted as odds ratios.
+    coefficients are exponentiated and interpreted as odds ratios
+    (either crude or adjusted).
 -   The outcome variable must have only two levels (`1` and `0`, `Yes`
     or `No`, or `TRUE` or `FALSE`).
 -   We often present results in a table with both crude and adjusted
