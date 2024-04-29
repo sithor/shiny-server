@@ -273,7 +273,7 @@ M$Alcohol_bin <- ifelse(M$Alcohol12PlusYr == "Yes", 1, 0)
 model_bin <- glm(Marijuana_bin ~ SmokeNow_bin + HardDrugs_bin + Age + Race3+
                Male + Alcohol_bin, data = M,
              family = binomial(link = "logit"))
-
+M$AlcoholDay_corrected <- ifelse(M$AlcoholYear == 0, 0, M$AlcoholDay)
 # regplot(model)
 # car::marginalModelPlots(model, sd = TRUE)
 
