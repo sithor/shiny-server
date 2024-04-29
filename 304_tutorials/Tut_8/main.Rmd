@@ -15,7 +15,7 @@ editor_options:
   markdown: 
     wrap: 72
 ---
-
+<br></br>
 <center>
 
 ![Marijuana joint](./images/marijuana_joint.avif "Joint"){width="50%"}
