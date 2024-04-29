@@ -40,7 +40,7 @@ either do or do not have.
 We will learn how to:
 
 -   Plot relationships with binary variables
--   Run and interpret regression models
+-   Run and interpret logistic regression models
 -   Calculate attributable risk
 -   Use regression nomograms to better understand regression models
 -   Interpret the model fit
@@ -55,9 +55,11 @@ regression is frequently the answer.
 
 ### Mathematical theory
 
-Logistic models rely on a mathematical trick to transform the right hand
+Logistic models rely on a mathematical trick to transform the **left-hand**
 side of a regression equation
+
 $\beta_0 + \beta_1 x_1 + \beta_2 x_2 + ... + \beta_z x_z$, with $z$
+
 exposures or confounders (covariates) from a real number (positive or
 negative, with decimals) to a probability (constrained to be between
 zero and one).
