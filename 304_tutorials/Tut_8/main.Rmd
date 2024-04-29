@@ -411,7 +411,18 @@ For our analyses, it should be of the type, `factor`. Check that.
 M$Marijuana |> str()
 ```
 
-[What type of variable is it?]{style="color:blue"}
+##### **`r Qnum()`**
+
+```{r var_str, echo = FALSE}
+question("What type of variable is this?",
+answer("character", message = "No. try again."),
+answer("numeric", message = "No. try again."),
+answer("factor", message = "Well done!",  correct = TRUE),
+answer("logical (`TRUE`, `FALSE`)", message = "No. try again."),
+answer("integer", message = "No. try again."),
+  allow_retry = TRUE
+)
+```
 
 The `cc()` function (from the `epiDisplay` package) calculates and
 displays odds ratios.\
@@ -637,10 +648,6 @@ lattice::bwplot(I(log(AlcoholDay_corrected + 0.5)) ~ Marijuana, data = M,
                 in a drinking session)")
 ```
 
-
-
-[{style="color:blue"}
-
 ##### **`r Qnum()`**
 
 ```{r strength_alcohol, echo = FALSE}
@@ -664,9 +671,6 @@ continuous variable - so use a box plot.
 lattice::bwplot(HHIncomeMid ~ Marijuana, data = M,
                 ylab = "Household income (US$ per year)")
 ```
-
-[Does medium income differ much across marijuana
-groups?]{style="color:blue"}
 
 ##### **`r Qnum()`**
 
@@ -692,8 +696,17 @@ is associated with `Marijuana`.
 cc(M$Marijuana, M$HardDrugs)
 ```
 
-[How would you describe the relationship between `HardDrugs` and
-`Marijuana`?]{style="color:blue"}
+##### **`r Qnum()`**
+
+```{r hard_drugs_2, echo = FALSE}
+question("How would you describe the relationship between hard drugs and marijuana use from the output above?",
+  answer("Weak", message = "No, please try again."),
+  answer("Moderate", message = "Getting warmer"),
+  answer("Strong", message = "Correct! An odds ratio of 27 is super-duper strong!", correct = TRUE),
+  allow_retry = TRUE
+)
+```
+
 
 ## **Euler plots**
 
