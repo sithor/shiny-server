@@ -802,7 +802,7 @@ PerformanceAnalytics::chart.Correlation(my_data,
 
 ```{r correlation, echo = FALSE}
 question("Which variable is most strongly correlated with `Marijuana` use?",
-answer("`HardDrugs`", message = "Yes, the correlation coefficient is greatest!", correct = TRUE),
+answer("`HardDrugs_bin`", message = "Yes, the correlation coefficient is greatest!", correct = TRUE),
   answer("`Alcohol_bin`", message = "Sorry, this is second strongest, please try again!"),
   answer("`Male`", message = "Sorry, this is third strongest, please try again!"),
   answer("`Age`", message = "Sorry, this is not associated, please try again!"),
