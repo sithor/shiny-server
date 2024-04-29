@@ -1,5 +1,5 @@
 ---
-title: "POPLHLTH 304 tutorial 7: logistic regression"
+title: "POPLHLTH 304 tutorial 8: logistic regression"
 author: "Simon Thornley and John Sluyter"
 date: "`r format(Sys.time(), '%e %B, %Y')`"
 output: 
@@ -16,10 +16,6 @@ editor_options:
     wrap: 72
 ---
 
-```{r echo = FALSE}
-library("vembedr")
-```
-
 <center>
 
 ![Marijuana joint](./images/marijuana_joint.avif "Joint"){width="50%"}
@@ -32,12 +28,14 @@ library("vembedr")
 If you have a few minutes, this is worth watching on the subject of
 ["how marijuana
 works"](https://www.youtube.com/watch?v=Kg8wrzmIdyI){target="_blank"},
-by National Geographic.
+by National Geographic. It is a useful introduction to what 
+we'll be studying today.
 <br></br>
+
 This session, we will focus on modelling of *binary outcomes* in
 epidemiology. These are very common, as many times we will be dealing
-with risk factors or causes of diseases which we either do or do not
-have.
+with hypotheses related to risk factors or causes of diseases which we 
+either do or do not have.
 
 We will learn how to:
 
@@ -166,20 +164,18 @@ taking recreational marijuana?
     also between exposures and confounders as well. We will use the
     `arsenal::tableby()` function.
 
-6.  **Logistic regression**, use `finalfit` and `regplot`to finalise and
+6.  **Logistic regression**, use `finalfit()` and `regplot()`to finalise and
     visualise models. `jtools` is useful for making initial model output
     interpretable!
 
 7.  **Check model fit** (`car::marginalModelPlots()`) and adjust the
-    model if necessary.
+    model if necessary. The Hosmer-Lemeshow test is also relevant for checking 
+    the calibration between observed and predicted values.
 
 8.  **Interpret the study results**. Which variables are significantly
     associated Could there be other explanations other than a causal
     explanation? Could it be: reverse causation, measurement error,
     social desirability bias?
-
-Please have a go at the homework. You will only start to understand `R`
-if you have a go at it.
 
 ### Further reading
 
@@ -357,7 +353,7 @@ Na <- NHANES |> subset(Age >= 20) |> data.frame()
 
 In this section, we'll look at the distribution of age and behaviour
 group, and see what groups are associated with marijuana use.\
-Use the `tab1` function to view the groups sizes for our outcome,
+Use the `epiDisplay::tab1()` function to view the groups sizes for our outcome,
 `Marijuana`.
 
 ```{r univariable_1, exercise = TRUE}
@@ -366,10 +362,10 @@ Na$Marijuana |> tab1()
 
 [Notice that there are a lot of missing responses
 (`NAs`)?]{style="color:blue"}\
-Remove these with the next line of code which creates a new dataset
+Remove these with the next line of code which creates a new `data.frame`
 called `M`:\
-- `is.na` selects `NA` (missing) values and `!` means "not"\
-- So `!is.na` findings selects `non-missing` values
+- `is.na()` selects `NA` (missing) values and `!` means "not"\
+- So, `!is.na()` findings selects non-missing values.
 
 Restrict to those with complete responses to `Marijuana` variable
 
@@ -424,31 +420,22 @@ Use this to look at the relationship between `Depressed` (exposure) and
 cc(M$Marijuana, M$Depressed) # Outcome first, exposure second
 ```
 
-Look at the computer output.
-
-The P-values that we've previously dealt with in this course compare 2
+The *P*-values that we've previously dealt with in this course compare 2
 groups. This *P*-value is different because we have 2 groups for
-marijuana and 3 groups for depression -- but just 1 *P*-value. So the
+marijuana and 3 groups for depression -- but just one *P*-value. So the
 *P*-value is *not* for comparing 2 groups. Instead, what it's testing
 has a special name called the **main** effect or **overall** effect:
-this is for the *overall association* between the 2 variables. As it's
+this is for the *overall association* between the two variables. As it's
 almost zero, it means that, *overall*, depression is associated with
 marijuana use.
 
-Look at the graph.\
-[What do you think is the reference group for `Depressed`?
-Why?]{style="color:blue"}\
-[The vertical bars represent 95% confidence intervals. Do they exclude
-1?]{style="color:blue"}
 
 ##### **`r Qnum()`**
 
 ```{r univariable_8, echo = FALSE}
-question("Look at the computer output and graph. Which of the following statements are true?",
-answer("The odds of marijuana use is 1.22 higher in those in the `Most` group than in those in the `None` group", message = "No. As the word *ratio* is in the output, what should we add after `1.22` to imply a ratio?"),
-  answer("The odds of marijuana use is 1.22 higher in those in the `Most` group than in those in *all other* groups", message = "No. As the word *ratio* is in the output, what should we add after `1.22` to imply a ratio? Also, the reference group, which should have an OR of `1` next to it in the output, is NOT *all other* groups. What group has an OR of `1` next to it?"),
-  answer("The odds of marijuana use is 1.22 *times* higher in those in the `Most` group than in those in the `None` group", message = "Yes, the word *times* suggests a ratio. The `None` group is the reference group as it has an OR of `1`",  correct = TRUE),
-  answer("The odds of being in the `Most` group is 1.22 *times* higher those who used marijuana", message = "No, the statement implies that the outcome is the `Most` group but this is not the case"),
+question("Look at the computer output and plot above. Which one of the following statements are true?",
+answer("The odds of marijuana use is 1.22 units higher in the `Most` depressed group than in the `None` group", message = "No. remember we have calculated an odds ratio here."),
+  answer("The odds of marijuana use is 1.22 *times* or 22% higher in the `Most` depressed than in the `None` group", message = "Yes, the word *times* suggests a ratio. The `None` group is the reference group as it has an odds ratio of `1`",  correct = TRUE),
   allow_retry = TRUE
 )
 ```
@@ -457,7 +444,7 @@ answer("The odds of marijuana use is 1.22 higher in those in the `Most` group th
 
 ##### **`r Qnum()`**
 
-Use the `cc` function to show the relationship between gender (exposure)
+Use the `epiDisplay::cc()` function to show the relationship between gender (exposure)
 and marijuana use (outcome).
 
 ```{r univariable_9, exercise = TRUE}
@@ -474,12 +461,11 @@ question? Use the `names` function to list the variable names
 :::
 
 ```{r univariable_9-check}
-grade_this_code("Good! Note that, for the `cc` function, we list the outcome first and exposure second ")
+grade_this_code("Good! Note that, for the `cc()` function, we list the outcome first and exposure second ")
 ```
 
 The graph shows that `female` is the reference group as the red arrow
 points *away* from it.\
-How do you interpret the OR in the graph?
 
 #### Is age associated with marijuana?
 
@@ -491,7 +477,15 @@ visualise its association with our outcome. For this, we'll use the
 lattice::bwplot(Age ~ Marijuana, data = M)
 ```
 
-[Is age associated with marijuana?]{style="color:blue"}
+##### **`r Qnum()`**
+
+```{r age_mari_ass, echo = FALSE}
+question("From the plot above, is age strongly associated with marijuana use?",
+answer("No, the distributions and median (central dot) is about the same.", message = "Yes. Although we haven't seen the result of the statistical test yet, there is little visual difference in the two distributions.", correct = TRUE),
+  answer("Yes, marijuana users are on average much younger than non-users", message = "Although this might be what we expect, we don't see this in the plot, in fact the median is slightly older in marijuana users."),
+  allow_retry = TRUE
+)
+```
 
 #### Is BMI associated with marijuana?
 
@@ -514,11 +508,18 @@ question? Use `?lattice::bwplot` if needed
 :::
 
 ```{r univariable_11-check}
-grade_this_code("Good job! Note that, for the `lattice::bwplot` function, we list the continuous variable (`BMI`) first and categorical variable (`Marijuana`) second")
+grade_this_code("Good job! Note that, for the `lattice::bwplot()` function, we list the continuous variable (`BMI`) first and categorical variable (`Marijuana`) second")
 ```
 
-[Is `BMI` associated with marijuana use? What is the median BMI for each
-group?]{style="color:blue"}
+##### **`r Qnum()`**
+
+```{r bmi_mari_ass, echo = FALSE}
+question("From the plot above, is BMI strongly associated with marijuana use?",
+answer("No, the distributions and median (central dot) is about the same.", message = "Yes. Although there is a longer tail in the 'no marijuana' group, the median values of BMI are very similar.", correct = TRUE),
+  answer("Yes, marijuana use is strongly associated with BMI.", message = "Although this might be what we expect, we don't see this in the plot."),
+  allow_retry = TRUE
+)
+```
 
 #### Are smokers more likely to take marijuana?
 
@@ -548,10 +549,10 @@ results?]{style="color:blue"}
 ##### **`r Qnum()`**
 
 ```{r univariable_14, echo = FALSE}
-question("Your output should read `P value = 0`. What’s the most appropriate P-value to report?",
+question("Your output should read `P value = 0`. What's the most appropriate P-value to report?",
 answer("P = 0", message = "No. A P-value is *never exactly 0.* There is always a chance (no matter how small), that our observed results (or one more extreme) could have occurred under the null hypothesis"),
-  answer("P = 0.0001", message = "No, you should get a very high Chi-squared statistic (of 137), which suggests a P-value lower than this"),
-  answer("P < 0.0001", message = "Yes, this is consistent with the very high Chi-squared statistic (of 137). It is common to report very low P-values this way",  correct = TRUE),
+  answer("P = 0.0001", message = "No, you should get a very high Chi-squared statistic (of 137), which indicates a P-value lower than this"),
+  answer("P < 0.0001", message = "Yes, this is consistent with the very high Chi-squared statistic (of 137). It is a convention to report very low P-values this way",  correct = TRUE),
   allow_retry = TRUE
 )
 ```
@@ -1035,12 +1036,21 @@ metrics_table[[2]]
 
 ```
 
-[Which demographic group has the highest odds for marijuana
-use?]{style="color:blue"}
+##### **`r Qnum()`**
+
+```{r ethnic_group, echo = FALSE}
+question("From the output above, which ethnic group (`Race1`) has the highest prevalence of marijuana use, before adjusting for other variables?",
+answer("Black", message = "No, this is the reference group, and have a higher prevalence than Other, Hispanic and Mexican, but lower than 'White'."),
+  answer("Hispanic", message = "Sorry, try again. This group has the lowest prevalence of marijuana use!"),
+  answer("White", message = "Well done, the crude odds ratio is highest (1.41), indicating the highest (crude) prevalence of use of marijuana.", correct = TRUE),
+  allow_retry = TRUE
+)
+```
 
 ## **Summary**
 
-Today, we have extended regression to account for binary variables which
+Today, we have extended regression to help us estimate the strength of 
+association between risk factors and binary outcomes which
 are often used in epidemiology. Logistic regression is used to predict
 the probability of a binary outcome such as disease status.
 
