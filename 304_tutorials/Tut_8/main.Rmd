@@ -41,7 +41,6 @@ We will learn how to:
 
 -   Plot relationships with binary variables
 -   Run and interpret logistic regression models
--   Calculate attributable risk
 -   Use regression nomograms to better understand regression models
 -   Interpret the model fit
 
