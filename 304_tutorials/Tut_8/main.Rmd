@@ -432,6 +432,8 @@ Use this to look at the relationship between `Depressed` (exposure) and
 cc(M$Marijuana, M$Depressed) # Outcome first, exposure second
 ```
 
+
+
 The *P*-values that we've previously dealt with in this course compare 2
 groups. This *P*-value is different because we have 2 groups for
 marijuana and 3 groups for depression -- but just one *P*-value. So the
@@ -440,6 +442,18 @@ has a special name called the **main** effect or **overall** effect:
 this is for the *overall association* between the two variables. As it's
 almost zero, it means that, *overall*, depression is associated with
 marijuana use.
+
+
+##### **`r Qnum()`**
+
+```{r univariable_14, echo = FALSE}
+question("Your output should read `P value = 0`. What's the most appropriate P-value to report?",
+answer("P = 0", message = "No. A P-value is *never exactly 0.* There is always a chance (no matter how small), that our observed results (or one more extreme) could have occurred under the null hypothesis"),
+  answer("P = 0.0001", message = "No, the P-value is lower than this"),
+  answer("P < 0.0001", message = "Yes, this is consistent with the very high Chi-squared statistic (of ~33). It is a convention to report very low *P*-values this way",  correct = TRUE),
+  allow_retry = TRUE
+)
+```
 
 
 ##### **`r Qnum()`**
@@ -555,19 +569,7 @@ with `Marijuana`.
 cc(M$Marijuana, M$SmokeCurrent)
 ```
 
-[What is the reference group? How can we tell from our
-results?]{style="color:blue"}
 
-##### **`r Qnum()`**
-
-```{r univariable_14, echo = FALSE}
-question("Your output should read `P value = 0`. What's the most appropriate P-value to report?",
-answer("P = 0", message = "No. A P-value is *never exactly 0.* There is always a chance (no matter how small), that our observed results (or one more extreme) could have occurred under the null hypothesis"),
-  answer("P = 0.0001", message = "No, you should get a very high Chi-squared statistic (of 137), which indicates a P-value lower than this"),
-  answer("P < 0.0001", message = "Yes, this is consistent with the very high Chi-squared statistic (of 137). It is a convention to report very low P-values this way",  correct = TRUE),
-  allow_retry = TRUE
-)
-```
 
 #### What about alcohol?
 
