@@ -76,5 +76,5 @@ embed_url("https://www.youtube.com/watch?v=7iEe8ZYyrhA")
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=GwmJDhOyp2c")
 ```
-
+<br></br>
 My [interview](https://www.1news.co.nz/2020/09/06/not-lockdowns-controversial-epidemiologist-calls-for-end-to-irrational-covid-19-elimination-strategy/){target="_blank"} with Jack Tame on Q&A which aired on TVNZ (September 6, 2020).
