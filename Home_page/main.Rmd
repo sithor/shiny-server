@@ -1,6 +1,6 @@
 ---
 title: "Welcome to Dr Simon Thornley's digital droplet"
-author: "Simon Thornley"
+author: ""
 date: "`r format(Sys.time(), '%e %B, %Y')`"
 output: html_document
 prettydoc::html_pretty:
@@ -48,24 +48,30 @@ Some of these tutorials are found on links below:
 - [My github page](https://github.com/sithor/){target="_blank"}
 
 ## Some of my talks
-
+<br></br>
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=rYq82gh7gZE")
 ```
 
+<br></br>
 
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=9FROFwHjEms&t=1545s")
 ```
 
+<br></br>
+
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=fqxNUV1aesg")
 ```
 
+<br></br>
 
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=7iEe8ZYyrhA")
 ```
+
+<br></br>
 
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=GwmJDhOyp2c")
