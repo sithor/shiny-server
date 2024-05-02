@@ -230,9 +230,10 @@ library(eulerr)
 library(glmtoolbox) # Hosmer-Lemeshow test
 #library(regplot)
 library(AF)
+library(epitools)
 library(PerformanceAnalytics)
 library(arsenal)
-
+library(chisquare)
 gradethis::gradethis_setup()
 
 
@@ -248,7 +249,12 @@ Na <- NHANES |> subset(Age >= 20) |> data.frame()
 # Restrict to those with complete responses to Marijuana variable
 M <- Na |> subset(!is.na(Na$Marijuana))
 
-M$SmokeCurrent <- ifelse(M$SmokeNow == "Yes", "Yes", "No")
+M$SmokeNow <- M$SmokeNow |> as.character()
+
+## Missing data for Smokenow indicate 'never smokers'
+M$SmokeCurrent <- ifelse(is.na(M$SmokeNow), "Never", M$SmokeNow)
+
+
 
 M$All <- 1 # Assigns `1` to all rows. We’ll use this to create an ellipse for all participants
 M$Marijuana_factor <- M$Marijuana |> factor() |> relevel(ref = "Yes")
@@ -271,11 +277,15 @@ M$Male <- ifelse(M$Gender == "male", 1, 0)
 M$Marijuana_bin <- ifelse(M$Marijuana == "Yes", 1, 0)
 M$Alcohol_bin <- ifelse(M$Alcohol12PlusYr == "Yes", 1, 0)
 
+
+model <- glm(Marijuana ~ SmokeCurrent + HardDrugs + Race1 + Age + 
+               Gender + Depressed + Alcohol12PlusYr, data = M,
+             family = binomial(link = "logit"))
 model_bin <- glm(Marijuana_bin ~ SmokeNow_bin + HardDrugs_bin + Age + Race3+
                Male + Alcohol_bin, data = M,
              family = binomial(link = "logit"))
 M$AlcoholDay_corrected <- ifelse(M$AlcoholYear == 0, 0, M$AlcoholDay)
-# regplot(model)
+regplot::regplot(model)
 # car::marginalModelPlots(model, sd = TRUE)
 
 mycounter <- 0
@@ -556,20 +566,45 @@ replace these with a group called `Never` which indicates that the
 person is a non-smoker (never smoked). To do this, run this code.
 
 ```{r univariable_12, exercise = TRUE}
-M$SmokeCurrent <- ifelse(M$SmokeNow == "Yes", "Yes", "No")
+## Convert SmokeNow from factor to character
+M$SmokeNow <- M$SmokeNow |> as.character()
 
-## Visualise result
+## Missing data for Smokenow indicate 'never smokers'
+M$SmokeCurrent <- ifelse(is.na(M$SmokeNow), "Never", M$SmokeNow)
+
 M$SmokeCurrent |> tab1()
+
+
 ```
 
-Now use the `cc()` function to test whether `SmokeCurrent` is associated
-with `Marijuana`.
+Unfortunately many of the epidemiological tools to analyse $n$ x 2 tables fall over
+for `SmokeCurrent` and `Marijuana`. This is because they rely on Fisher tests which 
+are relatively computationally intensive. We will just use a simple table and chi-square instead.
 
 ```{r univariable_13, exercise = TRUE}
-cc(M$Marijuana, M$SmokeCurrent)
+tab1 <- arsenal::tableby(Marijuana ~ # column
+                            SmokeCurrent,
+                            cat.stats="countrowpct", #row percents are best for estimating risk ratios.
+                            data = M)
+
+summary(tab1, text = TRUE)
 ```
 
+You can use the table to quick mental calculation of risk ratios. For example, you can see that 81%
+of current smokers (`SmokeCurrent = "Yes"`) are `Marijuana` users, compared to 42.7% of never smokers 
+(`SmokeCurrent = Never`). You can quickly see that the risk ratio is about 81%/42.7% $\approx 2$. The $P$-value for the association is low (< 0.001), so the association between the two behaviours are statistically significant. 
 
+##### **`r Qnum()`**
+
+```{r strength_cigs, echo = FALSE}
+question("Is the strength of the association between `Marijuana` and
+`SmokeCurrent` overall: weak, medium or strong?",
+answer("strong", message = "Correct! risk ratios of 2 for marijuana use among current smokers, compared to never-smokers, is a strong associations, but we will find a stronger one still!", correct = TRUE),
+  answer("Weak", message = "No, please try again."),
+  answer("moderate", message = "No, please try again."),
+  allow_retry = TRUE
+)
+```
 
 #### What about alcohol?
 
@@ -636,7 +671,7 @@ car::symbox(~ I(AlcoholDay_corrected + 0.5), data = M)
 
 ```
 
-The results indicate that both no transformation and a log transformation can be rejected and that the suggested transformation is `-0.30`, which is close to $\frac{1}{\sqrt[3]{x}}$. We could use such a transformation, but it is unfamiliar and hard to interpret the result.
+The results indicate that both no transformation and a log transformation can be rejected and that the suggested transformation is `-0.10`, which is close to $\frac{1}{\sqrt[10]{x}}$. We could use such a transformation, but it is unfamiliar and hard to interpret the result.
 
 However, the boxplot of a range of powers (`car::symbox()` function) shows that a close approximation to a symmetrical distribution is achieved with a log transformation. Since this is familiar and easy to interpret, we will use this.
 
@@ -819,13 +854,14 @@ Marijuana use. Usually, this is `Table 1` in a publication.
 
 ```{r pub_table1_1, exercise = TRUE}
 tab1 <- arsenal::tableby(Marijuana ~ # column
-                            SmokeNow + # rows
+                            SmokeCurrent + # rows
                             HardDrugs + 
                             Race1 + 
                             Age + 
                             Gender + 
                             Depressed + 
                             Alcohol12PlusYr, 
+                            cat.stats="countrowpct", #row percents are best for estimating risk ratios.
                             data = M)
 
 summary(tab1, text = TRUE)
@@ -844,7 +880,7 @@ question("From the table above, which variables are associated with
 `Marijuana`?",
 
   answer("None", message = "No, please try again."),
-  answer("`HardDrugs`, `Race1`, `Gender`, `Depressed` and `Alcohol12PlusYr`", message = "Correct! The P-values for these comparisons are less than 0.05", correct = TRUE),
+  answer("`HardDrugs`, `Race1`, `Gender`, `Depressed`, `SmokeNow` and `Alcohol12PlusYr`", message = "Correct! The P-values for these comparisons are less than 0.05", correct = TRUE),
   answer("`HardDrugs` and `Race1`", message = "No, you've missed a few more, please try again!"),
   allow_retry = TRUE
 )
@@ -913,7 +949,7 @@ we'll create a *multivariable* model so that we can also adjust for
 potential confounders.
 
 ```{r logistic_6, exercise = TRUE}
-model <- glm(Marijuana ~ SmokeNow + HardDrugs + Race1 + Age + 
+model <- glm(Marijuana ~ SmokeCurrent + HardDrugs + Race1 + Age + 
                Gender + Depressed + Alcohol12PlusYr, data = M,
              family = binomial(link = "logit"))
 
@@ -935,7 +971,7 @@ The following code draws a regression nomogram for our model from the
 
 The output is shown below
 
-![**Nomogram**](images/regplot.jpeg)
+![**Nomogram**](images/regplot.svg)
 
 The nomogram depicts the structure of the model as a weighted average.
 
@@ -957,7 +993,7 @@ the density plot shows the distribution of continuous variables.
 
 ```{r nomogram_2, echo = FALSE}
 question("Look at the nomogram. Which of the following statements are true (select all that apply)?",
-answer("`HardDrugs_bin` contributes more to the outcome (marijuana use) than `SmokeNow_bin`", message = "Statement 1 is true as `HardDrugs_bin` has a much longer scale",  correct = TRUE),
+answer("`HardDrugs` contributes more to the outcome (marijuana use) than `SmokeCurrent`", message = "Statement is true as `HardDrugs` has a much longer scale",  correct = TRUE),
   answer("There are similar numbers of males and females", message = "Statement 2 is true also: for the `Male` density plot or histogram, the heights at 0 (females) and 1 (males) are similar, indicating similar numbers",  correct = TRUE),
   allow_retry = TRUE
 )
@@ -972,7 +1008,7 @@ data.
 ```{r mmp, exercise = TRUE, warning = FALSE, error=FALSE}
 
 # Note, all predictor variables must be factors for marginal model plot to work....
-model <- glm(Marijuana ~ factor(SmokeNow) + factor(HardDrugs) + factor(Race1) + Age + 
+model <- glm(Marijuana ~ factor(SmokeCurrent) + factor(HardDrugs) + factor(Race1) + Age + 
                factor(Gender) + factor(Depressed) + factor(Alcohol12PlusYr), data = M,
              family = binomial(link = "logit"))
 
@@ -1000,7 +1036,7 @@ observed and model predicted cases throughout the range of risk.
 You can see that the observed and expected counts in the output above
 are very closely aligned.
 
-Here, the $P$-value is 0.8105, which is not significant. Therefore, the
+Here, the $P$-value is 0.91, which is not significant. Therefore, the
 *calibration* of the model between observed and predicted numbers is
 good. There are some limitations of the Hosmer-Lemeshow test discussed
 [here](https://en.wikipedia.org/wiki/Hosmer%E2%80%93Lemeshow_test){target="_blank"}.
@@ -1030,7 +1066,7 @@ than a linear or other regression.
 ```{r pub_table2_1, exercise = TRUE}
 dependent <- "Marijuana"
 explanatory <- c(
-  "SmokeNow", 
+  "SmokeCurrent", 
   "HardDrugs","Race1", "Age", "Depressed", "Alcohol12PlusYr")
 
 M |>
