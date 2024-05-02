@@ -233,7 +233,7 @@ library(AF)
 library(epitools)
 library(PerformanceAnalytics)
 library(arsenal)
-library(chisquare)
+
 gradethis::gradethis_setup()
 
 
