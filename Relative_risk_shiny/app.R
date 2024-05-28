@@ -12,6 +12,7 @@ library(shinythemes)
 library(eulerr)
 library(mekko)
 library(epiR)
+library(fmsb)
 source("functions.R") #inzight plot
 
 
@@ -102,6 +103,10 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
       br(), br(),
       textOutput("or_text"),
       br(), br(),
+      textOutput("rd_text"),
+      br(), br(),
+      textOutput("nnt_text"),
+      br(), br(),
       "Note: PAR is population attributable risk",
       br(), br(),
       "Confidence interval for population attributable risk
@@ -137,6 +142,24 @@ server <- function(input, output) {
     df <- df[-1,]
     dfr <- dfr[-1,]
     
+    RD <- fmsb::riskdifference(input$outcome_exposed, input$outcome_unexposed,
+                               input$outcome_exposed + input$no_outcome_exposed,
+                               input$outcome_unexposed +  input$no_outcome_unexposed,
+                               conf.level = 0.95)
+    
+    RD_text <- paste0("\n\nRisk difference: ", RD$estimate |> two_dp(),
+                      "; 95% CI: ", RD$conf.int[1] |> two_dp(), " to ", 
+                      RD$conf.int[2] |> two_dp(), ";\n P",
+                      ifelse(df$p.value < 0.001, " < 0.001",
+                             paste0(" = ", (df$p.value) |> three_dp())))
+    
+    NNT_text <- paste0("\n\nNumber needed to treat: ", (1/RD$estimate) |> round(0),
+                       "; 95% CI: ", (1/RD$conf.int[2]) |> round(0), " to ", 
+                       (1/RD$conf.int[1]) |> round(0), ";\n P",
+                       ifelse(df$p.value < 0.001, " < 0.001",
+                              paste0(" = ", (df$p.value) |> three_dp())))
+    
+    
     #PAR <-(100*(dfr$p0*(dfr$riskratio - 1))/(1 + dfr$p0*(dfr$riskratio - 1))) |> one_dp()
     #PAR <- paste0(PAR, "%")
     epiR_tab <-  cbind(tab[,2], tab[,1]) |> as.table()
@@ -157,13 +180,13 @@ server <- function(input, output) {
     
     RR_text <- paste0("\n\nRisk ratio: ", dfr$riskratio |> two_dp(),
            "; 95% CI: ", dfr$lower |> two_dp(), " to ", 
-           dfr$upper |> two_dp(), "\n P",
+           dfr$upper |> two_dp(), ";\n P",
            ifelse(df$p.value < 0.001, " < 0.001",
                   paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
     
     OR_text <- paste0("\n\nOdds ratio: ", df$oddsratio |> two_dp(),
                       "; 95% CI: ", df$lower |> two_dp(), " to ", 
-                      df$upper |> two_dp(), "\n P",
+                      df$upper |> two_dp(), ";\n P",
                       ifelse(df$p.value < 0.001, " < 0.001",
                              paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
     
@@ -236,6 +259,13 @@ server <- function(input, output) {
       RR_text
     })
     
+    output$rd_text <- renderText({
+      RD_text
+    })
+    
+    output$nnt_text <- renderText({
+      NNT_text
+    })
     
     dimnames(tab) <- list(c("No","Yes"), c("No","Yes"))
     names(dimnames(tab)) <- c("Exposure", "Disease")
