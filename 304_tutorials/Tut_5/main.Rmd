@@ -490,7 +490,8 @@ predict(model,
 
 ```{r pred_conf, echo=FALSE}
 question("Which of the two predictions has the widest interval?",
-  answer("Prediction interval", correct = TRUE, message = "Yes, it is the prediction interval, since the variation in the error term needs to be accounted for in addition to the model terms 🥸"),
+  answer("Prediction interval", correct = TRUE, 
+         message = "Yes, it is the prediction interval, since the variation in the error term needs to be accounted for in addition to the model terms 🥸"),
   answer("Confidence interval", message = "Sorry, this is incorrect. The error terms average out to zero so the interval is smaller for a group than an individual.😩"),
   allow_retry = TRUE
 )
@@ -503,9 +504,9 @@ The latter has a wider interval, as the calculation has to incorporate the uncer
 
 In epidemiology, it is usual to present a second table after your
 table 1. For the *table one* we used `arsenal::tableby()`. Here, we will use `finalfit`. 
-We have to tell `finalfit` which variables are our `explanatory` or exposure variables and which is the `dependent` or outcome variable. This is usually a table of regression coefficients and 95%
+We have to tell `finalfit()` which variables are our `explanatory` or exposure variables and which is the `dependent` or outcome variable. This is usually a table of regression coefficients and 95%
 confidence intervals, and $P$-values. It usually has crude and adjusted
-$\beta$ coefficients. The following code will help us here.
+$\beta$ coefficients. The following code will help us here:
 
 ```{r finalfit1, exercise = TRUE}
 ## explanatory variables are exposures of interest and confounders.
@@ -712,6 +713,7 @@ question("Which terms in the model align with the data?",
 ```
 
 We want to construct a marginal model plot for the association between `Gestation` and `Birth_wt`, adjusted for ethnic group. A potential problem with `car::marginalModelPlots()` is that it throws a wobbly if character variables are put into regression models. Although the modelling function (`lm()`) might work fine, the plot function (`car::marginalModelPlots()`) won't.
+
 Before we do so, use the `str()` function, with the code format given, to check what sort of variable `Ethnic` is (character or factor).
 
 ```{r modelfit_2, exercise = TRUE}
