@@ -272,7 +272,7 @@ lattice::histogram(~ Birth_wt | Case_status,
                    layout = c(1, 2),
                     panel = function(x, ...) {
                     panel.histogram(x, ...)
-                    panel.abline(v = mean(x, na.omit = TRUE), 
+                    panel.abline(v = mean(x, na.rm = TRUE), 
                                  col = 'black', lty = 2 , lwd = 3)
                     } )
 
@@ -286,7 +286,7 @@ lattice::histogram(~ Mother_age | Case_status,
                    layout = c(1, 2),
                     panel = function(x, ...) {
                     panel.histogram(x, ...)
-                    panel.abline(v = mean(x, na.omit = TRUE),
+                    panel.abline(v = mean(x, na.rm = TRUE),
                                  col = 'black', lty = 2 , lwd = 3)
                     } )
 ```
@@ -342,7 +342,7 @@ Note: there is some complex code here to explain.
 
 -   The rest of the code:<br></br> `layout = c(1, 2),` <br></br>
     `panel = function(x, ...){` <br></br> `panel.histogram(x, ...)`
-    <br></br> `panel.abline(v = mean(x, na.omit = TRUE),` <br></br>
+    <br></br> `panel.abline(v = mean(x, na.rm = TRUE),` <br></br>
     `col = 'black', lty = 2 , lwd = 3)` <br></br> `}`<br></br> plots the
     mean so that we can compare the magnitude of the difference in
     means, which is what our *t*-test will assess. I cheated and grabbed
