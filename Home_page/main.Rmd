@@ -39,7 +39,7 @@ Some of these tutorials are found on links below:
 - [Calculate and visualise relative risks and odds ratios](http://sithor.com/shiny/Relative_risk_shiny/){target="_blank"}
 - [Analyse food outbreak data](http://sithor.com/shiny/Food_outbreak/){target="_blank"}
 - [My epidemiology glossary](https://rpubs.com/sithor/epidemiological_glossary){target="_blank"}
-- [Visualise a count regression example](https://rpubs.com/sithor/Permethrin_ARF_regression){target="_blank"}
+- [Visualise a count regression example](http://sithor.com/shiny/Permethrin_ARF_regression){target="_blank"}
 - [Visualise a logistic regression example](https://sithor.shinyapps.io/Logistic_regression/){target="_blank"}
 - [Dice simulation of an epidemiological study](https://sithor.shinyapps.io/Epi_teaching/){target="_blank"}
 - [Regression and principal components](https://sithor.shinyapps.io/regress_princomp/){target="_blank"}
