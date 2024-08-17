@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(vembedr)
 ```
 
-
 ## Thanks for visiting!
 
 This is my shiny server, where I host a bunch of web apps.
@@ -26,29 +25,36 @@ I teach stage 3 university students to learn `R` skills through interactive tuto
 
 Some of these tutorials are found on links below:
 
-- [Tutorial 2: Getting started with R.    ](http://sithor.com/shiny/304_tutorials/Tut_2/){target="_blank"}
-- [Tutorial 3: Getting started with posit.    ](http://sithor.com/shiny/304_tutorials/Tut_3/){target="_blank"}
-- [Tutorial 4: Statistical testing.    ](http://sithor.com/shiny/304_tutorials/Tut_4/){target="_blank"}
-- [Tutorial 5: Linear regression.    ](http://sithor.com/shiny/304_tutorials/Tut_5/){target="_blank"}
-- [Tutorial 6: Count regression.    ](http://sithor.com/shiny/304_tutorials/Tut_6/){target="_blank"}
-- [Tutorial 8: Logistic regression.    ](http://sithor.com/shiny/304_tutorials/Tut_8/){target="_blank"}
+-   [Tutorial 2: Getting started with R.](http://sithor.com/shiny/304_tutorials/Tut_2/){target="_blank"}
+-   [Tutorial 3: Getting started with posit.](http://sithor.com/shiny/304_tutorials/Tut_3/){target="_blank"}
+-   [Tutorial 4: Statistical testing.](http://sithor.com/shiny/304_tutorials/Tut_4/){target="_blank"}
+-   [Tutorial 5: Linear regression.](http://sithor.com/shiny/304_tutorials/Tut_5/){target="_blank"}
+-   [Tutorial 6: Count regression.](http://sithor.com/shiny/304_tutorials/Tut_6/){target="_blank"}
+-   [Tutorial 8: Logistic regression.](http://sithor.com/shiny/304_tutorials/Tut_8/){target="_blank"}
+
+## POPLHLTH 216
+
+-   [Tutorial 1: Getting started](https://rpubs.com/sithor/tut_1){target="_blank"}
+-   [Tutorial 2: Exploring inferential statistics](https://rpubs.com/sithor/tut_2){target="_blank"}
+-   [Tutorial 3: Analysing a case-control study](https://rpubs.com/sithor/tut_3){target="_blank"}
 
 
 ## Other epidemiology-related apps and websites
 
-- [Calculate and visualise relative risks and odds ratios](http://sithor.com/shiny/Relative_risk_shiny/){target="_blank"}
-- [Analyse food outbreak data](http://sithor.com/shiny/Food_outbreak/){target="_blank"}
-- [My epidemiology glossary](https://rpubs.com/sithor/epidemiological_glossary){target="_blank"}
-- [Visualise a count regression example](http://sithor.com/shiny/Permethrin_ARF_regression){target="_blank"}
-- [Visualise a logistic regression example](https://sithor.shinyapps.io/Logistic_regression/){target="_blank"}
-- [Dice simulation of an epidemiological study](https://sithor.shinyapps.io/Epi_teaching/){target="_blank"}
-- [Regression and principal components](https://sithor.shinyapps.io/regress_princomp/){target="_blank"}
-- [Bayes' diagnostic test aid](https://sithor.shinyapps.io/Bayes_Diagnostic_test/){target="_blank"}
-[Calculator for in-hospital interpretation of D-dimer test](https://sithor.shinyapps.io/Pulmonary_embolus/){target="_blank"}
-- [My github page](https://github.com/sithor/){target="_blank"}
+-   [Calculate and visualise relative risks and odds ratios](http://sithor.com/shiny/Relative_risk_shiny/){target="_blank"}
+-   [Analyse food outbreak data](http://sithor.com/shiny/Food_outbreak/){target="_blank"}
+-   [My epidemiology glossary](https://rpubs.com/sithor/epidemiological_glossary){target="_blank"}
+-   [Visualise a count regression example](http://sithor.com/shiny/Permethrin_ARF_regression){target="_blank"}
+-   [Visualise a logistic regression example](https://sithor.shinyapps.io/Logistic_regression/){target="_blank"}
+-   [Dice simulation of an epidemiological study](https://sithor.shinyapps.io/Epi_teaching/){target="_blank"}
+-   [Regression and principal components](https://sithor.shinyapps.io/regress_princomp/){target="_blank"}
+-   [Bayes' diagnostic test aid](https://sithor.shinyapps.io/Bayes_Diagnostic_test/){target="_blank"} [Calculator for in-hospital interpretation of D-dimer test](https://sithor.shinyapps.io/Pulmonary_embolus/){target="_blank"}
+-   [My github page](https://github.com/sithor/){target="_blank"}
 
 ## Some of my talks
+
 <br></br>
+
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=rYq82gh7gZE")
 ```
@@ -76,5 +82,5 @@ embed_url("https://www.youtube.com/watch?v=7iEe8ZYyrhA")
 ```{r echo = FALSE}
 embed_url("https://www.youtube.com/watch?v=GwmJDhOyp2c")
 ```
-<br></br>
-My [interview](https://www.1news.co.nz/2020/09/06/not-lockdowns-controversial-epidemiologist-calls-for-end-to-irrational-covid-19-elimination-strategy/){target="_blank"} with Jack Tame on Q&A which aired on TVNZ (September 6, 2020).
+
+<br></br> My [interview](https://www.1news.co.nz/2020/09/06/not-lockdowns-controversial-epidemiologist-calls-for-end-to-irrational-covid-19-elimination-strategy/){target="_blank"} with Jack Tame on Q&A which aired on TVNZ (September 6, 2020).
