@@ -77,9 +77,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                       br(), 
                       br(),
                       "On the left is the circle that represents those with ", 
-                      strong("disease"), ", and on the right are those that are ",
-                      strong("disease free"), ". In the middle
-                      are those who are test positive.",
+                      strong("disease,"),"and on the right are those that are ",
+                      strong("disease free."),"In the middle
+                      are those who are ",
+                      strong("test positive."),
                       br(), 
                       br(),
                       "Either provide your own values of disease ",
