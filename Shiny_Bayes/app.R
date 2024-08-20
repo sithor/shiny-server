@@ -54,7 +54,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                     sliderInput("font_size", 
                                 "Euler plot: font size",
                                 min = 0.5,
-                                max = 5,
+                                max = 3,
                                 value = 1.5),
                     sliderInput("transparency", 
                                 "Euler plot: adjust transparency",
@@ -113,8 +113,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
 
 server <- function(input, output, session) {
   observe({
-    font_size <- input$font_size
-    alpha <- input$transparency
+    #font_size <- input$font_size
+    #alpha <- input$transparency
     sens <- input$sensitivity
     spec <- input$specificity
     prev <- input$prevalence
@@ -139,12 +139,12 @@ server <- function(input, output, session) {
     updateSliderInput( session,
                        "prevalence", 
                        value = prev)
-    updateSliderInput( session,
-                       "font_size", 
-                       value = font_size)
-    updateSliderInput( session,
-                       "transparency", 
-                       value = alpha)
+    # updateSliderInput( session,
+    #                    "font_size", 
+    #                    value = font_size)
+    # updateSliderInput( session,
+    #                    "transparency", 
+    #                    value = alpha)
   })
   
   ## output plot
