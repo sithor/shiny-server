@@ -232,10 +232,10 @@ server <- function(input, output) {
                                                               size = 10, hjust = 0)
     
     
-    fit1 <- euler(c("exposed&all" = input$no_outcome_exposed,
-                    "outcome&all" =  input$outcome_unexposed,
-                    "exposed&outcome&all" = input$outcome_exposed,
-                    "all" = input$no_outcome_unexposed))
+    fit1 <- euler(c("exposed" = input$no_outcome_exposed,
+                    "outcome&unexposed" =  input$outcome_unexposed,
+                    "exposed&outcome" = input$outcome_exposed,
+                    "unexposed" = input$no_outcome_unexposed))
     
     
     output$euler_plot <- renderPlot({
