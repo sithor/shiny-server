@@ -2,10 +2,14 @@
 title: "Welcome to Dr Simon Thornley's digital droplet"
 author: ""
 date: "`r format(Sys.time(), '%e %B, %Y')`"
-output: html_document
-prettydoc::html_pretty:
-      theme: tactile
-runtime: shiny_prerendered
+output: 
+  rmdformats::downcute:
+    downcute_theme: "chaos"
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +21,7 @@ library(vembedr)
 
 This is my shiny server, where I host a bunch of web apps.
 
-## POPLHLTH 304
+## POPLHLTH 304: Principles of applied epidemiology
 
 I teach in the University of Auckland's undergraduate Bachelor of Health Science.
 
@@ -32,7 +36,11 @@ Some of these tutorials are found on links below:
 -   [Tutorial 6: Count regression.](http://sithor.com/shiny/304_tutorials/Tut_6/){target="_blank"}
 -   [Tutorial 8: Logistic regression.](http://sithor.com/shiny/304_tutorials/Tut_8/){target="_blank"}
 
-## POPLHLTH 216
+## POPLHLTH 216: Quantitative methods for health
+
+This course is a stage 2 introductory course related to the analysis of quantitative software,
+ with the fantastic [`iNZight lite`](https://lite.docker.stat.auckland.ac.nz/){target="_blank"}
+ software.
 
 -   [Tutorial 1: Getting started](https://rpubs.com/sithor/tut_1){target="_blank"}
 -   [Tutorial 2: Exploring inferential statistics](https://rpubs.com/sithor/tut_2){target="_blank"}
@@ -48,7 +56,9 @@ Some of these tutorials are found on links below:
 -   [Visualise a logistic regression example](https://sithor.shinyapps.io/Logistic_regression/){target="_blank"}
 -   [Dice simulation of an epidemiological study](https://sithor.shinyapps.io/Epi_teaching/){target="_blank"}
 -   [Regression and principal components](https://sithor.shinyapps.io/regress_princomp/){target="_blank"}
--   [Bayes' diagnostic test aid](https://sithor.shinyapps.io/Bayes_Diagnostic_test/){target="_blank"} [Calculator for in-hospital interpretation of D-dimer test](https://sithor.shinyapps.io/Pulmonary_embolus/){target="_blank"}
+-   [Bayes' diagnostic test aid with Fagan's nomogram](https://sithor.shinyapps.io/Bayes_Diagnostic_test/){target="_blank"}
+-   [Calculator for in-hospital interpretation of D-dimer test with Fagan's nomogram](https://sithor.shinyapps.io/Pulmonary_embolus/){target="_blank"}
+-   [Bayes' diagnostic test aid with Euler plot](http://sithor.com/shiny/Shiny_Bayes){target="_blank"}
 -   [My github page](https://github.com/sithor/){target="_blank"}
 
 ## Some of my talks
