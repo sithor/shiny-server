@@ -112,7 +112,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
 
 
 server <- function(input, output, session) {
-  observe({
+  observeEvent(input$preset, {
     #font_size <- input$font_size
     #alpha <- input$transparency
     sens <- input$sensitivity
