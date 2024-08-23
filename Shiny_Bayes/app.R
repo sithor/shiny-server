@@ -1,12 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(ggplot2)
 library(shinythemes)
@@ -29,18 +20,18 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                     sliderInput("prevalence",
                                 paste0("Prevalence (%): ",
                                        "\nBackground disease risk."),
-                                min = 0.1,
+                                min = 0.01,
                                 max = 100,
                                 value = 20),
                     sliderInput("sensitivity",
-                                paste0("Sensitivity (%):",
-                                       "\n[P(test + | Disease)]"),
+                                HTML(paste0("Sensitivity (%):",
+                                       "\n", "<i>P</i>(test + | Disease)")),
                                 min = 1,
                                 max = 100,
                                 value = 80),
                     sliderInput("specificity",
-                                paste0("Specificity (%):\n",
-                                       "\n[P(test - | No disease)]"),
+                                HTML(paste0("Specificity (%):\n",
+                                       "\n<i>P</i>(test - | No disease)")),
                                 min = 1,
                                 max = 100,
                                 value = 80), 
@@ -50,6 +41,12 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                              "?Pulmonary embolus in hospitalised adult patient; \n\nD-dimer" = "2",
                                              "?Colorectal cancer from population faecal occult blood test (80 years or older)" = "3"), 
                                  selected = "1"),
+                    
+                    radioButtons("pos_neg", label = "Test positive or negative?", 
+                                 choices = c("Positive" = "1",
+                                             "Negative" = "2"), 
+                                 selected = "1"),
+                    
                     br(), br(),
                     sliderInput("font_size", 
                                 "Euler plot: font size",
@@ -112,33 +109,41 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
 
 
 server <- function(input, output, session) {
+  
+  
+  sens <- reactive(input$sensitivity/100)
+  spec <- reactive(input$specificity/100)
+  prev <- reactive(input$prevalence/100)
+  
+  sns = 0.8
+  spc = 0.8
+  prv = 0.2
+  
+  
   observeEvent(input$preset, {
     #font_size <- input$font_size
     #alpha <- input$transparency
-    sens <- input$sensitivity
-    spec <- input$specificity
-    prev <- input$prevalence
     
     if(input$preset == "2") {
-      sens = 90
-      spec = 30
-      prev = 8
+      sns = .90
+      spc = .30
+      prv = .08
     } 
     if(input$preset == "3") {
-      sens = 86
-      spec = 85
-      prev = 0.5
+      sns = .86
+      spc = .85
+      prv = 0.005
     } 
     
     updateSliderInput( session ,
                        "sensitivity", 
-                       value = sens)
+                       value = sns*100)
     updateSliderInput( session ,
                        "specificity", 
-                       value = spec)
+                       value = spc*100)
     updateSliderInput( session,
                        "prevalence", 
-                       value = prev)
+                       value = prv*100)
     # updateSliderInput( session,
     #                    "font_size", 
     #                    value = font_size)
@@ -151,12 +156,14 @@ server <- function(input, output, session) {
   output$euler <- renderPlot({
     # generate bins based on input$bins from ui.R
     # make 2x2 table
-    Prevalent_cases <- (input$prevalence/100) * 10000
-    Prevalent_non_cases <- (1-input$prevalence/100) * 10000
-    true_pos <- Prevalent_cases * input$sensitivity/100
-    false_pos <- Prevalent_non_cases * (1-input$specificity/100)
-    true_neg <- Prevalent_non_cases * (input$specificity)/100
-    false_neg <- Prevalent_cases * (1-input$sensitivity/100)
+    Prevalent_cases <- (prev()) * 10000
+    Prevalent_non_cases <- (1-prev()) * 10000
+    true_pos <- Prevalent_cases * sens()
+    false_pos <- Prevalent_non_cases * (1-spec())
+    true_neg <- Prevalent_non_cases * spec()
+    false_neg <- Prevalent_cases * (1-sens())
+    
+    if(input$pos_neg == "1"){
     
     fit1 <- euler(c(
       "Disease" = false_neg,
@@ -164,7 +171,14 @@ server <- function(input, output, session) {
       "Disease&Test positive" = true_pos,
       "No disease" = true_neg
     ))
-    
+    } else {
+      fit1 <- euler(c(
+        "Disease" = true_pos,
+        "Test negative&No disease" = true_neg,
+        "Disease&Test negative" = false_neg,
+        "No disease" = false_pos
+      ))
+    }
     
     
     
