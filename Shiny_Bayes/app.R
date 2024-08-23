@@ -184,13 +184,17 @@ server <- function(input, output, session) {
     
     plot(fit1, 
          shape = "ellipse",
-         labels = list(fontfamily = "serif", cex = input$font_size),
+         labels = list(fontfamily = "serif", cex = input$font_size, 
+                       col = c("black", ifelse(input$pos_neg == "1",
+                                               "blue", "red"), "black")),
          quantities = list(type = "percent", cex = input$font_size),
-         fills = list(fill = c("orange", "#00BFC4", "green"), 
+         fills = list(fill = c("orange", ifelse(input$pos_neg == "1",
+                  "#00BFC4", "red"), "green"), 
                       alpha = input$transparency),
          legend = list(side = "right", cex = input$font_size),
          edges = list(lty = c(1, 3, 1), 
-              lwd = (3))
+              lwd = (3), col = c("black", ifelse(input$pos_neg == "1",
+                                      "blue", "red"), "black") )
     )
     
     # p <- nomogrammer(Prevalence = input$prevalence/100, Sens = input$sensitivity/100, 
