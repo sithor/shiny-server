@@ -1,3 +1,9 @@
+
+## This app is for outputting the results of a 2x2 table with interpretation of the results.
+
+## by Simon Thornley
+
+
 # Install required packages if not already installed
 # if (!requireNamespace("shiny", quietly = TRUE)) install.packages("shiny")
 # if (!requireNamespace("effectsize", quietly = TRUE)) install.packages("effectsize")
@@ -99,17 +105,25 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
       plotOutput("odds_ratio_plot"),
       plotOutput("risk_ratio_plot"),
       br(), br(),
-      textOutput("rr_text"),
+      h4("Risk ratio; Population attributable risk; P-value"),
+      htmlOutput("rr_text"),
       textOutput("rr_desc"),
+      textOutput("par_desc"),
+      htmlOutput("p_desc"),
       br(), br(),
-      textOutput("or_text"),
+      h4("Odds ratio"),
+      htmlOutput("or_text"),
       textOutput("or_desc"),
       br(), br(),
-      textOutput("rd_text"),
+      h4("Risk difference"),
+      htmlOutput("rd_text"),
       br(), br(),
-      textOutput("nnt_text"),
+      h4("Number needed to treat"),
+      htmlOutput("nnt_text"),
       br(), br(),
-      "Note: PAR is population attributable risk",
+      "Note: PAR is population attributable risk, note this is assumed to be a 
+      cohort or cross-sectional study, where the relevant prevalence of exposure
+      is the unconditional.",
       br(), br(),
       "Confidence interval for population attributable risk
       is estimated using the ", 
@@ -151,13 +165,13 @@ server <- function(input, output) {
     
     RD_text <- paste0("\n\nRisk difference: ", RD$estimate |> two_dp(),
                       "; 95% CI: ", RD$conf.int[1] |> two_dp(), " to ", 
-                      RD$conf.int[2] |> two_dp(), ";\n P",
+                      RD$conf.int[2] |> two_dp(), ";\n <em>P</em>",
                       ifelse(df$p.value < 0.001, " < 0.001",
                              paste0(" = ", (df$p.value) |> three_dp())))
     
     NNT_text <- paste0("\n\nNumber needed to treat: ", (1/RD$estimate) |> round(0),
                        "; 95% CI: ", (1/RD$conf.int[2]) |> round(0), " to ", 
-                       (1/RD$conf.int[1]) |> round(0), ";\n P",
+                       (1/RD$conf.int[1]) |> round(0), ";\n <em>P</em>",
                        ifelse(df$p.value < 0.001, " < 0.001",
                               paste0(" = ", (df$p.value) |> three_dp())))
     
@@ -182,13 +196,13 @@ server <- function(input, output) {
     
     RR_text <- paste0("\n\nRisk ratio: ", dfr$riskratio |> two_dp(),
            "; 95% CI: ", dfr$lower |> two_dp(), " to ", 
-           dfr$upper |> two_dp(), ";\n P",
+           dfr$upper |> two_dp(), ";\n <em>P</em>",
            ifelse(df$p.value < 0.001, " < 0.001",
                   paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
     
     if ( df$oddsratio > 1){
       OR_desc <- paste0("The odds of the outcome is ", df$oddsratio |> one_dp(),
-                        " higher in the exposed group, compared to the unexposed group.")
+                        " times higher in the exposed group, compared to the unexposed group.")
     } else if (df$oddsratio < 1) {
       OR_desc <- paste0("The odds of the outcome is ", (100*(1- df$oddsratio)) |> one_dp(),
                         "% lower in the exposed group, compared to the unexposed group.")
@@ -198,7 +212,7 @@ server <- function(input, output) {
     
     if ( dfr$riskratio > 1){
       RR_desc <- paste0("The risk of the outcome is ", dfr$riskratio |> one_dp(),
-                        " higher in the exposed group, compared to the unexposed group.")
+                        " times higher in the exposed group, compared to the unexposed group.")
     } else if (dfr$riskratio < 1) {
       RR_desc <- paste0("The risk of the outcome is ", (100*(1- dfr$riskratio)) |> one_dp(),
                         "% lower in the exposed group, compared to the unexposed group.")
@@ -209,9 +223,42 @@ server <- function(input, output) {
     
     OR_text <- paste0("\n\nOdds ratio: ", df$oddsratio |> two_dp(),
                       "; 95% CI: ", df$lower |> two_dp(), " to ", 
-                      df$upper |> two_dp(), ";\n P",
+                      df$upper |> two_dp(), ";\n <em>P</em>",
                       ifelse(df$p.value < 0.001, " < 0.001",
                              paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
+    
+    if ( PAR > 0){
+    PAR_desc <- paste0("If the exposure were taken away completely from the 
+    population (and the exposure causes disease), ", PAR, " of cases in the 
+                       population would be prevented.")
+    } else if (PAR < 0) {
+      PAR_desc <- paste0("If the exposure were taken away completely from the 
+    population (and the exposure prevents disease), the percentage of cases in 
+    the population would increase by ", PAR, " of cases in the 
+                       population would be prevented.")
+    } else {
+      PAR_desc <- paste0("No change in cases is expected if the exposure is taken away.")
+    }
+    
+    if ( df$p.value >= 0.05){
+      P_desc <- paste0("The <em>P</em>-value of ",  df$p.value |> three_dp(),
+                       " is the probability of the observed results or more extreme
+                        assuming exposure and outcome are unrelated (independent).
+                       The result is <strong>not statistically significant</strong> and it is 
+                       concluded that exposure and disease are not associated.")
+    } else {
+      P_desc <- paste0("The <em>P</em>-value of ",  
+                       ifelse(df$p.value < 0.001, " < 0.001",
+                              paste0(" = ", df$p.value |> three_dp())),
+                       " is the probability of the observed results or more extreme
+                        assuming exposure and outcome are unrelated (independent).
+                       The result is <strong>statistically significant</strong> and it is 
+                       concluded that exposure and disease are associated.")
+    }
+    
+    
+    
+    
     
     # Plot the odds ratio using plot_odds_ratio
     p <- ggplot(df, aes(x = oddsratio, y = 1))
@@ -290,13 +337,19 @@ server <- function(input, output) {
       OR_desc
     })
     
-    
+    output$p_desc <- renderText({
+      P_desc
+    })
     output$rd_text <- renderText({
       RD_text
     })
     
     output$nnt_text <- renderText({
       NNT_text
+    })
+    
+    output$par_desc <- renderText({
+      PAR_desc
     })
     
     dimnames(tab) <- list(c("No","Yes"), c("No","Yes"))
