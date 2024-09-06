@@ -100,8 +100,10 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
       plotOutput("risk_ratio_plot"),
       br(), br(),
       textOutput("rr_text"),
+      textOutput("rr_desc"),
       br(), br(),
       textOutput("or_text"),
+      textOutput("or_desc"),
       br(), br(),
       textOutput("rd_text"),
       br(), br(),
@@ -184,6 +186,27 @@ server <- function(input, output) {
            ifelse(df$p.value < 0.001, " < 0.001",
                   paste0(" = ", df$p.value |> three_dp())),"; PAR: ", PAR)
     
+    if ( df$oddsratio > 1){
+      OR_desc <- paste0("The odds of the outcome is ", df$oddsratio |> one_dp(),
+                        " higher in the exposed group, compared to the unexposed group.")
+    } else if (df$oddsratio < 1) {
+      OR_desc <- paste0("The odds of the outcome is ", (100*(1- df$oddsratio)) |> one_dp(),
+                        "% lower in the exposed group, compared to the unexposed group.")
+    } else {
+      OR_desc <- paste0("The odds of the outcome is the same in the exposed and unexposed groups.")
+    }
+    
+    if ( dfr$riskratio > 1){
+      RR_desc <- paste0("The risk of the outcome is ", dfr$riskratio |> one_dp(),
+                        " higher in the exposed group, compared to the unexposed group.")
+    } else if (dfr$riskratio < 1) {
+      RR_desc <- paste0("The risk of the outcome is ", (100*(1- dfr$riskratio)) |> one_dp(),
+                        "% lower in the exposed group, compared to the unexposed group.")
+    } else {
+      RR_desc <- paste0("The risk of the outcome is the same in the exposed and unexposed groups.")
+    }
+    
+    
     OR_text <- paste0("\n\nOdds ratio: ", df$oddsratio |> two_dp(),
                       "; 95% CI: ", df$lower |> two_dp(), " to ", 
                       df$upper |> two_dp(), ";\n P",
@@ -258,6 +281,15 @@ server <- function(input, output) {
     output$rr_text <- renderText({
       RR_text
     })
+    
+    output$rr_desc <- renderText({
+      RR_desc
+    })
+    
+    output$or_desc <- renderText({
+      OR_desc
+    })
+    
     
     output$rd_text <- renderText({
       RD_text
