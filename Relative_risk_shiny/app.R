@@ -121,9 +121,11 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
       br(), 
       h4("Risk difference"),
       htmlOutput("rd_text"),
+      textOutput("rd_desc"),
       br(), br(),
       h4("Number needed to treat"),
       htmlOutput("nnt_text"),
+      htmlOutput("nnt_desc"),
       br(), br(),
       "Note: PAR is population attributable risk, note this is assumed to be a 
       cohort or cross-sectional study, where the relevant prevalence of exposure
@@ -173,11 +175,35 @@ server <- function(input, output) {
                       ifelse(df$p.value < 0.001, " < 0.001",
                              paste0(" = ", (df$p.value) |> three_dp())))
     
+    if ( RD$estimate > 0){
+        RD_desc <- paste0("The risk of disease is ", (RD$estimate *100) |> one_dp(), 
+                          "% higher in the exposed compared to the unexposed.")
+    } else if ( RD$estimate < 0){
+      RD_desc <- paste0("The risk of disease is ", (abs(RD$estimate) *100) |> one_dp(), 
+                                        "% higher in the unexposed compared to the exposed.")
+    } else {
+      RD_desc <- "The risk of disease is the same in the two exposure groups."
+      }
+    
+    
     NNT_text <- paste0("\n\nNumber needed to treat: ", (1/RD$estimate) |> round(0),
                        "; 95% CI: ", (1/RD$conf.int[2]) |> round(0), " to ", 
                        (1/RD$conf.int[1]) |> round(0), ";\n <em>P</em>",
                        ifelse(df$p.value < 0.001, " < 0.001",
                               paste0(" = ", (df$p.value) |> three_dp())))
+    
+    if ( RD$estimate > 0) { 
+      NNT_desc <- paste0("The number of individuals to expose to lead to one more
+                         disease case is: ", (1/RD$estimate) |> round(0), ", assuming
+                         the exposure causes disease.")
+    } else if (RD$estimate < 0) {
+      NNT_desc <- paste0("The number of individuals to expose to prevent one 
+                         disease case is: ", abs(1/RD$estimate) |> round(0), ", assuming
+                         the exposure prevents disease.")
+    } else {
+      NNT_desc <- paste0("There is no difference in risk of disease, so the 'number
+      needed to treat' to prevent or cause a disease case is infinite and therefore not relevant.")
+    }
     
     
     #PAR <-(100*(dfr$p0*(dfr$riskratio - 1))/(1 + dfr$p0*(dfr$riskratio - 1))) |> one_dp()
@@ -354,6 +380,14 @@ server <- function(input, output) {
     
     output$par_desc <- renderText({
       PAR_desc
+    })
+    
+    output$rd_desc <- renderText({
+      RD_desc
+    })
+    
+    output$nnt_desc <- renderText({
+      NNT_desc
     })
     
     dimnames(tab) <- list(c("No","Yes"), c("No","Yes"))
