@@ -101,7 +101,12 @@ ui <- fluidPage(theme = shinytheme("cyborg"),
           column(width = 3, h4("Not exposed", style="color:#ADD8E6")),
           column(width = 2, numericInput("outcome_unexposed", "", value = 10)),
           column(width = 2, numericInput("no_outcome_unexposed", "", value = 40))),
+        radioButtons("study_type", "Study type?", choices = c("cohort 
+                                                               or cross-sectional" = "cohort.count",
+                                                              "case-control" = "case.control"),
+                     selected = "cohort.count"),
         actionButton("calculate_btn", "Calculate", icon = icon("calculator")),
+  
       plotOutput("odds_ratio_plot"),
       plotOutput("risk_ratio_plot"),
       br(), br(),
@@ -211,18 +216,22 @@ server <- function(input, output) {
     epiR_tab <-  cbind(tab[,2], tab[,1]) |> as.table()
     epiR_tab <-  rbind(epiR_tab[2,], epiR_tab[1,]) |> as.table()
     PAR_alt <- epiR::epi.2by2(epiR_tab,
-                        method="cohort.count",
-                        digits=2,
-                        conf.level=0.95, 
+                        method=input$study_type,
+                        digits = 2,
+                        conf.level = 0.95, 
                         units=100,
                         interpret=TRUE,
                         outcome="as.columns")
     
-    #browser()
+    if(input$study_type == "cohort.count"){
      PAR <- paste0((PAR_alt$massoc.detail$PAFRisk.strata.wald[[1]]*100) |> one_dp(), "% (95% CI: ",
                        (PAR_alt$massoc.detail$PAFRisk.strata.wald[[2]]*100) |> one_dp(), " to ",
                        (PAR_alt$massoc.detail$PAFRisk.strata.wald[[3]]*100) |> one_dp(), ")")
-  
+    } else {
+      PAR <- paste0((PAR_alt$massoc.detail$PAFest.strata.wald[[1]]*100) |> one_dp(), "% (95% CI: ",
+                    (PAR_alt$massoc.detail$PAFest.strata.wald[[2]]*100) |> one_dp(), " to ",
+                    (PAR_alt$massoc.detail$PAFest.strata.wald[[3]]*100) |> one_dp(), ")")
+    }
     
     RR_text <- paste0("\n\nRisk ratio: ", dfr$riskratio |> two_dp(),
            "; 95% CI: ", dfr$lower |> two_dp(), " to ", 
