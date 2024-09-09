@@ -28,6 +28,9 @@ diagnose_UI <- function(id) {
         checkboxInput(ns("permethrin"), "Topical permethrin?", FALSE),
         checkboxInput(ns("ivermectin"), "Oral ivermectin?", FALSE),
         checkboxInput("other_med", "Other skin lotion?", FALSE),
+        h5("Allergies?"),
+        textInput(ns("allergy"), "Please enter all separated by commas.", 
+                  value = "", width = '400px', placeholder = "Amoxycillin"),
         # c("Is the child itchy?",
         # "Is anyone else in the family itchy?",
         # "Does anyone else in the family have a skin problem?",
@@ -49,8 +52,11 @@ diagnose_UI <- function(id) {
         checkboxInput(ns("scabies"), "Excoriation and crops of papules on limbs and trunk?", FALSE),
         tags$img(src ='scabies.jpg', height = "70%", width = "70%",  align = "center"),
         checkboxInput(ns("atypical_scabies"), "Single papules on limbs and trunk +/- excoriation?", FALSE),
+        tags$img(src ='atypical_scabies.png', height = "40%", width = "40%",  align = "center"),
         checkboxInput(ns("fungal"), "Round to oval flat scaly patches with excoriation?", FALSE),
+        tags$img(src ='fungal.png', height = "70%", width = "70%",  align = "center"),
         checkboxInput(ns("eczema"), "Confluent patches of red skin on flexures?", FALSE),
+        tags$img(src ='eczema.png', height = "30%", width = "30%",  align = "center"),
         checkboxInput(ns("other"), "Other?", FALSE)
       ),
       mainPanel(
@@ -60,7 +66,10 @@ diagnose_UI <- function(id) {
         "Not currently for clinical use. This is a mock-up of an app for 
           diagnostic use in children aged less than 15 years with itch or rash.",
         h3("Diagnosis is:"),
-        htmlOutput(ns("diagnosis"))
+        htmlOutput(ns("diagnosis")),
+        tags$br(),
+        "Allergies are to the following drugs:",
+        htmlOutput(ns("allergy"))
         # plotOutput("distPlot")
       )
   
@@ -73,11 +82,14 @@ diagnose_Server <- function(id) {
     function(input, output, session) {
       output$diagnosis <- renderText({
         if (input$cellulitis == TRUE) {
-          paste0(colorize("Extensive cellulitis and possible systemic sepsis", "red"),
+          paste0(colorize("Extensive cellulitis and possible systemic sepsis",
+                          "red"),
                  tags$br(),
-                 "Suggest ", tags$b("urgent"), " hospital review re intravenous antibiotics 
+                 "Suggest ", tags$b("urgent"), " hospital review re 
+                 intravenous antibiotics 
      and possible surgical review.", tags$br(),
-                 "Consider review for possible scabies treatment after recovery from acute illness.")
+                 "Consider review for possible scabies treatment
+                 after recovery from acute illness.")
         } else if ((input$scabies == TRUE | ((input$itchy == TRUE|
                                              input$family_itchy == TRUE ) & 
                                             input$atypical_scabies == TRUE)) & 
@@ -149,6 +161,10 @@ diagnose_Server <- function(id) {
           "Insufficient information to make diagnosis."
         }
       })
+      output$allergy <- renderText({
+       colorize(input$allergy, "red")
+      })
+      
     }
   )
 }
