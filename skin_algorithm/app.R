@@ -19,8 +19,12 @@ ui <- fluidPage(
   theme = bslib::bs_theme(),
   #theme = bslib::bs_theme(bootswatch = "sketchy"),
   # Application title
-  titlePanel("Primary care skin identification algorithm"),
+  titlePanel("Primary care children's skin diagnosis aid"),
   "Please check the following boxes:",
+  tags$head(tags$style(
+    type="text/css",
+    "#image img {max-width: 100%; width: 100%; height: auto}"
+  )),
   diagnose_UI("itch")
 )
 

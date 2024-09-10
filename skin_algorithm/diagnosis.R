@@ -49,27 +49,40 @@ diagnose_UI <- function(id) {
         br(),br(),
         strong("Skin appearance?"),
         checkboxInput(ns("cellulitis"), "Extensive warmth, redness, or swelling?", FALSE),
-        tags$img(src ='Cellulitis.png', height = "70%", width = "70%",  align = "center"),
+        tags$img(src ='Cellulitis.png'), #, height = "70%", width = "70%",  align = "center"),
+        
+        br(),br(),
         checkboxInput(ns("abscess"), "Localised warmth, redness, pus, ulceration or swelling?", FALSE),
-        imageOutput(ns("infected_scabies_image_age"), width = "10%", height = "10%"),
+        imageOutput(ns("infected_scabies_image_age")), #, width = "10%", height = "10%"),
+        
+        
         checkboxInput(ns("impetigo"), "Crusts?", FALSE),
         tags$img(src ='impetigo.png', height = "70%", width = "70%",  align = "center"),
-        checkboxInput(ns("scabies"), "Excoriation and crops of papules on limbs and trunk?", FALSE),
-        imageOutput(ns("scabies_image_age"), width = "20%", height = "20%"),
+        
+        br(),br(),
+        checkboxInput(ns("scabies"), textOutput(ns("scabies_appearance")), FALSE),
+        imageOutput(ns("scabies_image_age")),# width = "20%", height = "20%"),
+        
+        br(),br(),
         checkboxInput(ns("atypical_scabies"), "Single papules on limbs and trunk +/- excoriation?", FALSE),
-        tags$img(src ='atypical_scabies.png', height = "40%", width = "40%",  align = "center"),
+        tags$img(src ='atypical_scabies.png', height = "70%", width = "70%",  align = "center"),
+        
+        br(),br(),
         checkboxInput(ns("fungal"), "Round to oval flat scaly patches with excoriation?", FALSE),
-        tags$img(src ='fungal.png', height = "70%", width = "70%",  align = "center"),
+        tags$img(src ='fungal.png', height = "90%", width = "90%",  align = "center"),
+        
+        br(),br(),
         checkboxInput(ns("eczema"), "Confluent patches of red skin on flexures?", FALSE),
-        tags$img(src ='eczema.png', height = "30%", width = "30%",  align = "center"),
+        tags$img(src ='eczema.png', height = "50%", width = "50%",  align = "center"),
         checkboxInput(ns("other"), "Other?", FALSE)
       ),
       mainPanel(
-        "App by Simon Thornley.",
-        br(),
+        "App by Dr Simon Thornley.",
+        br(), br(),
         
         "Not currently for clinical use. This is a mock-up of an app for 
           diagnostic use in children aged less than 15 years with itch or rash.",
+        br(), br(),
         h3("Diagnosis is:"),
         htmlOutput(ns("diagnosis")),
         tags$br(),
@@ -166,6 +179,16 @@ diagnose_Server <- function(id) {
           "Insufficient information to make diagnosis."
         }
       })
+      
+      output$scabies_appearance <- renderText({
+        if (input$child_age <= 2){
+          "Excoriation and widespread vesicular rash, with or without crops of 
+          papules?"
+        } else {
+          "Excoriation and crops of papules, predominantly on limbs and trunk?"
+        }
+      })
+      
       output$allergy <- renderText({
        colorize(input$allergy, "red")
       })
