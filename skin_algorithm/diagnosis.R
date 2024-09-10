@@ -9,48 +9,53 @@ diagnose_UI <- function(id) {
     sidebarLayout(
       
       sidebarPanel(
+        h4("Age of child?"),
+        numericInput(ns("child_age"), "", 10, min = 0, max = 15, step = 1, "100px"),
+        strong("years"),
         h4("Symptoms (from parent)?"),
-        checkboxInput(ns("itchy"), "Is the child itchy?", FALSE),
-        "When did the symptoms start?",
-        dateInput(ns("symptom_start"), "Approximately:", format = 'dd-mm-yyyy'),
-        
-        checkboxInput(ns("family_itchy"), "Is anyone else in the family itchy?", FALSE),
-        checkboxInput(ns("family_skin_issue"), "Does anyone else in the family have a skin problem?", FALSE),
-        checkboxInput(ns("pain"), "Does the child have painful skin?", FALSE),
-        h4("Medication history?"),
-        "Is the child on any of the following drugs?",
-        checkboxInput(ns("topical_strong_steroid"), "Topical strong steroid?", FALSE),
-        checkboxInput(ns("topical_weak_steroid"), "Topical weak steroid?", FALSE),
-        checkboxInput(ns("systemic_steroids"), "Systemic steroid?", FALSE),
-        checkboxInput(ns("anti-histamine"),"Topical or oral anti-histamines", FALSE),
-        checkboxInput(ns("topical_antibiotics"), "Topical antibiotics?", FALSE),
-        checkboxInput(ns("oral_antibiotics"), "Oral antibiotics?", FALSE),
-        checkboxInput(ns("permethrin"), "Topical permethrin?", FALSE),
-        checkboxInput(ns("ivermectin"), "Oral ivermectin?", FALSE),
-        checkboxInput("other_med", "Other skin lotion?", FALSE),
-        h5("Allergies?"),
+        checkboxInput(ns("itchy"), "🥴 Is the child itchy?", FALSE),
+        "⏳ How long ago did the symptoms start?",
+        numericInput(ns("symptom_start"), "", 0, min = 0, max = 3*365, step = 1, "100px"),
+        selectInput("time_scale", "⏰ scale?", c("hours", "days", "weeks", "months"), width = "100px"),
+        checkboxInput(ns("family_itchy"), "🏡 Is anyone else in the family itchy?", FALSE),
+        checkboxInput(ns("family_skin_issue"), "🏡 Does anyone else in the family have a skin problem?", FALSE),
+        checkboxInput(ns("pain"), "😖 Does the child have painful skin?", FALSE),
+        h4("💊🧴 Drug history?"),
+        "Is the child taking any of the following?",
+        checkboxInput(ns("topical_strong_steroid"), "🧴Topical strong steroid?", FALSE),
+        checkboxInput(ns("topical_weak_steroid"), "🧴Topical weak steroid?", FALSE),
+        checkboxInput(ns("topical_antibiotics"), "🧴 Topical antibiotics?", FALSE),
+        checkboxInput(ns("permethrin lotion"), "🧴 Topical permethrin?", FALSE),
+        checkboxInput("other_med", "🧴 Other skin lotion?", FALSE),
+        checkboxInput(ns("systemic_steroids"), "💊 oral steroid?", FALSE),
+        checkboxInput(ns("anti-histamine"),"🧴Topical or 💊 oral anti-histamines", FALSE),
+        checkboxInput(ns("oral_antibiotics"), "💊 Oral antibiotics?", FALSE),
+        checkboxInput(ns("ivermectin"), "💊 Oral ivermectin?", FALSE),
+        checkboxInput("other_med", "🧴 Other oral medication?", FALSE),
+        h5("🤧 Allergies?"),
         textInput(ns("allergy"), "Please enter all separated by commas.", 
                   value = "", width = '400px', placeholder = "Amoxycillin"),
         # c("Is the child itchy?",
         # "Is anyone else in the family itchy?",
         # "Does anyone else in the family have a skin problem?",
         # "Does the child have painful skin?")),
-        h4("Signs?"),
-        "Please take the child's temperature, 
+        h4("🧐 Signs?"),
+        "🤒️ Please take the child's temperature, 
         particularly if severe infection is suspected.",
-        checkboxInput(ns("febrile"), "Temperature greater 
+        checkboxInput(ns("febrile"), "🥵 Temperature greater 
                       than 38 degrees celsius?", FALSE),
         "Please examine the symptomatic area, and expose the arms and hands, 
-          legs and feet and torso under good lighting.",
-        "Skin appearance?",
+          legs and feet and torso under good lighting 💡.",
+        br(),br(),
+        strong("Skin appearance?"),
         checkboxInput(ns("cellulitis"), "Extensive warmth, redness, or swelling?", FALSE),
         tags$img(src ='Cellulitis.png', height = "70%", width = "70%",  align = "center"),
-        checkboxInput(ns("abscess"), "Localised warmth, redness, or swelling?", FALSE),
-        tags$img(src ='infected_scabies.png', height = "70%", width = "70%",  align = "center"),
-        checkboxInput(ns("impetigo"), "Pus or crusts?", FALSE),
-        tags$img(src ='impetigo.png', height = "30%", width = "30%",  align = "center"),
+        checkboxInput(ns("abscess"), "Localised warmth, redness, pus, ulceration or swelling?", FALSE),
+        imageOutput(ns("infected_scabies_image_age"), width = "40%", height = "40%"),
+        checkboxInput(ns("impetigo"), "Crusts?", FALSE),
+        tags$img(src ='impetigo.png', height = "70%", width = "70%",  align = "center"),
         checkboxInput(ns("scabies"), "Excoriation and crops of papules on limbs and trunk?", FALSE),
-        tags$img(src ='scabies.jpg', height = "70%", width = "70%",  align = "center"),
+        imageOutput(ns("scabies_image_age"), width = "40%", height = "40%"),
         checkboxInput(ns("atypical_scabies"), "Single papules on limbs and trunk +/- excoriation?", FALSE),
         tags$img(src ='atypical_scabies.png', height = "40%", width = "40%",  align = "center"),
         checkboxInput(ns("fungal"), "Round to oval flat scaly patches with excoriation?", FALSE),
@@ -130,9 +135,9 @@ diagnose_Server <- function(id) {
                  "Advise to return if not improving.")
         }  else if ((input$abscess|input$impetigo) & !input$febrile){
           paste0(colorize("Likely localised cellulitis or abscess", "orange"),
-                 "Suggest take skin swab.", tags$br(),
-                 "Treat with systemic antibiotic.", tags$br(),
-                 "Consider co-treatment for scabies with oral ivermectin ",
+                 "🧪 Suggest take skin swab.", tags$br(),
+                 "💊 Treat with systemic antibiotic.", tags$br(),
+                 "💊 Consider co-treatment for scabies with oral ivermectin ",
                  tags$br("(0.2 mg/kg)"), " stat and repeat after two weeks,
                  since scabies may be contributing.", tags$br(),
                  "Symptoms should resolve after one week.",
@@ -164,6 +169,24 @@ diagnose_Server <- function(id) {
       output$allergy <- renderText({
        colorize(input$allergy, "red")
       })
+      
+      output$scabies_image_age <- renderImage({
+        if(input$child_age <= 2){
+          scab <- "./www/baby_scabies.png"
+        } else {
+          scab <- "./www/scabies.jpg"
+        }
+        list(src=scab)
+      }, deleteFile = FALSE)
+      
+      output$infected_scabies_image_age <- renderImage({
+        if(input$child_age <= 2){
+          inf <- "./www/Infant_infected_scabies.png"
+        } else {
+          inf <- "./www/abscess.jpg"
+        }
+        list(src = inf)
+      }, deleteFile = FALSE)
       
     }
   )

@@ -8,6 +8,7 @@
 # Based on https://www.scielosp.org/article/ssm/content/raw/?resource_ssm_path=/media/assets/bwho/v87n3/10.pdf
 
 library(shiny)
+library(bslib)
 source("diagnosis.R")
 colorize <- function(x, color) {
   sprintf("<h3><span style='color: %s;'>%s</span></h3>", color,
@@ -15,7 +16,8 @@ colorize <- function(x, color) {
 }
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-  
+  theme = bslib::bs_theme(),
+  #theme = bslib::bs_theme(bootswatch = "sketchy"),
   # Application title
   titlePanel("Primary care skin identification algorithm"),
   "Please check the following boxes:",
@@ -24,6 +26,7 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  bs_themer()
  diagnose_Server("itch")
 }
 
