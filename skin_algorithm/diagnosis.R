@@ -31,7 +31,7 @@ diagnose_UI <- function(id) {
         checkboxInput(ns("anti-histamine"),"🧴Topical or 💊 oral anti-histamines", FALSE),
         checkboxInput(ns("oral_antibiotics"), "💊 Oral antibiotics?", FALSE),
         checkboxInput(ns("ivermectin"), "💊 Oral ivermectin?", FALSE),
-        checkboxInput("other_med", "🧴 Other oral medication?", FALSE),
+        checkboxInput("other_med", "💊 Other oral medication?", FALSE),
         h5("🤧 Allergies?"),
         textInput(ns("allergy"), "Please enter all separated by commas.", 
                   value = "", width = '400px', placeholder = "Amoxycillin"),
