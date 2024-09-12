@@ -49,7 +49,7 @@ diagnose_UI <- function(id) {
         br(),br(),
         strong("Skin appearance?"),
         checkboxInput(ns("cellulitis"), "Extensive warmth, redness, or swelling?", FALSE),
-        tags$img(src ='Cellulitis.png'), #, height = "70%", width = "70%",  align = "center"),
+        tags$img(src ='Cellulitis.png', align = "center", class = "sidebar-image"), #, height = "70%", width = "70%",  align = "center"),
         
         br(),br(),
         checkboxInput(ns("abscess"), "Localised warmth, redness, pus, ulceration or swelling?", FALSE),
@@ -57,7 +57,7 @@ diagnose_UI <- function(id) {
         
         
         checkboxInput(ns("impetigo"), "Crusts?", FALSE),
-        tags$img(src ='impetigo.png', height = "70%", width = "70%",  align = "center"),
+        tags$img(src ='impetigo.png', align = "center", class = "sidebar-image"),
         
         br(),br(),
         checkboxInput(ns("scabies"), textOutput(ns("scabies_appearance")), FALSE),
@@ -65,15 +65,15 @@ diagnose_UI <- function(id) {
         
         br(),br(),
         checkboxInput(ns("atypical_scabies"), "Single papules on limbs and trunk +/- excoriation?", FALSE),
-        tags$img(src ='atypical_scabies.png', height = "70%", width = "70%",  align = "center"),
+        tags$img(src ='atypical_scabies.png',  align = "center", class = "sidebar-image"),
         
         br(),br(),
         checkboxInput(ns("fungal"), "Round to oval flat scaly patches with excoriation?", FALSE),
-        tags$img(src ='fungal.png', height = "90%", width = "90%",  align = "center"),
+        tags$img(src ='fungal.png', align = "center", class = "sidebar-image"),
         
         br(),br(),
         checkboxInput(ns("eczema"), "Confluent patches of red skin on flexures?", FALSE),
-        tags$img(src ='eczema.png', height = "50%", width = "50%",  align = "center"),
+        tags$img(src ='eczema.png',  align = "center", class = "sidebar-image"),
         checkboxInput(ns("other"), "Other?", FALSE)
       ),
       mainPanel(

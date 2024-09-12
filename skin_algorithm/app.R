@@ -21,10 +21,20 @@ ui <- fluidPage(
   # Application title
   titlePanel("Primary care children's skin diagnosis aid"),
   "Please check the following boxes:",
-  tags$head(tags$style(
-    type="text/css",
-    "#image img {max-width: 100%; width: 100%; height: auto}"
-  )),
+  tags$style(HTML("
+    .sidebar-image {
+      width: 100%;  /* Set the width to 100% of the container */
+      height: auto; /* Maintain the aspect ratio */
+      max-width: 400px; /* Set a maximum width (adjust as needed) */
+    }
+  ")),
+  tags$style(HTML("
+    #itch-scabies_image_age img, #itch-infected_scabies_image_age img{
+      width: 100%;   /* Set the width to 100% of the container */
+      height: auto;  /* Maintain aspect ratio */
+      max-width: 400px;  /* Set maximum width */
+    }
+  ")),
   diagnose_UI("itch")
 )
 
