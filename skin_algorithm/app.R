@@ -19,7 +19,7 @@ ui <- fluidPage(
   theme = bslib::bs_theme(),
   #theme = bslib::bs_theme(bootswatch = "sketchy"),
   # Application title
-  titlePanel("Primary care children's skin diagnosis aid"),
+  titlePanel("Skin buddy: helping diagnose skin issues in kids"),
   "Please check the following boxes:",
   tags$style(HTML("
     .sidebar-image {
