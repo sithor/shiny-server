@@ -1,0 +1,12 @@
+name: scabies_treatment_calculator
+title: scabies_treatment_calculator
+username: sithor
+account: sithor
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 12844735
+bundleId: 9150935
+url: https://sithor.shinyapps.io/scabies_treatment_calculator/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
