@@ -45,7 +45,9 @@ This course is a stage 2 introductory course related to the analysis of quantita
 -   [Tutorial 1: Getting started](https://rpubs.com/sithor/tut_1){target="_blank"}
 -   [Tutorial 2: Exploring inferential statistics](https://rpubs.com/sithor/tut_2){target="_blank"}
 -   [Tutorial 3: Analysing a case-control study](https://rpubs.com/sithor/tut_3){target="_blank"}
-
+-   [Tutorial 4: Adjusting for confounding and regression](https://rpubs.com/sithor/807385){target="_blank"}
+-   [Tutorial 5: Further exploration of regression](https://rpubs.com/sithor/1216248){target="_blank"}
+-   [Tutorial 6: Examination preparation](https://rpubs.com/sithor/819040){target="_blank"}
 
 ## Other epidemiology-related apps and websites
 
@@ -60,6 +62,11 @@ This course is a stage 2 introductory course related to the analysis of quantita
 -   [Calculator for in-hospital interpretation of D-dimer test with Fagan's nomogram](https://sithor.shinyapps.io/Pulmonary_embolus/){target="_blank"}
 -   [Bayes' diagnostic test aid with Euler plot](http://sithor.com/shiny/Shiny_Bayes){target="_blank"}
 -   [My github page](https://github.com/sithor/){target="_blank"}
+
+## Teaching datasets I use...
+-   [Korean Health Survey (cut down sample; POPLHLTH 216: tutorials 1 and 2)](https://drive.google.com/file/d/1TKDdYWpSqQyw8PPK9o3SZZCFK6n1cIkF/view?usp=drive_link){target="_blank"}
+-   [Cot death case control study; POPLHLTH 216: tutorials 3 and 4](https://drive.google.com/file/d/1Z4Zd93_Vpvpdd2RNoHB79UaInHWKJ0rR/view?usp=drive_link){target="_blank"}
+
 
 ## Some of my talks
 
