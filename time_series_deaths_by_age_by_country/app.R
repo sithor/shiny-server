@@ -29,6 +29,7 @@ library(stringr)
 data_path <- "./data/stmf.xlsx"  # Adjust the file path as needed
 all_sheets <- excel_sheets(data_path)
 all_sheets <- all_sheets[-1]
+Country_code <- rio::import("./data/Country.xlsx")
 
 # Define the UI
 ui <- fluidPage(
@@ -40,7 +41,7 @@ ui <- fluidPage(
   br(), br(),
   sidebarLayout(
     sidebarPanel(
-      selectInput("sheet", "Select Country (Sheet)", choices = all_sheets),
+      selectInput("sheet", "Select Country (Sheet)", choices = Country_code$Country),
       selectInput("age_category", "Select Age Category", choices = NULL),
       selectInput("data_type", "Select Data Type", choices = c("Count" = "count", "Rate" = "rate")),
       actionButton("plot", "Plot")
@@ -57,7 +58,7 @@ server <- function(input, output, session) {
   # Load the selected sheet's data
   data <- reactive({
     req(input$sheet)
-    df <- rio::import(data_path, sheet = input$sheet, skip = 2)
+    df <- rio::import(data_path, sheet = Country_code[Country_code$Country == input$sheet, "Code"], skip = 2)
     # Rename columns for consistency
     names(df)[5:10] <- paste0("count_", gsub("\\..*", "", names(df)[5:10]))
     names(df)[11:16] <- paste0("rate_", gsub("\\..*", "", names(df)[11:16]))
