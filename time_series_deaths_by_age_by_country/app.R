@@ -34,17 +34,35 @@ Country_code <- rio::import("./data/Country.xlsx")
 # Define the UI
 ui <- fluidPage(
   titlePanel("Time-series analysis of recent all-cause mortality trends by age and country"),
-  "This app conducts a seasonal trend-decomposition on all-cause
-  mortality and count data, by age group and country, from the following",
-  tags$a(href="https://mpidr.shinyapps.io/stmortality/", " website."),
-  "Vertical red lines indicate the 2021 year.",
+  "This app conducts a ",  
+  tags$a(href="https://otexts.com/fpp2/stl.html", "seasonal trend decomposition", target="_blank"),
+  " of weekly all-cause
+  mortality ", span("rate or count data", style="color:brown")," by ", 
+  span("age group", style="color:green")," and ", 
+  span("country", style="color:purple"),
+  " from this",
+  tags$a(href="https://mpidr.shinyapps.io/stmortality/", " website.", target="_blank"),
+  br(), br(),
+  "The seasonal and trend window controls adjust the width of the period over which values are averaged.", 
+  br(), br(),
+  "Vertical ", span("red", style="color:red"), " lines indicate the start and end of the 2021 year.",
+  br(), br(),
+  "Please note the changing scale of each of the subplots.
+  The grey vertical bar to the right of the subplot gives a visual 
+  representation of the relative scable of each. 
+  If each subplot was the same scale, 
+  the size of the grey bar would be identical.",
   br(), br(),
   sidebarLayout(
     sidebarPanel(
-      selectInput("sheet", "Select Country (Sheet)", choices = Country_code$Country),
-      selectInput("age_category", "Select Age Category", choices = NULL),
-      selectInput("data_type", "Select Data Type", choices = c("Count" = "count", "Rate" = "rate")),
-      actionButton("plot", "Plot")
+      selectInput("sheet", span("Select country", style="color:purple"), choices = Country_code$Country),
+      selectInput("age_category", span("Select age category", style="color:green") , choices = NULL),
+      selectInput("data_type", span("Select data type", style="color:brown"), choices = c("Count" = "count", "Rate" = "rate")),
+      sliderInput("t_window", "Trend-cycle window (weeks)", min = 5, 
+                  max = 52, step =2, value = 52),
+      sliderInput("s_window", "Seasonal-cycle window (years)", min = 3, 
+                  max = 25, step =1, value = 25),
+      #actionButton("plot", "Plot")
     ),
     mainPanel(
       plotOutput("time_series_plot")
@@ -78,7 +96,7 @@ server <- function(input, output, session) {
   
   # Render the time series plot
   output$time_series_plot <- renderPlot({
-    req(input$plot)
+    #req(input$plot)
     req(data(), input$age_category, input$data_type)
     
     # Create column name based on user selection
@@ -91,15 +109,20 @@ server <- function(input, output, session) {
     # Extract and process time series
     start_date <- data()$Year[1] + (data()$Week[1] -1)/52
     time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
-    decomposition <- stl(time_series, "periodic")
+    decomposition <- stl(time_series, s.window = input$s_window, 
+                         t.window = input$t_window)
     age_cat <- str_split(column_name, '_')
     
     # Plot the decomposition
     forecast::autoplot(decomposition) +
-      ggtitle(paste0("Time-series analysis of ", input$data_type, "s of deaths in ",
-                     input$sheet, "\n", age_cat[[1]][2], " years")) +
+      ggtitle(paste0("Seasonal trend decomposition of ", input$data_type, "s of deaths in ",
+                     input$sheet, "\n", ifelse(age_cat[[1]][2] == "Total", 
+                        "All ages", age_cat[[1]][2]), 
+                     ifelse(age_cat[[1]][2] == "Total", ""," years"))) +
+      theme(plot.title=element_text(face="bold")) +
       geom_vline(xintercept = c(2021, 2022), linetype = "dotted", 
-                 size = 0.7, colour = "red")
+                 size = 1, colour = "red") +
+      theme_gray(base_size = 18)
   })
 }
 
