@@ -11,6 +11,8 @@ library(epiDisplay)
 library(lattice)
 library(shinyWidgets)
 library(epiR)
+library(eulerr)
+library(dplyr)
 
 
 
@@ -178,6 +180,32 @@ ui <- fluidPage(
               "Odds ratios are not bounded by the prevalence of the disease in the unexposed cases.",
               "Relative risks, conversely, are bounded by the prevalence of disease in the unexposed.",
               tableOutput("tabpct")))),
+  
+  # Add the new tab in the UI
+  # UI: Add toggle switches for counts and percentages
+  tabPanel("Visualise exposure-disease relationships (Euler Plots)",
+           sidebarLayout(
+             sidebarPanel(
+               "Select exposure and case categories to visualize odds ratios.",
+               tags$hr(),
+               uiOutput("case_var_euler"),
+               tags$hr(),
+               uiOutput("is_case_euler"),
+               tags$hr(),
+               uiOutput("exposure_vars_euler"),
+               tags$hr(),
+               uiOutput("is_exposed_euler"),
+               tags$hr(),
+               checkboxInput("show_counts", "Show Counts", FALSE),  # Toggle for Counts
+               checkboxInput("show_percentages", "Show Percentages", FALSE)  # Toggle for Percentages
+             ),
+             mainPanel(
+               "Euler diagrams summarizing exposure-disease relationships.",
+               uiOutput("euler_plots")
+             )
+           )
+  ),
+  
  
    ## Panel with epidemic curve
     tabPanel("Plot histogram of onset times of cases (epicurve)",
@@ -231,7 +259,7 @@ ui <- fluidPage(
 server <- function(input, output) {
   
 
-  ###########################################################################3
+  ###########################################################################
   ## functions  
 import_csv <- function(file = input$file1$datapath, header = input$header, sep = input$sep, quote = input$quote,
     missing = input$missing, ...){
@@ -310,6 +338,10 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
                                exposure_vars = input$exposure_vars, 
                                case_var = input$case_var, is_case = input$is_case,
                               is_exposed = input$is_exposed){
+    # ✅ Prevent function from running if no exposures are selected
+    if (is.null(exposure_vars) || length(exposure_vars) == 0) {
+      return(data.frame(Message = "No exposure variables selected"))
+    }
     print("Is data frame imported?")
     df <- import_data()
     
@@ -694,7 +726,6 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
   
   output$exposure_vars_summ <- renderUI({
     df <- import_data()
-    
     checkboxGroupInput("exposure_vars_summ", "Exposure variable", df %>% names) 
     })
   
@@ -726,7 +757,9 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
   
   
   output$is_case <- renderUI({
-    
+    validate(
+      need(input$exposure_vars, "Please select exposure variables")
+    )
     df <- import_data()
     checkTrue(df[, c(input$case_var), drop = FALSE] %>% as.factor %>% levels %>% length == 2) %>% print
     checkTrue(df[, c(input$case_var), drop = FALSE] %>% is.factor ) %>% print
@@ -739,7 +772,9 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
   })
   
    output$is_exposed <- renderUI({
-    
+     validate(
+       need(input$exposure_vars, "Please select exposure variables")
+     )
     df <- import_data()
     
     
@@ -808,7 +843,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
        ifelse(input$date_format == "dd/mm/yy", "%d/%m/%y",
         ifelse(input$date_format == "dd-mm-yyyy", "%d-%m-%Y", 
           ifelse(input$date_format == "dd-mm-yy", "%d-%m-%y", 
-            ifelse(input$date_format == "dd/mm/yyyy hh:mm", "%d/%m/%Y %H:%M", NA)))))) %>% as.POSIXct
+            ifelse(input$date_format == "dd/mm/yyyy hh:mm", "%d/%m/%Y %H:%M", NA)))))) %>% as.POSIXct()
      validate(
        need(df$time_var, "Need valid onset time variable")
      )
@@ -816,7 +851,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
    })
    
  output$mean_onset_date <- renderText({
-   if(!is.numeric.POSIXt(input$onset_time)) return()
+   #if(!is.numeric.POSIXt(input$onset_time)) return()
    df <- import_data()
       df$time_var <- df[, input$onset_time] %>% strptime( 
         ifelse(input$date_format == "dd/mm/yyyy", "%d/%m/%Y",
@@ -824,7 +859,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
             ifelse(input$date_format == "dd-mm-yyyy", "%d-%m-%Y", 
             ifelse(input$date_format == "dd-mm-yy", "%d-%m-%y", 
               ifelse(input$date_format == "dd/mm/yyyy hh:mm", 
-                "%d/%m/%Y %H:%M", NA)))))) %>% as.POSIXct
+                "%d/%m/%Y %H:%M", NA)))))) %>% as.POSIXct()
       error <- qt(0.975,df = length(df$time_var) - 1)*
         sd(df$time_var, na.rm = TRUE)/sqrt(length(df$time_var))
       
@@ -869,68 +904,140 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
  })
  
  # ##########################################################
- # ## srd panel
- # output$case_srd_var <- renderUI({
- #    
- #    df <- import_csv()
- #   
- #    selectInput("case_srd_var", "Disease variable", df %>% names) 
- #    #input$is_case %>% str %>% print
- #    
- #  })
- # 
- # output$exposure_vars_srd <- renderUI({
- #   df <- import_csv()
- #    # Only include binary variables
- #    x <- 1:ncol(df) %>% as.list
- #    print(paste("preliminary version of x: ", x, sep = ""))
- #    for (i in 1:ncol(df) ) x[[i]] <- levels(as.factor(df[, i])) %>% length == 2
- #    x <- do.call(rbind, x) %>% as.vector
- #    print(paste("after version of x: ", x, sep = ""))
- #    names_excl_other_than_2_levels <- names(df)[x]
- #    df <- df[, names(df) %in% names_excl_other_than_2_levels]
- #    df <- df[, which(names(df) != input$case_var) ]
- #    print(paste("names of dataframe with 2 levels and excluding case variable", names(df), sep =""))
- #    
- #    selectInput("exposure_vars_srd", "Exposure variable", names(df)) 
- #  })
- #   
- #  output$is_case_srd <- renderUI({
- #    
- #    df <- import_csv()
- #    checkTrue(df[, c(input$case_srd_var), drop = FALSE] %>% as.factor %>% levels %>% length == 2) %>% print
- #    checkTrue(df[, c(input$case_srd_var), drop = FALSE] %>% is.factor ) %>% print
- #    
- #    df[, c(input$case_srd_var)] %<>% as.factor %>% print
- #    
- #    selectInput("is_case_srd", "Select case", levels(df[, c(input$case_srd_var)] %>% as.factor) )
- #    #input$is_case %>% str %>% print
- #    
- #  })
- # 
- #  output$is_var_srd <- renderUI({
- #    
- #    df <- import_csv()
- #    checkTrue(df[, c(input$exposure_vars_srd), drop = FALSE] %>% as.factor %>% levels %>% length == 2) %>% print
- #    checkTrue(df[, c(input$exposure_vars_srd), drop = FALSE] %>% is.factor ) %>% print
- #    
- #    df[, c(input$exposure_vars_srd)] %<>% as.factor %>% print
- #    
- #    selectInput("is_var_srd", "Select exposed", levels(df[, c(input$exposure_vars_srd)] %>% as.factor) )
- #    #input$is_case %>% str %>% print
- #    
- #  })
- # 
- #  
- #  
- #  output$render_srd <- renderPlot({
- #   df <- import_csv()
- #   df[, input$exposure_vars_srd] <- ifelse(df[, input$exposure_vars_srd] == input$is_var_srd, 1, 0)
- #   df[, input$case_srd_var] <- ifelse(df[, input$case_srd_var] == input$is_case_srd, 1, 0)
- #   srd(df[, c(input$exposure_vars_srd, input$case_srd_var)])
- # })
+
  # ############################################################
-}
+
+ # Add UI elements for selecting case & exposure variables
+ # UI for case variable selection
+ output$case_var_euler <- renderUI({
+   df <- import_data()
+   df <- select_binary_vars_from_dataframe(df)
+   selectInput("case_var_euler", "Disease variable", df %>% names)
+ })
+ 
+ # UI for selecting disease category
+ output$is_case_euler <- renderUI({
+   validate(
+     need(input$exposure_vars_euler, "Please select disease and exposure variables")
+   )
+   df <- import_data()
+   selectInput("is_case_euler", "Select case category", levels(df[, input$case_var_euler] |> as.factor()))
+ })
+ 
+ # UI for selecting exposure variables
+ output$exposure_vars_euler <- renderUI({
+   df <- import_data()
+   df <- select_binary_vars_from_dataframe(df)
+   pickerInput(
+     inputId = "exposure_vars_euler",
+     label = "Select exposures to visualize",
+     choices = df %>% names,  
+     options = list(`actions-box` = TRUE),
+     multiple = TRUE
+   )
+ })
+ 
+ # UI for selecting "exposed" category dynamically
+ output$is_exposed_euler <- renderUI({
+   df <- import_data()
+   if (length(input$exposure_vars_euler) > 0) {
+     selectInput("is_exposed_euler", "Select exposed category",
+                 choices = levels(df[, input$exposure_vars_euler[1]] |> as.factor()))
+   }
+ })
+ 
+ # Generate Euler plots for each exposure separately
+ output$euler_plots <- renderUI({
+   validate(
+     need(input$exposure_vars_euler, "Please select at least one exposure variable"),
+     need(input$case_var_euler, "Please select a case variable"),
+     need(input$is_exposed_euler, "Please select an exposed category"),
+     need(input$is_case_euler, "Please select a case category")
+   )
+   
+   # Create a list of plots
+   plot_list <- lapply(input$exposure_vars_euler, function(exposure) {
+     plotOutput(outputId = paste0("euler_plot_", exposure))
+   })
+   
+   do.call(tagList, plot_list)  # Render all plots
+ })
+ 
+ # Server Logic for Euler Plots
+ observe({
+   for (exposure in input$exposure_vars_euler) {
+     local({
+       exp_var <- exposure
+       
+       output[[paste0("euler_plot_", exp_var)]] <- renderPlot({
+         df <- import_data()
+         case_var <- input$case_var_euler
+         is_case <- input$is_case_euler
+         is_exposed <- input$is_exposed_euler
+         
+         total_count <- nrow(df)
+         case_count <- sum(df[[case_var]] == is_case, na.rm = TRUE)
+         exposed_count <- sum(df[[exp_var]] == is_exposed, na.rm = TRUE)
+         exposed_cases_count <- sum(df[[exp_var]] == is_exposed & df[[case_var]] == is_case, na.rm = TRUE)
+         
+         # Ensure Overlap is Valid
+         exposed_cases_count <- min(exposed_cases_count, exposed_count, case_count)
+         
+         # Euler Data
+         euler_values <- c(
+           total_count - exposed_count - case_count + exposed_cases_count,
+           exposed_count - exposed_cases_count,
+           case_count - exposed_cases_count,
+           exposed_cases_count
+         )
+         
+         euler_labels <- c(
+           "All",
+           paste0(exp_var, "&All"),
+           paste0(case_var, "&All"),
+           paste0(exp_var, "&", case_var, "&All")
+         )
+         
+         euler_input <- setNames(euler_values, euler_labels)
+         
+         # Properly Named Labels
+         euler_text_labels <- c("All", exp_var, case_var, paste0(exp_var, " & ", case_var))
+         
+         # Determine what to show based on toggles
+         if (input$show_counts && input$show_percentages) {
+           plot(euler(euler_input, shape = "ellipse"),
+                fills = list(fill = c("lightgray", "steelblue", "lightcoral"), alpha = 0.5),
+                edges = list(col = "black"),
+                labels = list(labels = euler_text_labels, cex = 1.2),
+                main = paste("Euler Diagram:", exp_var, "vs", case_var),
+                quantities = list(type = c("percent", "counts")))
+         } else if (input$show_counts) {
+           plot(euler(euler_input, shape = "ellipse"),
+                fills = list(fill = c("lightgray", "steelblue", "lightcoral"), alpha = 0.5),
+                edges = list(col = "black"),
+                labels = list(labels = euler_text_labels, cex = 1.2),
+                main = paste("Euler Diagram:", exp_var, "vs", case_var),
+                quantities = list(type = "counts"))
+         } else if (input$show_percentages) {
+           plot(euler(euler_input, shape = "ellipse"),
+                fills = list(fill = c("lightgray", "steelblue", "lightcoral"), alpha = 0.5),
+                edges = list(col = "black"),
+                labels = list(labels = euler_text_labels, cex = 1.2),
+                main = paste("Euler Diagram:", exp_var, "vs", case_var),
+                quantities = list(type = "percent"))
+         } else {
+           plot(euler(euler_input, shape = "ellipse"),
+                fills = list(fill = c("lightgray", "steelblue", "lightcoral"), alpha = 0.5),
+                edges = list(col = "black"),
+                labels = list(labels = euler_text_labels, cex = 1.2),
+                main = paste("Euler Diagram:", exp_var, "vs", case_var))
+         }
+       }) # End of renderPlot
+     }) # End of local
+   } # End of for loop
+ }) # End of observe
+ 
+ }
 
 
 
