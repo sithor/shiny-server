@@ -417,7 +417,7 @@ import_csv <- function(file = input$file1$datapath, header = input$header, sep =
       print("Structure of tab[[i]] is:")
       print(tab[[i]])
       ## calculate population attributable risk
-      #browser()
+      
       PAR_alt[[i]] <- epiR::epi.2by2(tab[[i]],
                                 method="cohort.count",
                                 digits=2,
