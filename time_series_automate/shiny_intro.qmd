@@ -1,0 +1,31 @@
+---
+title: "Time-series analysis of all-cause mortality trends by age and country with change point detection"
+format: html
+editor: visual
+---
+
+## Seasonal trend decomposition: what is the long term trend?
+
+This app conducts a [seasonal trend decomposition](https://otexts.com/fpp2/stl.html){target="_blank"} of **weekly all‐cause mortality** (**rate** or **count** [data](https://mpidr.shinyapps.io/stmortality/){target="_blank"}) by <span style="color:green;">age group</span> and <span style="color:blue;">country</span> with a plot of the various components of the analysis displayed in the top plot. This is a method to uncover changing patterns in time-series data which is displayed as a `trend` (or moving average) once the seasonal component has been removed.  The method reduces a complex time-series (shown in the top plot as `data`) to individual components, including a `seasonal` component, long term `trend` and `remainder`. The remainder shows the residual from the `data` minus `seasonal` and `trend`. It is a measure of model fit with larger absolute values indicating poorer fit. 
+
+The width of the long term `trend` and `seasonal` components can be shortened using the <span style="color:maroon;">Trend cycle window</span> or <span style="color:maroon;">Seasonal cycle window</span> respectively. These may improve model fit indicated by smaller `remainder` values. It is the **`trend`** component which is of most interest when assessing the effects of a possible intervention.
+
+The data is available as raw counts or population adjusted rates using the <span style="color:brown;">Select data type</span> toggle.
+
+<span style="color:purple;">Purple</span> **vertical** dashed lines indicate the start and end of 2021, when covid-19 vaccines were initially rolled out, and subsequently, vaccine mandates were enforced in many countries.
+
+## When does the greatest change from baseline occur?
+
+If the user selects <span style="color:navy;">Change point detection: <span style="font-family: monospace;">tscount (interv_detect)</span></span>, an algorithm is run (using the `R` [`tscount`](https://cran.r-project.org/web/packages/tscount/vignettes/tsglm.pdf){target="_blank"} package) to assess which date in the time-series has the greatest departure from the underlying trend (using an *autoregressive conditional Poisson model*). 
+
+The nature of the departure function from baseline is given by the <span style="color:olive;">Intervention to detect</span> slider which varies between `1` and `0`. A value of `0` indicates an instantaneous spike in deaths (for example from a natural disaster), whereas `1` indicates an instantaneous step change in mortality. The default value of `0.8` indicates a rapid change followed by an exponential decay back to baseline counts. I recommend selecting `0.8` or `0.9` unless a step change is indicated by the `trend` part of the seasonal trend decomposition plot. In this case, I would select `1`.
+
+Mathematically, the intervention effect at week $\tau$, is given by $X_{t} = \delta^{t -\tau}I_{[\tau,\infty)}(t)$. The indicator function $I_{[\tau,\infty)}(t)$ is `0` for $t < \tau$ and `1` for $t \geq \tau$. $\delta$ is the <span style="color:olive;">Intervention to detect</span> slider which if set to `0` has an effect only at the week of occurrence and `1` indicates a step function with a persistent effect. Values between `1` and `0` indicate an effect that decays exponentially, with higher values having longer effect tails.
+
+Vertical dashed lines indicate candidate change points detected by the `tscount` model. The top candidate (highest test statistic - lowest probability of occurring by chance) is shown in <span style="color:red;">red</span> with full opacity, while subsequent candidates are shown in <span style="color:orange;">orange</span> with increasing transparency for lower ranked values. The number of change points shown on the seasonal trend decomposition plot is selected by using the '<span style="color:red;">Number of candidate change points to display:</span>' slider.
+
+For each candidate, the intervention effect is estimated as $100 *(1 - e^{\beta_1})\%$, where $\beta_1$ is the intervention coefficient from the refitted model using `interv_covariate()`. This 'effect' is the percentage change from baseline values of the weekly death counts. The ranked dates of change are printed below the seasonal trend decomposition plot.
+
+Only data <span style="color:brown;"><span style="font-family: monospace;">type = Count</span></span> can be used for change point detection. The model includes a linear term to accommodate long‐term population change.
+
+Plots below the seasonal trend decomposition are for advanced users and incorporate some of the checks on the modelling assumptions in the change point analysis.
