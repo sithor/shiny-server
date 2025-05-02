@@ -7,19 +7,17 @@ library(dplyr)
 library(stringr)
 library(lubridate)
 library(rio)
+library(changepoint)
 library(tscount)
 library(mathjaxr)
 library(markdown)
 library(later)
-# install.packages(c("future", "future.apply", "promises"))
 library(future)
-library(future.apply)
 library(promises)
 library(shinyjs)
 # install.packages("waiter")
 library(waiter)
-# Set up a parallel plan. On shiny.io, multisession is usually supported.
-plan(multisession)
+
 # Preload the Excel file
 data_path <- "./data/stmf.xlsx"  # Adjust the file path as needed
 all_sheets <- excel_sheets(data_path)
@@ -145,60 +143,103 @@ ui <- fluidPage(
   br(),
   sidebarLayout(
     sidebarPanel(
-      selectInput("sheet", span("Select country", style="color:blue"), choices = Country_code$Country) |> 
+      selectInput("sheet", span("Select country", style="color:blue"), choices = Country_code$Country) |>
         tagAppendAttributes(class = "blue-text"),
-      selectInput("age_category", span("Select age category", style="color:green"), choices = NULL) |> 
+      selectInput("age_category", span("Select age category", style="color:green"), choices = NULL) |>
         tagAppendAttributes(class = "green-text"),
       selectInput("data_type", span("Select data type", style="color:brown"),
-                  choices = c("Count" = "count", "Rate" = "rate")) |> 
+                  choices = c("Count" = "count", "Rate" = "rate")) |>
         tagAppendAttributes(class = "brown-text"),
-      sliderInput("t_window", span("Trend-cycle window (weeks)", style="color:maroon"), 
+      sliderInput("t_window", span("Trend-cycle window (weeks)", style="color:maroon"),
                   min = 5, max = 52, step = 2, value = 52),
-      sliderInput("s_window", span("Seasonal-cycle window (years)", style="color:maroon"), 
+      sliderInput("s_window", span("Seasonal-cycle window (years)", style="color:maroon"),
                   min = 3, max = 25, step = 1, value = 25),
-      selectInput("cp_method", span("Change Point Detection", style="color:navy"), 
-                  choices = c("None", "tscount (interv_detect)")) |> 
+      
+      selectInput("cp_method", span("Change Point Detection", style="color:navy"),
+                  choices = c(
+                    "None",
+                    "tscount (interv_detect)",
+                    "changepoint (mean and variance)",
+                    "changepoint (mean only)",
+                    "changepoint (variance only)"
+                  )) |>
         tagAppendAttributes(class = "navy-text"),
       
-      actionButton("optimize_delta", "Optimize Intervention", 
-                   style = "color: white; background-color: olive; border: none; padding: 8px 16px; text-align: center;"),
-      
-      sliderInput("delta", span("Intervention to detect\n(0 = spike,\n0.8 increase and decay,\n1 = step increase)", style="color:olive"),
-                  min = 0, max = 1, step = 0.01, value = 0.8) |> 
+      ## only show penalty choices if a changepoint method is picked
+      conditionalPanel(
+        condition = "input.cp_method.includes('changepoint')",
+        selectInput("cp_penalty",
+                    span("Penalty for changepoint detection", style = "color:navy"),
+                    choices = c("BIC", "AIC", "MBIC", "Manual"),
+                    selected = "BIC") |>
+          tagAppendAttributes(class = "navy-text")
+      ),
+      conditionalPanel(
+        condition = "input.cp_method.includes('tscount')",
+      actionButton("optimize_delta", "Optimize Intervention",
+                   style = "color: white; background-color: olive; border: none; padding: 8px 16px;"),
+      h5("Show how optimal intervention is selected by maximising model fit (slow!)"),
+      checkboxInput("show_aic_plot", "Show AIC vs Delta plot (slower)", value = FALSE),
+      sliderInput("delta", span("Intervention to detect\n(0 = spike,\n0.8 increase and decay,\n1 = step increase)",
+                                style = "color:olive"),
+                  min = 0, max = 1, step = 0.01, value = 0.8) |>
         tagAppendAttributes(class = "olive-text"),
-      
-      uiOutput("half_life_info") |> 
+      uiOutput("half_life_info") |>
         tagAppendAttributes(style = "margin-top: 10px; font-weight: bold; color: olive;"),
-      
       sliderInput("num_cps", span("Number of candidate change points to display:", style="color:red"),
-                  min = 1, max = 20, value = 4, step = 1) |> 
+                  min = 1, max = 20, value = 4, step = 1) |>
         tagAppendAttributes(class = "red-text")
-    ),
+    )),
     mainPanel(
       plotOutput("time_series_plot"),
-      plotOutput("interventionPlot", height = "200px",
-                 hover = hoverOpts(id = "plot_hover", delay = 100)) |> 
-        tagAppendAttributes(style = "margin-top: 10px; border: 1px solid #ddd; padding: 10px;"),
       conditionalPanel(
-        condition = "input.cp_method == 'tscount (interv_detect)'",
-        h3("Diagnostic plots and change point detection output"),
+      condition = "input.cp_method.includes('tscount')",
+        h3("Intervention effect over time"),
+        htmlOutput("half_life_info"),
+        p("The intervention effect is the relative change in the expected count of deaths after the intervention."),
+        p("The half-life is the time it takes for the effect to decay to half its initial value."),
+        p("The plot below shows the expected effect of the intervention over time."),
+       
+        div(id = "interventionPlotContainer",
+      plotOutput("interventionPlot", height = "200px",
+                 hover = hoverOpts(id = "plot_hover", delay = 100)))), 
+        
+      conditionalPanel(
+        condition = "input.cp_method !== 'None'",
+      h3("Diagnostic plots and change point detection output"),
         htmlOutput("cp_results"),
+      conditionalPanel(
+        condition = "input.cp_method.includes('tscount')",  
         h4("Magnitude of intervention change test statistic"),
-        plotOutput("int_plot"),
+        plotOutput("int_plot")),
         h4("Count model: observed values vs. model predicted"),
         plotOutput("obs_vs_pred", height = "800px"),
+      conditionalPanel(
+        condition = "input.cp_method.includes('tscount')", 
         h4("Count model: Probability integral transform plot"),
         p("Should be uniform distribution if good model fit."),
         plotOutput("fit_plot_pit"),
         h4("Count model: Other diagnostic plots"),
-        plotOutput("fit_plot")
-      )
-    )
-  )
-)
+        plotOutput("fit_plot")),
+      
+      #conditionalPanel(
+       # condition = "input.cp_method.includes('changepoint')",
+        # h3("Diagnostic plots and change point detection output"),
+        # htmlOutput("cp_results"),
+        # h4("Magnitude of intervention change test statistic"),
+        # plotOutput("int_plot"),
+      
+      ## AIC plot (new)
+      conditionalPanel(
+        condition = "input.show_aic_plot == true",
+        h4("Model AIC vs. Delta"),
+        plotOutput("aic_plot", height = "400px")))
+      #)
+    )))
+
 # Define the server logic (unchanged from your code)
 server <- function(input, output, session) {
-  
+  source("function.R")
   # Force data_type to "count" if any change point detection method is selected.
   observeEvent(input$cp_method, {
     if (input$cp_method != "None") {
@@ -230,16 +271,36 @@ server <- function(input, output, session) {
   
   # Change point detection using tscount with interv_covariate (server code unchanged)
   detect_changepoints <- reactive({
+    req(input$delta)
     req(data(), input$age_category, input$data_type, input$cp_method)
+    if( grepl("changepoint", input$cp_method)){ 
+      req(input$cp_penalty)
+    }
+    
     column_name <- paste0(input$data_type, "_", input$age_category)
+    
     if (!column_name %in% names(data())) {
       showNotification("Invalid selection. Column not found.", type = "error")
       return(NULL)
     }
+    
     start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
     time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
     
     if (input$cp_method == "tscount (interv_detect)") {
+      
+      ## put in waiter spinner with message 
+      w <- Waiter$new(
+        html = tagList(
+          spin_fading_circles(),  # built-in spinner from waiter
+          h3("Detecting change points using"), 
+          code("tscount::interv_detect()"),
+          p("This may take a minute or two...")
+        ),
+        color = "rgba(0,0,0,0.5)"  # semi-transparent dark overlay
+      )
+      w$show()
+      ## Your existing tscount code
       regressors <- cbind(linearTrend = seq(along = time_series) / 52)
       fit <- tsglm(ts = time_series,
                    xreg = regressors,
@@ -255,7 +316,6 @@ server <- function(input, output, session) {
       candidate_numeric <- time(time_series)[top_indices]
       candidate_dates <- date_decimal(candidate_numeric)
       
-      # Compute intervention effects for each candidate using interv_covariate()
       effects <- numeric(length(candidate_numeric))
       time_vec <- time(time_series)
       for (i in seq_along(candidate_numeric)) {
@@ -274,7 +334,7 @@ server <- function(input, output, session) {
           effects[i] <- round(100 * (exp(beta) - 1), 5)
         }
       }
-      
+      w$hide()
       return(list(
         method = "tscount",
         cpts_numeric = candidate_numeric,
@@ -286,347 +346,61 @@ server <- function(input, output, session) {
         null_fit = interv_result$fit_H0,
         top_indices = top_indices
       ))
-    } else {
-      return(NULL)
-    }
-  })
-  
-  # (Other server outputs remain unchanged)
-  output$cp_results <- renderPrint({
-    req(data(), input$age_category, input$data_type, input$cp_method)
-    column_name <- paste0(input$data_type, "_", input$age_category)
-    if (!column_name %in% names(data()))
-      return("Invalid selection. Column not found.")
-    
-    cp_result <- detect_changepoints()
-    
-    if (is.null(cp_result)) {
-      return(cat("No change point detection method selected."))
-    } else if (cp_result$method == "tscount") {
-      out_str <- paste0("Top ", input$num_cps, " candidate change points detected by tscount (interv_detect):", br())
-      for (i in 1:length(cp_result$cpts)) {
-        date_str <- format(cp_result$cpts[i], format = "%B %d %Y")
-        score_str <- sub("\\.?0+$", "", sprintf("%.2f", cp_result$sizes[i]))
-        effect_str <- formatC(cp_result$effects[i], digits = 2, format = "g", flag = "#")
-        direction <- ifelse(cp_result$effects[i] < 0, " decrease", " increase")
-        out_str <- paste0(out_str, i, ". ", date_str, " (test statistic: ", score_str, 
-                          ", intervention effect: ", effect_str, "%", direction, ")", br())
+      
+      # inside detect_changepoints(), in the changepoint branch:
+    } else if (grepl("^changepoint", input$cp_method)) {
+      
+      # 1. build the ts
+      y      <- as.numeric(time_series)
+      t      <- time(time_series)
+      
+      # 2. fit & remove global linear trend
+      trend_mod     <- lm(y ~ t)
+      trend_fit     <- as.numeric(fitted(trend_mod))
+      detrended_ts  <- y - trend_fit
+      
+      # 3. run the changepoint detection on the residuals
+      param   <- switch(input$cp_method,
+                        "changepoint (mean and variance)" = "meanvar",
+                        "changepoint (mean only)"          = "mean",
+                        "changepoint (variance only)"      = "variance")
+      cpt_func <- switch(param,
+                         meanvar  = cpt.meanvar,
+                         mean     = cpt.mean,
+                         variance = cpt.var)
+      
+      cpt_result <- cpt_func(detrended_ts,
+                             penalty = input$cp_penalty,
+                             method  = "AMOC",
+                             class   = TRUE)
+      
+      cps_idx     <- cpts(cpt_result)
+      cpts_numeric<- time(time_series)[cps_idx]
+      cpts_dates  <- date_decimal(cpts_numeric)
+      
+      # 4. compute segment means on the *residuals*
+      bounds    <- c(0, cps_idx, length(detrended_ts))
+      seg_means <- numeric(length(detrended_ts))
+      for (i in seq_len(length(bounds)-1)) {
+        idx <- (bounds[i]+1):bounds[i+1]
+        seg_means[idx] <- mean(detrended_ts[idx], na.rm = TRUE)
       }
-      cat(out_str)
+      
+      # 5. reconstruct the full fitted values = trend + segment offsets
+      fitted_vals <- trend_fit + seg_means
+      
+      return(list(
+        method        = "changepoint",
+        cpts_numeric  = cpts_numeric,
+        cpts          = cpts_dates,
+        object        = cpt_result,
+        trend         = trend_fit,
+        seg_means     = seg_means,
+        fitted_values = fitted_vals
+      ))
     }
   })
   
-  output$time_series_plot <- renderPlot({
-    req(data(), input$age_category, input$data_type, input$cp_method)
-    column_name <- paste0(input$data_type, "_", input$age_category)
-    if (!column_name %in% names(data())) {
-      showNotification("Invalid selection. Column not found.", type = "error")
-      return(NULL)
-    }
-    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
-    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
-    decomposition <- stl(time_series, s.window = input$s_window, t.window = input$t_window)
-    
-    cp_result <- detect_changepoints()
-    
-    p <- autoplot(decomposition) +
-      ggtitle(paste0("Seasonal trend decomposition of weekly ", input$data_type, "s of deaths in ",
-                     input$sheet, "\n", ifelse(input$age_category == "Total", "All ages", input$age_category),
-                     ifelse(input$age_category == "Total", "", " years"))) +
-      theme(plot.title = element_text(face = "bold")) +
-      geom_vline(xintercept = c(2021, 2022), linetype = "dotted", size = 1, colour = "purple") +
-      theme_gray(base_size = 14)
-    
-    if (!is.null(cp_result) && cp_result$method %in% c("tscount", "bcp")) {
-      for (i in seq_along(cp_result$cpts_numeric)) {
-        if (i == 1) {
-          col_val <- scales::alpha("red", 1)
-        } else {
-          alpha_val <- max(1 - 0.1 * (i - 1), 0.3)
-          col_val <- scales::alpha("#CA5900", alpha_val)
-        }
-        p <- p + geom_vline(xintercept = cp_result$cpts_numeric[i], 
-                            linetype = "dashed", 
-                            color = col_val,
-                            linewidth = 1)
-      }
-    }
-    print(p)
-  })
-  
-  output$int_plot <- renderPlot({
-    req(data(), input$age_category, input$data_type, input$cp_method)
-    column_name <- paste0(input$data_type, "_", input$age_category)
-    if (!column_name %in% names(data()))
-      return(NULL)
-    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
-    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
-    cp_result <- detect_changepoints()
-    if (!is.null(cp_result)) {
-      plot(cp_result$object)
-    } else {
-      return(NULL)
-    }
-  })
-  
-  output$fit_plot <- renderPlot({
-    req(data(), input$age_category, input$data_type, input$cp_method)
-    column_name <- paste0(input$data_type, "_", input$age_category)
-    if (!column_name %in% names(data()))
-      return(NULL)
-    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
-    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
-    cp_result <- detect_changepoints()
-    if (!is.null(cp_result)) {
-      layout(matrix(c(1,1,2,3,4,5), 3, 2, byrow = TRUE),
-             widths = c(2, 2), heights = rep(5, 3))
-      plot(cp_result$fit$residuals, main = "")
-      hist(cp_result$fit$residuals, main = "")
-      acf(cp_result$fit$residuals, main = "")
-      pacf(cp_result$fit$residuals, main = "")
-      plot(as.vector(cp_result$fit$response), 
-           as.vector(cp_result$fit$fitted.values),
-           xlab = "response", ylab = "fitted")
-      par(mfrow = c(1, 1))
-    } else {
-      return(NULL)
-    }
-  })
-  
-  output$fit_plot_pit <- renderPlot({
-    req(data(), input$age_category, input$data_type, input$cp_method)
-    column_name <- paste0(input$data_type, "_", input$age_category)
-    if (!column_name %in% names(data()))
-      return(NULL)
-    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
-    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
-    cp_result <- detect_changepoints()
-    if (!is.null(cp_result)) {
-      pit(cp_result$fit, ylim = c(0, 1.5), main = "PIT Poisson")
-    } else {
-      return(NULL)
-    }
-  })
-  
-  output$obs_vs_pred <- renderPlot({
-    req(data(), input$age_category, input$data_type, input$cp_method)
-    column_name <- paste0(input$data_type, "_", input$age_category)
-    if (!column_name %in% names(data()))
-      return(NULL)
-    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
-    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
-    cp_result <- detect_changepoints()
-    if (!is.null(cp_result)) {
-      plot(cp_result$fit$response,
-           ylab = "weekly count (deaths)",
-           xlab = "year",
-           main = "Intervention model predictions (blue) vs. observed (black)")
-      lines(cp_result$fit$fitted.values, col = "blue", lty = 3)
-      legend("bottomright", legend = c("observed", "model"),
-             col = c("black", "blue"), lty = c(1, 3), cex = 0.8)
-    } else {
-      return(NULL)
-    }
-  })
-  
-  ## Optimise delta code----
-  # Function to find optimal delta
-  
-  # --- Optimization function without its own withProgress wrapper ---
-  # --- Parallel optimization function ---
-  find_optimal_delta_parallel <- function() {
-    current_data <- isolate(data())
-    current_age <- isolate(input$age_category)
-    current_cp_method <- isolate(input$cp_method)
-    current_data_type <- isolate(input$data_type)
-    
-    if (is.null(current_data) || is.null(current_age) ||
-        is.null(current_cp_method) || is.null(current_data_type)) {
-      showNotification("Missing input values for optimization.", type = "error")
-      return(NULL)
-    }
-    
-    if (current_cp_method != "tscount (interv_detect)") {
-      showNotification("Change point method must be 'tscount (interv_detect)'.", type = "error")
-      return(NULL)
-    }
-    
-    column_name <- paste0(current_data_type, "_", current_age)
-    if (!(column_name %in% names(current_data))) {
-      showNotification("Invalid selection. Column not found.", type = "error")
-      return(NULL)
-    }
-    
-    start_date <- current_data$Year[1] + (current_data$Week[1] - 1) / 52
-    time_series <- ts(round(current_data[[column_name]]), frequency = 52, start = start_date)
-    regressors <- cbind(linearTrend = seq(along = time_series) / 52)
-    
-    delta_values <- seq(0, 1, by = 0.05)
-    
-    results_list <- future_lapply(delta_values, function(delta) {
-      tryCatch({
-        fit <- suppressWarnings(
-          tsglm(ts = time_series,
-                xreg = regressors,
-                model = list(past_obs = c(1, 52)),
-                distr = "nbinom", link = "log",
-                info = "score")
-        )
-        if (is.null(fit)) return(NULL)
-        interv_result <- suppressWarnings(
-          interv_detect(fit, delta = delta, est_interv = TRUE)
-        )
-        if (is.null(interv_result)) return(NULL)
-        if (interv_result$tau_max == 1 || interv_result$tau_max == length(time_series)) {
-          message("Skipping delta ", delta, " because tau_max is at the boundary.")
-          return(NULL)
-        }
-        current_aic <- tryCatch({
-          intervention_indicator <- interv_covariate(n = length(time_series),
-                                                     tau = interv_result$tau_max, 
-                                                     delta = delta)
-          fit_i <- tsglm(ts = time_series,
-                         xreg = cbind(linearTrend = seq(along = time_series) / 52,
-                                      intervention = intervention_indicator),
-                         model = list(past_obs = c(1, 52)),
-                         distr = "nbinom", link = "log",
-                         info = "score")
-          aic_val <- AIC(fit_i)
-          if (!is.finite(aic_val)) NA_real_ else aic_val
-        }, error = function(e) NA_real_)
-        
-        list(delta = delta, aic = current_aic, success = is.finite(current_aic))
-      }, error = function(e) {
-        message("Full procedure failed with delta = ", delta, ": ", e$message)
-        NULL
-      })
-    })
-    
-    valid_list <- lapply(results_list, function(x) {
-      if (!is.null(x)) {
-        data.frame(delta = x$delta, aic = x$aic, success = x$success)
-      } else NULL
-    })
-    results <- do.call(rbind, valid_list)
-    
-    if (is.null(results) || nrow(results) == 0) {
-      showNotification("No valid delta values found. Using default delta = 0.8", type = "warning")
-      return(list(best_delta = 0.8, best_aic = NA_real_))
-    }
-    
-    best_idx <- which.min(results$aic)
-    best_delta <- results$delta[best_idx]
-    best_aic <- results$aic[best_idx]
-    
-    message(paste("Optimal delta:", best_delta, "with AIC:", best_aic))
-    return(list(best_delta = best_delta, best_aic = best_aic))
-  }
-  
-  
-  # --- Observer for the Optimize Intervention button ---
-  # Create a reactive value to store the optimization result
-  # Create a reactive value to store the optimization result
-  # --- Optimization observer with waiter spinner ---
-  rv_optim <- reactiveVal(NULL)
-  
-  observeEvent(input$optimize_delta, {
-    if (input$cp_method == "None") {
-      showNotification(
-        "Please set Change Point Detection to 'tscount (interv_detect)' before optimizing intervention. Then click Optimize Intervention again.",
-        type = "error",
-        duration = 10
-      )
-      return()
-    }
-    
-    localSession <- session
-    
-    # Create a Waiter overlay with a spinner and text.
-    w <- Waiter$new(
-      html = tagList(
-        spin_fading_circles(),  # built-in spinner from waiter
-        h3("Optimizing...")
-      ),
-      color = "rgba(0,0,0,0.5)"  # semi-transparent dark overlay
-    )
-    w$show()
-    
-    # (Optional) Show an additional notification.
-    progress_notif <- showNotification(
-      "Optimizing intervention parameters...", 
-      duration = NULL,
-      closeButton = FALSE
-    )
-    
-    if (input$cp_method != "tscount (interv_detect)") {
-      updateSelectInput(localSession, "cp_method", selected = "tscount (interv_detect)")
-    }
-    updateSliderInput(localSession, "num_cps", value = 1)
-    
-    session$onFlushed(function() {
-      future({
-        find_optimal_delta_parallel()
-      }, seed = TRUE) %...>% (function(res) {
-        rv_optim(res)
-        removeNotification(progress_notif)
-        w$hide()
-      }) %...!% (function(err) {
-        isolate({
-          showNotification(
-            paste("Optimization error:", conditionMessage(err)),
-            type = "error"
-          )
-        })
-        removeNotification(progress_notif)
-        w$hide()
-      })
-    }, once = TRUE)
-  })
-  
-  # When the optimization result is available, update the delta slider and show notifications.
-  observeEvent(rv_optim(), {
-    res <- rv_optim()
-    if (!is.null(res)) {
-      updateSliderInput(session, "delta", value = round(res$best_delta, 2))
-      if (!is.na(res$best_aic)) {
-        showNotification(
-          paste("Optimal delta found:", round(res$best_delta, 2), "\nAIC:", round(res$best_aic, 2)),
-          type = "message",
-          duration = 10
-        )
-      } else {
-        showNotification(
-          paste("Using delta:", round(res$best_delta, 2)),
-          type = "warning",
-          duration = 10
-        )
-      }
-    }
-  })
-  
-  output$half_life_info <- renderUI({
-    req(input$delta)
-    
-    # Calculate half-life (in weeks) based on delta
-    # The formula is: half_life = log(0.5)/log(delta)
-    # But we need to handle edge cases:
-    if (input$delta == 0) {
-      half_life <- "instantaneous (spike)"
-    } else if (input$delta == 1) {
-      half_life <- "permanent (step change)"
-    } else if (input$delta > 0 && input$delta < 1) {
-      half_life_weeks <- round(log(0.5)/log(input$delta), 1)
-      half_life <- paste( half_life_weeks, "weeks")
-    } else {
-      half_life <- "undefined"
-    }
-    
-    # Create the display text
-    tags$div(
-      tags$span("Intervention half-life: "),
-      tags$span(half_life, style = "font-weight: normal;")
-    )
-  })
   
   # Add this to your server function:
   output$interventionPlot <- renderPlot({
@@ -676,6 +450,519 @@ server <- function(input, output, session) {
     })
   })
   
+  
+  
+  
+  
+  
+  # (Other server outputs remain unchanged)
+  output$cp_results <- renderUI({
+    cp <- detect_changepoints()
+    if (is.null(cp)) {
+      return(HTML("<p><em>No change point detection method selected.</em></p>"))
+    }
+    
+    lines <- list()
+    
+    if (cp$method == "tscount") {
+      # 1) header & list of top change points
+      lines[[1]] <- sprintf(
+        "<p><strong>Top %d candidate change points detected by <code>tscount::interv_detect()</code>:</strong></p>",
+        input$num_cps
+      )
+      for (i in seq_along(cp$cpts)) {
+        date    <- format(cp$cpts[i], "%B %d, %Y")
+        tau     <- cp$sizes[i]
+        eff     <- cp$effects[i]
+        dir_txt <- if (eff < 0) " decrease" else " increase"
+        lines[[i+1]] <- sprintf(
+          "<p>%d. %s — test statistic: %.2f, intervention effect: %.2f%%%s</p>",
+          i, date, tau, abs(eff), dir_txt
+        )
+      }
+      
+      # 2) compute cumulative % increase over 0–20 weeks
+      effect_0 <- cp$effects[1]      # top_indices[1] == tau_max
+      delta    <- input$delta
+      n_weeks  <- 20
+      cum_pct  <- round( effect_0 * (1 - delta^(n_weeks+1)) / (1 - delta), 2 )
+      
+      # 3) get baseline from null model at the detected week
+      tau_idx      <- cp$object$tau_max
+      baseline_val <- cp$null_fit$fitted.values[tau_idx]
+      
+      # 4) estimate extra deaths
+      extra_deaths <- round( baseline_val * cum_pct/100 )
+      
+      # 5) append those two lines
+      lines[[ length(lines)+1 ]] <- sprintf(
+        "<p><strong>For the first change point, the cumulative effect over 0–%d weeks
+        \n (assuming all deaths occurred in one week):</strong> %s%%</p>",
+        n_weeks, cum_pct
+      )
+      lines[[ length(lines)+1 ]] <- sprintf(
+        "<p><strong>Estimated extra deaths at week %s (baseline = %.0f):</strong> %d</p>",
+        format(cp$cpts[1], "%B %d, %Y"), baseline_val, extra_deaths
+      )
+    # changepoint package branch
+    } else if (cp$method == "changepoint") {
+      lines[[1]] <- "<p><strong>Detected change points (changepoint package):</strong></p>"
+      # rebuild the raw series to compute before/after means
+      col_name <- paste0(input$data_type, "_", input$age_category)
+      ts       <- ts(data()[[col_name]],
+                     frequency = 52,
+                     start     = data()$Year[1] + (data()$Week[1]-1)/52)
+      vals     <- as.numeric(ts)
+      cps_idx      <- cpts(cp$object)
+      
+      
+      for (i in seq_along(cps_idx)) {
+        tau <- cps_idx[i]
+        if (tau <= 1 || tau >= length(vals)) {
+          pct_txt <- "NA"
+        } else {
+          before  <- mean(vals[1:tau], na.rm = TRUE)
+          after   <- mean(vals[(tau+1):length(vals)], na.rm = TRUE)
+          pct     <- ((after - before)/before) * 100
+          pct_txt <- sprintf("%.2f%% %s",
+                             abs(pct),
+                             if (pct < 0) "decrease" else "increase")
+        }
+        date_str <- format(date_decimal(time(ts)[tau]), "%B %d, %Y")
+        lines[[i+1]] <- sprintf(
+          "<p>%d. %s — %s</p>",
+          i, date_str, pct_txt
+        )
+      }
+    }
+    
+    HTML(paste0(lines, collapse=""))
+    
+  })
+  
+  output$time_series_plot <- renderPlot({
+    req(data(), input$age_category, input$data_type, input$cp_method)
+    column_name <- paste0(input$data_type, "_", input$age_category)
+    
+    if (!column_name %in% names(data())) {
+      showNotification("Invalid selection. Column not found.", type = "error")
+      return(NULL)
+    }
+    
+    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
+    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
+    decomposition <- stl(time_series, s.window = input$s_window, t.window = input$t_window)
+    
+    cp_result <- detect_changepoints()
+    
+    p <- autoplot(decomposition) +
+      ggtitle(paste0("Seasonal trend decomposition of weekly ", input$data_type, "s of deaths in ",
+                     input$sheet, "\n", ifelse(input$age_category == "Total", "All ages", input$age_category),
+                     ifelse(input$age_category == "Total", "", " years"))) +
+      theme(plot.title = element_text(face = "bold")) +
+      geom_vline(xintercept = c(2021, 2022), linetype = "dotted", size = 1, colour = "purple") +
+      theme_gray(base_size = 14)
+    
+    # -------- NEW / FIXED
+    if (!is.null(cp_result) && cp_result$method %in% c("tscount", "changepoint", "bcp")) {
+      for (i in seq_along(cp_result$cpts_numeric)) {
+        if (i == 1) {
+          col_val <- scales::alpha("red", 1)
+        } else {
+          alpha_val <- max(1 - 0.1 * (i - 1), 0.3)
+          col_val <- scales::alpha("#CA5900", alpha_val)
+        }
+        p <- p + geom_vline(xintercept = cp_result$cpts_numeric[i], 
+                            linetype = "dashed", 
+                            color = col_val,
+                            linewidth = 1)
+      }
+    }
+    
+    print(p)
+  })
+  
+  output$int_plot <- renderPlot({
+    req(input$cp_method == "tscount (interv_detect)")
+    
+    # 1. pull in your CP result and original ts
+    cp   <- detect_changepoints()
+    col  <- paste0(input$data_type, "_", input$age_category)
+    ts   <- ts(
+      data()[[col]],
+      frequency = 52,
+      start     = data()$Year[1] + (data()$Week[1] - 1)/52
+    )
+    
+    # 2. extract stats and align the time vector
+    stats <- as.vector(cp$object$test_statistic_tau)
+    times <- time(ts)[ seq_along(stats) ]  # drop that extra element
+    
+    # 3. build a well-formed data.frame
+    df_plot <- data.frame(
+      Time     = times,
+      TestStat = stats
+    )
+    
+    # 4. plot
+    ggplot(df_plot, aes(x = Time, y = TestStat)) +
+      geom_line() +
+      labs(
+        title = "Intervention Test Statistics",
+        x     = "Time",
+        y     = "Test statistic (τ)"
+      ) +
+      theme_minimal() +
+      geom_vline(
+        xintercept = cp$cpts_numeric,
+        linetype   = "dashed",
+        color      = "red"
+      )
+  })
+  
+  output$fit_plot <- renderPlot({
+    req(data(), input$age_category, input$data_type, 
+        input$cp_method == "tscount (interv_detect)")
+    column_name <- paste0(input$data_type, "_", input$age_category)
+    if (!column_name %in% names(data()))
+      return(NULL)
+    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
+    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
+    cp_result <- detect_changepoints()
+    if (!is.null(cp_result)) {
+      layout(matrix(c(1,1,2,3,4,5), 3, 2, byrow = TRUE),
+             widths = c(2, 2), heights = rep(5, 3))
+      plot(cp_result$fit$residuals, main = "")
+      hist(cp_result$fit$residuals, main = "")
+      acf(cp_result$fit$residuals, main = "")
+      pacf(cp_result$fit$residuals, main = "")
+      plot(as.vector(cp_result$fit$response), 
+           as.vector(cp_result$fit$fitted.values),
+           xlab = "response", ylab = "fitted")
+      par(mfrow = c(1, 1))
+    } else {
+      return(NULL)
+    }
+  })
+  
+  output$fit_plot_pit <- renderPlot({
+    req(data(), input$age_category, input$data_type,
+        input$cp_method == "tscount (interv_detect)")
+    column_name <- paste0(input$data_type, "_", input$age_category)
+    if (!column_name %in% names(data()))
+      return(NULL)
+    start_date <- data()$Year[1] + (data()$Week[1] - 1) / 52
+    time_series <- ts(data()[[column_name]], frequency = 52, start = start_date)
+    cp_result <- detect_changepoints()
+    if (!is.null(cp_result)) {
+      pit(cp_result$fit, ylim = c(0, 1.5), main = "PIT Poisson")
+    } else {
+      return(NULL)
+    }
+  })
+  
+  output$obs_vs_pred <- renderPlot({
+    cp <- detect_changepoints()
+    req(cp)
+    
+    # rebuild the original time series
+    col_name  <- paste0(input$data_type, "_", input$age_category)
+    ts_series <- ts(
+      data()[[col_name]],
+      frequency = 52,
+      start     = data()$Year[1] + (data()$Week[1] - 1)/52
+    )
+    time_pts  <- time(ts_series)
+    obs_vals  <- as.numeric(ts_series)
+    
+    # pick up the right fitted values
+    fitted_vals <- switch(
+      cp$method,
+      tscount     = as.numeric(cp$fit$fitted.values),
+      changepoint = cp$fitted_values
+    )
+    
+    # build a single data frame
+    df <- data.frame(
+      Time     = time_pts,
+      Observed = obs_vals,
+      Fitted   = fitted_vals
+    )
+    
+    # plot them
+    ggplot(df, aes(x = Time)) +
+      geom_line(aes(y = Observed, color = "Observed")) +
+      geom_line(aes(y = Fitted,   color = "Fitted"), linetype = "dashed") +
+      scale_color_manual(NULL,
+                         values = c(Observed = "black", Fitted = "blue")
+      ) +
+      labs(
+        title = paste0(
+          if (cp$method=="tscount") "tscount model: " else "changepoint+trend model: ",
+          "Observed vs Fitted"
+        ),
+        x     = "Year",
+        y     = "Weekly count (deaths)"
+      ) +
+      theme_minimal(base_size = 14)
+  })
+  
+  ## Optimise delta code----
+  # Function to find optimal delta
+  
+  # --- Optimization function without its own withProgress wrapper ---
+  # --- Parallel optimization function ---
+  find_optimal_delta_optimize <- function() {
+    current_data <- isolate(data())
+    current_age <- isolate(input$age_category)
+    current_cp_method <- isolate(input$cp_method)
+    current_data_type <- isolate(input$data_type)
+    
+    if (is.null(current_data) || is.null(current_age) ||
+        is.null(current_cp_method) || is.null(current_data_type)) {
+      showNotification("Missing input values for optimization.", type = "error")
+      return(NULL)
+    }
+    
+    if (current_cp_method != "tscount (interv_detect)") {
+      showNotification("Change point method must be 'tscount (interv_detect)'.", type = "error")
+      return(NULL)
+    }
+    
+    column_name <- paste0(current_data_type, "_", current_age)
+    if (!(column_name %in% names(current_data))) {
+      showNotification("Invalid selection. Column not found.", type = "error")
+      return(NULL)
+    }
+    
+    start_date <- current_data$Year[1] + (current_data$Week[1] - 1) / 52
+    time_series <- ts(round(current_data[[column_name]]), frequency = 52, start = start_date)
+    regressors <- cbind(linearTrend = seq(along = time_series) / 52)
+    
+    # Objective function: AIC as a function of delta
+    objective <- function(delta) {
+      if (delta < 0 || delta > 1) return(Inf)  # outside bounds
+      tryCatch({
+        fit <- suppressWarnings(tsglm(ts = time_series,
+                                      xreg = regressors,
+                                      model = list(past_obs = c(1, 52)),
+                                      distr = "nbinom", link = "log",
+                                      info = "score"))
+        if (is.null(fit)) return(Inf)
+        
+        interv_result <- suppressWarnings(interv_detect(fit, delta = delta, est_interv = TRUE))
+        if (is.null(interv_result)) return(Inf)
+        
+        if (interv_result$tau_max == 1 || interv_result$tau_max == length(time_series)) {
+          return(Inf)  # tau at boundary, bad model
+        }
+        
+        intervention_indicator <- interv_covariate(n = length(time_series), tau = interv_result$tau_max, delta = delta)
+        fit_i <- suppressWarnings(tsglm(ts = time_series,
+                                        xreg = cbind(linearTrend = seq(along = time_series) / 52,
+                                                     intervention = intervention_indicator),
+                                        model = list(past_obs = c(1, 52)),
+                                        distr = "nbinom", link = "log",
+                                        info = "score"))
+        AIC(fit_i)
+      }, error = function(e) Inf)
+    }
+    
+    # Now use optimize to find delta that minimizes AIC
+    res_opt <- optimize(f = objective, lower = 0, upper = 1)
+    
+    best_delta <- res_opt$minimum
+    best_aic <- res_opt$objective
+    
+    message(paste("Optimal delta:", best_delta, "with AIC:", best_aic))
+    
+    return(list(best_delta = best_delta, best_aic = best_aic))
+  }
+  
+  
+  # --- Observer for the Optimize Intervention button ---
+  # Create a reactive value to store the optimization result
+  # Create a reactive value to store the optimization result
+  # --- Optimization observer with waiter spinner ---
+  rv_optim <- reactiveVal(NULL)
+  
+  observeEvent(input$optimize_delta, {
+    if (input$cp_method == "None") {
+      showNotification(
+        "Please set Change Point Detection to 'tscount (interv_detect)' before optimizing intervention. Then click Optimize Intervention again.",
+        type = "error",
+        duration = 10
+      )
+      return()
+    }
+    
+    localSession <- session
+    
+    # Create a Waiter overlay with a spinner and text.
+    w <- Waiter$new(
+      html = tagList(
+        spin_fading_circles(),  # built-in spinner from waiter
+        h3("Optimizing delta function"),
+        p("using Nelder-Mead algorithm (takes a minute or two)...")
+      ),
+      color = "rgba(0,0,0,0.5)"  # semi-transparent dark overlay
+    )
+    w$show()
+    
+    # (Optional) Show an additional notification.
+    progress_notif <- showNotification(
+      "Optimizing intervention parameters...", 
+      duration = NULL,
+      closeButton = FALSE
+    )
+    
+    if (input$cp_method != "tscount (interv_detect)") {
+      updateSelectInput(localSession, "cp_method", selected = "tscount (interv_detect)")
+    }
+    updateSliderInput(localSession, "num_cps", value = 1)
+    
+    session$onFlushed(function() {
+      future({
+        find_optimal_delta_optimize()
+      }, seed = TRUE) %...>% (function(res) {
+        rv_optim(res)
+        removeNotification(progress_notif)
+        w$hide()
+      }) %...!% (function(err) {
+        isolate({
+          showNotification(
+            paste("Optimization error:", conditionMessage(err)),
+            type = "error"
+          )
+        })
+        removeNotification(progress_notif)
+        w$hide()
+      })
+    }, once = TRUE)
+  })
+  
+  # When the optimization result is available, update the delta slider and show notifications.
+  observeEvent(rv_optim(), {
+    res <- rv_optim()
+    if (!is.null(res)) {
+      updateSliderInput(session, "delta", value = round(res$best_delta, 2))
+      if (!is.na(res$best_aic)) {
+        showNotification(
+          paste("Optimal delta found:", round(res$best_delta, 2), "\nAIC:", round(res$best_aic, 2)),
+          type = "message",
+          duration = 10
+        )
+      } else {
+        showNotification(
+          paste("Using delta:", round(res$best_delta, 2)),
+          type = "warning",
+          duration = 10
+        )
+      }
+    }
+  })
+  
+  output$half_life_info <- renderUI({
+    req(input$delta, input$cp_method == "tscount (interv_detect)")
+    
+    # Calculate half-life (in weeks) based on delta
+    # The formula is: half_life = log(0.5)/log(delta)
+    # But we need to handle edge cases:
+    if (input$delta == 0) {
+      half_life <- "instantaneous (spike)"
+    } else if (input$delta == 1) {
+      half_life <- "permanent (step change)"
+    } else if (input$delta > 0 && input$delta < 1) {
+      half_life_weeks <- round(log(0.5)/log(input$delta), 1)
+      half_life <- paste( half_life_weeks, "weeks")
+    } else {
+      half_life <- "undefined"
+    }
+    
+    # Create the display text
+    tags$div(
+      tags$span("Intervention half-life: "),
+      tags$span(half_life, style = "font-weight: normal;")
+    )
+  })
+  
+  # Add this to your server function:
+  output$aic_plot <- renderPlot({
+    req(input$show_aic_plot)  # only run if checkbox ticked
+    req(data(), input$age_category, input$data_type, 
+        input$cp_method == "tscount (interv_detect)")
+    
+    aic_data <- evaluate_aic_over_grid(
+      current_data = data(),
+      current_age = input$age_category,
+      current_cp_method = input$cp_method,
+      current_data_type = input$data_type,
+      n_points = 30
+    )
+    
+    if (is.null(aic_data)) return(NULL)
+    
+    ggplot(aic_data, aes(x = delta, y = AIC)) +
+      geom_line(color = "blue", linewidth = 1.2) +
+      geom_point(color = "blue") +
+      geom_vline(xintercept = aic_data$delta[which.min(aic_data$AIC)], color = "red", linetype = "dashed") +
+      annotate("text", x = aic_data$delta[which.min(aic_data$AIC)], 
+               y = min(aic_data$AIC, na.rm = TRUE),
+               label = paste0("Optimal δ ≈ ", round(aic_data$delta[which.min(aic_data$AIC)], 2)),
+               vjust = -1, color = "red", size = 4) +
+      labs(
+        title = "Model AIC vs. Delta",
+        x = "Delta (Decay Parameter)",
+        y = "AIC (Model Fit)"
+      ) +
+      theme_minimal(base_size = 14)
+  })
+  
+  
+  # Output for AIC vs delta plot
+  output$aic_plot <- renderPlot({
+    req(input$show_aic_plot)
+    req(data(), input$age_category, input$data_type, input$cp_method == "tscount (interv_detect)")
+    
+    # Attach a waiter spinner
+    w <- Waiter$new(
+      html = tagList(
+        spin_fading_circles(),  # built-in spinner from waiter
+        h3("Calculating AIC [model fit] vs. Delta"),
+        p("Illustrates delta selection...")
+      ),
+      color = "rgba(0,0,0,0.5)"  # semi-transparent dark overlay
+    )
+    w$show()
+    
+    # Actual computation
+    aic_data <- evaluate_aic_over_grid(
+      current_data = data(),
+      current_age = input$age_category,
+      current_cp_method = input$cp_method,
+      current_data_type = input$data_type,
+      n_points = 30
+    )
+    
+    w$hide()
+    
+    if (is.null(aic_data)) return(NULL)
+    
+    ggplot(aic_data, aes(x = delta, y = AIC)) +
+      geom_line(color = "blue", linewidth = 1.2) +
+      geom_point(color = "blue") +
+      geom_vline(xintercept = aic_data$delta[which.min(aic_data$AIC)], color = "red", linetype = "dashed") +
+      annotate("text", x = aic_data$delta[which.min(aic_data$AIC)], 
+               y = min(aic_data$AIC, na.rm = TRUE),
+               label = paste0("Optimal δ ≈ ", round(aic_data$delta[which.min(aic_data$AIC)], 2)),
+               vjust = -1, color = "red", size = 4) +
+      labs(
+        title = "Model AIC vs. Delta",
+        x = "Delta (Decay Parameter)",
+        y = "AIC (Model Fit)"
+      ) +
+      theme_minimal(base_size = 14)
+  })
   
   # Add hover tooltip functionality
   output$hover_info <- renderUI({
