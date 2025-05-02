@@ -6,7 +6,6 @@ library(ggplot2)
 library(dplyr)
 library(stringr)
 library(lubridate)
-library(rio)
 library(changepoint)
 library(tscount)
 library(mathjaxr)
@@ -18,11 +17,20 @@ library(shinyjs)
 # install.packages("waiter")
 library(waiter)
 
+
 # Preload the Excel file
-data_path <- "./data/stmf.xlsx"  # Adjust the file path as needed
-all_sheets <- excel_sheets(data_path)
-all_sheets <- all_sheets[-1]
-Country_code <- import("./data/Country.xlsx")
+data_path   <- "./data/stmf.xlsx"
+# pull off all but the first sheet
+all_sheets  <- excel_sheets(data_path)[-1]
+
+# if you just want the country lookup (one sheet)
+Country_code <- read_excel("./data/Country.xlsx", sheet = 1)
+
+# if you later want to read each sheet into a named list:
+sheet_data <- lapply(all_sheets, function(sh) {
+  read_excel(data_path, sheet = sh, skip = 2)
+})
+names(sheet_data) <- all_sheets
 
 
 
@@ -252,11 +260,26 @@ server <- function(input, output, session) {
   # Load selected sheet's data
   data <- reactive({
     req(input$sheet)
-    df <- import(data_path, sheet = Country_code[Country_code$Country == input$sheet, "Code"], skip = 2)
-    names(df)[5:10] <- paste0("count_", gsub("\\..*", "", names(df)[5:10]))
-    names(df)[11:16] <- paste0("rate_", gsub("\\..*", "", names(df)[11:16]))
-    df <- df[df$Sex == "b", ]
-    return(df)
+    
+    # look up the sheet “code” based on the selected country
+    sheet_code <- Country_code$Code[ Country_code$Country == input$sheet ]
+    
+    # read exactly that sheet, skipping the first two rows
+    df <- read_excel(
+      path  = data_path,
+      sheet = sheet_code,
+      skip  = 2,
+      col_names = TRUE
+    )
+    
+    # rename the imported columns just as before
+    names(df)[5:10]  <- paste0("count_", gsub("\\..*", "", names(df)[5:10]))
+    names(df)[11:16] <- paste0("rate_",  gsub("\\..*", "", names(df)[11:16]))
+    
+    # keep only 'both sexes' rows
+    df <- filter(df, Sex == "b")
+    
+    df
   })
   
   # Update age category choices based on data
