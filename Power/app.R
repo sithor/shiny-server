@@ -57,7 +57,7 @@ server <- function(input, output, session) {
     if (input$solve_for != "power") args$power <- input$power
     args[[input$solve_for]] <- NULL
     res <- tryCatch(do.call(power.prop.test, args), error = function(e) e)
-    if (inherits(res, "error")) paste("Error:", res$message) else round(res[[input$solve_for]], 4)
+    if (inherits(res, "error")) cat(paste("Error:", res$message)) else cat(round(res[[input$solve_for]], 2))
   })
   
   output$resultPlot <- renderPlot({
