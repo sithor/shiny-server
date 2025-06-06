@@ -8,6 +8,8 @@ library(graph)
 library(dagitty)
 library(ggplot2)
 library(igraph)
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+if (!requireNamespace("Rgraphviz", quietly = TRUE)) BiocManager::install("Rgraphviz")
 
 # ──────────────────────────────────────────────────────────────────────
 # 1) Load your saved objects from dag.rdata
