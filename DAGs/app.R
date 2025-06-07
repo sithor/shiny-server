@@ -154,15 +154,16 @@ server <- function(input, output, session) {
   # Fit the BN + compile the gRain network once
   fitted         <- bn.fit(dag, data = CD_bn, method = "bayes")
   grain_obj      <- as.grain(fitted)
- compiled_grain <- tryCatch({
-    compile(grain_obj)
-  }, error = function(e) {
-    if (grepl("no applicable method for 'compile'", e$message)) {
-      grain_obj  # assume it's already compiled
-    } else {
-      stop(e)
-    }
-  })
+  compiled_grain <- grain_obj
+# compiled_grain <- tryCatch({
+ #   compile(grain_obj)
+ # }, error = function(e) {
+  #  if (grepl("no applicable method for 'compile'", e$message)) {
+   #   grain_obj  # assume it's already compiled
+    #} else {
+     # stop(e)
+    #}
+  #})
     
   output$posteriorLabels <- renderUI({
     req(grain_obj)
